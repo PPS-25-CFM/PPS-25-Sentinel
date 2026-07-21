@@ -1,0 +1,8 @@
+Product Backlog Item, Sprint Task, Volunteer, Initial Estimate Effort, 1, 2, 3, 4, 5, 6
+PB-01,Definition-of-done,team,1,,,,,,
+PB-01,Sprint Organization,team,1,,,,,,
+PB-02,"Requirment Analisys, producing a class diagram which models the domain",team,3,,,,,,
+PB-02,"Requirment Definition, partitioning them based on their category (functional, non-functional....)",team,2,,,,,,
+PB-02,"Draft a Requirment Specification,  to make requirments more detailed,",team,2,,,,,,
+PB-02,Product Backlog Refinment based on the Requirment Specification,team,2,,,,,,
+PB-03,Draft an initial Architectural Diagram,team,5,,,,,,
