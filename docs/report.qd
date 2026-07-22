@@ -1,5 +1,127 @@
 .doctype {docs}
 
+.docauthors
+  - Cecchini Andrea
+  - Forti Mattia
+  - Marcaccio Leonardo
+
 .theme layout:{latex}
 
-# Project Report
+# Sentinel
+
+## Analisi
+
+### Analisi dei requisiti
+
+<!-- Cosa è sentinel? -->
+**Sentinel** è un sistema di simulazione per la modellazione di _magazzini_ virtuali, eseguibili in diversi _scenari_ operativi.
+Ogni scenario è configurabile e prevede una flotta di _robot_ che competono per svolgere un insieme di _missioni_.
+Al termine di ogni _simulazione_, il sistema produce un _report_ contenente le statistiche sulle prestazioni dello scenario, consentendo il confronto diretto dei risultati ottenuti con configurazioni differenti.
+
+<!-- Che cosa è un magazzino virtuale --> 
+Il **magazzino** virtuale è modellato come una griglia bidimensionale di _celle_, dove ogni cella rappresenta una porzione discreta di spazio.
+Ogni cella appartiene a una delle seguenti tipologie:
+- _Ostacolo_: celle non attraversabili che rappresentano muri perimetrali o strutture fisse.
+- _Scaffale_: cella non attraversabile ma interagibile.I robot possono fermarsi presso di essa per prelevare o depositare merce.
+- _Percorso_: cella libera su cui i robot possono transitare.
+- _Zona di carico_: cella di percorso speciale dedicata alle operazioni di carico e scarico merce.
+
+Ogni cella di percorso ha un _costo_ associato, che rappresenta il tempo necessario per attraversarla.
+
+Il magazzino è suddiviso in più _camere_ (insiemi contigui di celle di percorso, scaffali e zone di carico, delimitate da muri), collegate tra loro da _corridoi_.
+Ogni corridoio è un segmento di celle di percorso che mette in comunicazione due camere.
+Un corridoio può essere:
+- _Bidirezionale_: percorribile in entrambe le direzioni.
+- _Monodirezionale_: percorribile in una sola direzione.
+
+Ogni corridoio ha una _capacità_ massima di robot che possono attraversarlo simultaneamente.
+Quando un corridoio ha raggiunto la sua capienza, i robot devono attendere prima di poterlo imboccare.
+
+<!-- Che cosa è una missione -->
+Una **missione** rappresenta un'attività assegnabile ai robot all'interno del magazzino.
+Ogni missione è definita da:
+- _Tipologia_: una missione può essere di tipo:
+    - _spostamento_: il robot deve recarsi da un punto A a un punto B.
+    - _prelievo_: il robot deve prelevare un oggetto da uno scaffale e trasportarlo a una zona di carico.
+    - _deposito_: il robot deve trasportare un oggetto da una zona di carico a uno scaffale.
+- _Priorità_: un valore numerico, da 1 a 10, che indica l'importanza della missione rispetto alle altre.
+- _Scadenza_: numero di unità temporali di simulazione rimanenti entro cui completare la missione.
+- _Stato_: il ciclo di vita di una missione attraversa questi stati:
+    - _in attesa_ di essere assegnata.
+    - _assegnata_ ad un robot.
+    - _in esecuzione_ da parte del robot.
+    - _completata_ con successo.
+    - _non completata_ entro la scadenza.
+
+<!-- Che cosa è un robot -->
+Un **robot** è un agente mobile autonomo che opera all'interno del magazzino per eseguire missioni. Ogni robot è definito da:
+- _Posizione_: cella del magazzino in cui si trova attualmente.
+- _Capacità di carico_: peso massimo trasportabile, espresso in unità di peso.
+- _Stato_: un robot può trovarsi in uno dei seguenti stati:
+    - _in attesa_ di una nuova missione.
+    - _in movimento_ lungo un percorso.
+
+I robot possono essere dotati di una _coda_ con la quale memorizzare nuove missioni anche mentre ne stanno eseguendo una.
+Al contrario, i robot privi di questa funzione non possono ricevere nuovi compiti finché non completano quello in corso.
+
+<!-- Che cosa è un scenario/configurazione  -->
+Uno **scenario** è una configurazione operativa completa del magazzino e definisce tutti gli elementi necessari per eseguire una simulazione. Ogni scenario specifica:
+
+- l'elenco dei robot presenti, ciascuno con la propria posizione iniziale e capacità di carico;
+- l'insieme delle missioni da completare durante la simulazione.
+- le politiche gestionali che determinano il comportamento del sistema:
+  - assegnazione delle missioni
+  - assegnazione dei percorsi
+  - gestione dei conflitti tra robot
+
+Tra le politiche di assegnazione delle missioni si distinguono:
+- _Vicinanza_: la missione viene assegnata al robot più vicino al punto di origine della missione.
+- _Ciclica_: le missioni vengono assegnate ai robot in ordine ciclico, indipendentemente dalla loro posizione. 
+- _Carico di lavoro_: le missioni vengono assegnate al robot con il minor numero di missioni in coda.
+- _Casuale_: le missioni vengono assegnate ad un robot scelto casualmente tra quelli disponibili.
+
+Per quanto riguarda le politiche di assegnazione dei percorsi, si mettono a disposizione i seguenti algoritmi:
+- _BFS_ (Breadth-First Search): il robot segue il percorso con il minor numero di celle attraversate.
+- _Dijkstra_: il robot segue il percorso con il costo di attraversamento complessivo minimo.
+- _A*_: il robot segue il percorso con il costo minimo, combinando il costo effettivo con una stima euristica della distanza dalla destinazione.
+- _Movimento casuale_: a ogni passo il robot si muove in una direzione casuale tra quelle possibili.
+
+Infine, si distinguono le diverse politiche di gestione dei conflitti tra robot.
+I conflitti si verificano quando due o più robot competono per la stessa cella. Ogni politica di gestione specifica come risolverli, combinando un'azione con un criterio di selezione.
+
+Azioni:
+- Attesa: uno dei robot coinvolti si ferma e attende che l'altro liberi la cella.
+- Ricalcolo: uno dei robot coinvolti ricalcola il proprio percorso trattando la cella di conflitto come un ostacolo temporaneo.
+
+Criteri di selezione: 
+- Casuale: il robot che cede è scelto casualmente.
+- Priorità: cede il robot con priorità più bassa.
+- Tempo rimanente: cede il robot con più tempo rimanente per completare la missione.
+
+<!-- Cosa si intende per Simulazione  -->
+
+Per **simulazione** si intende una particolare esecuzione di uno scenario.
+In genere, una simulazione termina quando tutte le missioni sono state completate.
+È possibile, tuttavia, specificare il limite massimo di tempo, causando l'interruzione prematura dell'esecuzione.
+
+A fine della simulazione, il sistema produce le statistiche sulle prestazioni dello scenario, includendo:
+
+- Numero di _missioni completate_
+- _Tempo totale_
+- _Distanza totale_ percorsa
+- _Tempo medio_ per missione
+- _Distanza media_ per missione
+- Robot _più utilizzato_
+- Robot _meno utilizzato_
+
+#### Modello di dominio
+
+### Definizione dei requisiti
+
+#### Requisiti di business
+
+#### Requisiti funzionali
+
+#### Requisiti non funzionali
+
+### Specifica dei requisiti
