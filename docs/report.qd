@@ -1,24 +1,37 @@
-.doctype {docs}
-
+<!-- Document configuration -->
+.doctype {paged}
+.docname {Sentinel - Report}
 .docauthors
   - Cecchini Andrea
   - Forti Mattia
   - Marcaccio Leonardo
+<!-- Margin content  -->
+.pagemargin {bottomcenter}
+  .currentpage / .totalpages
+.pagemargin {topleft}
+    *.lastheading depth:{1}*
+.pagemargin {topright}
+    *.lastheading depth:{2}*
+<!-- Paragraph style configuration  -->
+.paragraphstyle lineheight:{1.8} spacing:{0} indent:{2}
 
-.theme layout:{latex}
 
-# Sentinel
+<!-- Front Page  -->
+.align {end}
+     #! Sentinel
+.tableofcontents 
 
-## Analisi
+<!-- Chapter: Analisys -->
 
-### Analisi dei requisiti
+.align {end} 
+  # Analisi
 
-<!-- Cosa è sentinel? -->
+## Analisi dei requisiti
+
 **Sentinel** è un sistema di simulazione per la modellazione di _magazzini_ virtuali, eseguibili in diversi _scenari_ operativi.
 Ogni scenario è configurabile e prevede una flotta di _robot_ che competono per svolgere un insieme di _missioni_.
 Al termine di ogni _simulazione_, il sistema produce un _report_ contenente le statistiche sulle prestazioni dello scenario, consentendo il confronto diretto dei risultati ottenuti con configurazioni differenti.
 
-<!-- Che cosa è un magazzino virtuale --> 
 Il **magazzino** virtuale è modellato come una griglia bidimensionale di _celle_, dove ogni cella rappresenta una porzione discreta di spazio.
 Ogni cella appartiene a una delle seguenti tipologie:
 - _Ostacolo_: celle non attraversabili che rappresentano muri perimetrali o strutture fisse.
@@ -37,7 +50,6 @@ Un corridoio può essere:
 Ogni corridoio ha una _capacità_ massima di robot che possono attraversarlo simultaneamente.
 Quando un corridoio ha raggiunto la sua capienza, i robot devono attendere prima di poterlo imboccare.
 
-<!-- Che cosa è una missione -->
 Una **missione** rappresenta un'attività assegnabile ai robot all'interno del magazzino.
 Ogni missione è definita da:
 - _Tipologia_: una missione può essere di tipo:
@@ -53,7 +65,6 @@ Ogni missione è definita da:
     - _completata_ con successo.
     - _non completata_ entro la scadenza.
 
-<!-- Che cosa è un robot -->
 Un **robot** è un agente mobile autonomo che opera all'interno del magazzino per eseguire missioni. Ogni robot è definito da:
 - _Posizione_: cella del magazzino in cui si trova attualmente.
 - _Capacità di carico_: peso massimo trasportabile, espresso in unità di peso.
@@ -64,7 +75,6 @@ Un **robot** è un agente mobile autonomo che opera all'interno del magazzino pe
 I robot possono essere dotati di una _coda_ con la quale memorizzare nuove missioni anche mentre ne stanno eseguendo una.
 Al contrario, i robot privi di questa funzione non possono ricevere nuovi compiti finché non completano quello in corso.
 
-<!-- Che cosa è un scenario/configurazione  -->
 Uno **scenario** è una configurazione operativa completa del magazzino e definisce tutti gli elementi necessari per eseguire una simulazione. Ogni scenario specifica:
 
 - l'elenco dei robot presenti, ciascuno con la propria posizione iniziale e capacità di carico;
@@ -98,8 +108,6 @@ Criteri di selezione:
 - Priorità: cede il robot con priorità più bassa.
 - Tempo rimanente: cede il robot con più tempo rimanente per completare la missione.
 
-<!-- Cosa si intende per Simulazione  -->
-
 Per **simulazione** si intende una particolare esecuzione di uno scenario.
 In genere, una simulazione termina quando tutte le missioni sono state completate.
 È possibile, tuttavia, specificare il limite massimo di tempo, causando l'interruzione prematura dell'esecuzione.
@@ -114,14 +122,16 @@ A fine della simulazione, il sistema produce le statistiche sulle prestazioni de
 - Robot _più utilizzato_
 - Robot _meno utilizzato_
 
-#### Modello di dominio
+### Modello di dominio
 
-### Definizione dei requisiti
+.pagebreak 
 
-#### Requisiti di business
+## Definizione dei requisiti
 
-#### Requisiti funzionali
+### Requisiti di business
 
-#### Requisiti non funzionali
+### Requisiti funzionali
 
-### Specifica dei requisiti
+### Requisiti non funzionali
+
+## Specifica dei requisiti
