@@ -1,9 +1,6 @@
 package it.unibo.sentinel.core.robot
 
-opaque type MissionId = String
-
-object MissionId:
-  def apply(id: String): MissionId = id
+import it.unibo.sentinel.core.mission.MissionId
 
 /** Abstracts the concept of a robot, which is an entity capable of accepting
   * and executing missions while moving through the [[Warehouse]]

@@ -1,11 +1,12 @@
 package it.unibo.sentinel.core.robot
 
 import it.unibo.sentinel.UnitTest
+import it.unibo.sentinel.core.mission.MissionId
 
 class RobotSpec extends UnitTest:
 
-  val m1: MissionId = MissionId("M1")
-  val m2: MissionId = MissionId("M2")
+  val m1 = MissionId("M1")
+  val m2 = MissionId("M2")
 
   "A simple robot" when:
     val id: RobotId = RobotId("R1")

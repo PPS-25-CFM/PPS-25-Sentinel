@@ -2,11 +2,13 @@ package it.unibo.sentinel.core.mission
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.*
+import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.robot.RobotId
 
 class MissionSpec extends UnitTest:
 
-  val missionID = MissionID("M1")
-  val target: Position = (1, 1)
+  val missionID = MissionId("M1")
+  val target = Position(1, 1)
   val task: Task = Task.Move(target)
   val duration: Ticks = 10
   val mission = Mission(missionID, task, duration)
@@ -31,8 +33,8 @@ class MissionSpec extends UnitTest:
         mission.duration shouldBe duration
 
     "managing the assignment to a Robot" should:
-      val robotID: RobotID = "R1"
-      val replacer: RobotID = "R2"
+      val robotID = RobotId("R1")
+      val replacer = RobotId("R2")
 
       "set the carrier" in:
         mission.assignTo(robotID).carrier shouldBe Some(robotID)
@@ -46,7 +48,7 @@ class MissionSpec extends UnitTest:
         assigned.assignTo(replacer) shouldBe assigned
 
     "managing the unassignment off a Robot" should:
-      val robotID: RobotID = "R1"
+      val robotID = RobotId("R1")
       val assigned = mission.assignTo(robotID)
 
       "unset the carrier" in:
@@ -80,6 +82,6 @@ class MissionSpec extends UnitTest:
         next.duration shouldBe duration - 1
 
       "expire if it reaches 0" in:
-        val expired = Mission(MissionID("Expired"), task, 1).proceed
+        val expired = Mission(MissionId("Expired"), task, 1).proceed
 
         expired.status shouldBe MissionStatus.Failed

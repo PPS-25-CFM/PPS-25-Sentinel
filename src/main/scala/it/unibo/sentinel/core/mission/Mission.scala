@@ -1,17 +1,14 @@
 package it.unibo.sentinel.core.mission
 
-opaque type MissionID = String
+import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.robot.RobotId
 
-object MissionID:
-  def apply(value: String): MissionID = value
+opaque type MissionId = String
 
-  extension (id: MissionID) def value: String = id
+object MissionId:
+  def apply(value: String): MissionId = value
 
-// TODO: Update when Robot will be introduced
-type RobotID = String
-
-// TODO: Update when the concept of Position will be introduced
-type Position = (Int, Int)
+  extension (id: MissionId) def value: String = id
 
 // TODO: Update when the concept of Tick will be introduced
 type Ticks = Int
@@ -35,10 +32,10 @@ enum Task:
     case _ => None
 
 case class Mission private (
-    id: MissionID,
+    id: MissionId,
     task: Task,
     duration: Ticks,
-    carrier: Option[RobotID]
+    carrier: Option[RobotId]
 ):
   import MissionStatus.*
 
@@ -54,7 +51,7 @@ case class Mission private (
     else if carrier.isDefined then Assigned
     else Pending
 
-  def assignTo(robotID: RobotID): Mission =
+  def assignTo(robotID: RobotId): Mission =
     if isPending then copy(carrier = Some(robotID)) else this
 
   def unassign: Mission =
@@ -73,7 +70,7 @@ case class Mission private (
 
 object Mission:
   def apply(
-      id: MissionID,
+      id: MissionId,
       task: Task,
       duration: Ticks
   ): Mission = new Mission(id, task, duration, None)
