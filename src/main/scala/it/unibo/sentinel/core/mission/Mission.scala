@@ -1,35 +1,9 @@
 package it.unibo.sentinel.core.mission
 
-import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.robot.RobotId
-
-opaque type MissionId = String
-
-object MissionId:
-  def apply(value: String): MissionId = value
-
-  extension (id: MissionId) def value: String = id
 
 // TODO: Update when the concept of Tick will be introduced
 type Ticks = Int
-
-enum MissionStatus:
-  case Pending
-  case Assigned
-  case Completed
-  case Failed
-
-enum Task:
-  case Done
-  case Fail
-  case Move(at: Position)
-
-  def isDone: Boolean = this == Task.Done
-  def isFail: Boolean = this == Task.Fail
-
-  def where: Option[Position] = this match
-    case Move(at) => Some(at)
-    case _ => None
 
 case class Mission private (
     id: MissionId,
