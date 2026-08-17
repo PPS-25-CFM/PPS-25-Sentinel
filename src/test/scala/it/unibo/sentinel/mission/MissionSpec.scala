@@ -6,7 +6,8 @@ import it.unibo.sentinel.core.mission.*
 class MissionSpec extends UnitTest:
 
   val missionID = MissionID("M1")
-  val mission = Mission(missionID)
+  val target = (1, 1)
+  val mission = Mission(missionID, target)
 
   "A Mission" when:
 
@@ -20,4 +21,7 @@ class MissionSpec extends UnitTest:
       
       "be Pending" in:
         mission.status shouldBe MissionStatus.Pending
+
+      "have a Destination" in:
+        mission.destination shouldBe target
 

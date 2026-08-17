@@ -13,12 +13,16 @@ object MissionID:
 // TODO: Update when Robot will be introduced
 type RobotID = String
 
+// TODO: Update when the concept of Position will be introduced
+type Position = (Int, Int)
+
 enum MissionStatus:
   case Pending
   case Assigned
 
-case class Mission(
+case class Mission private(
   id: MissionID,
+  destination: Position,
   carrier: Option[RobotID]
 ):
   def status: MissionStatus =
@@ -26,8 +30,8 @@ case class Mission(
       case Some(_) => MissionStatus.Assigned
       case _ => MissionStatus.Pending
     
-  
 object Mission:
   def apply(
-    id: MissionID
-  ): Mission = new Mission(id, None)
+    id: MissionID,
+    position: Position
+  ): Mission = new Mission(id, position, None)
