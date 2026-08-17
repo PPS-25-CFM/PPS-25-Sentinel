@@ -5,7 +5,9 @@ opaque type MissionId = String
 object MissionId:
   def apply(id: String): MissionId = id
 
-/** */
+/** Abstracts the concept of a robot, which is an entity capable of accepting
+  * and executing missions while moving through the [[Warehouse]]
+  */
 trait Robot:
 
   /** @return
@@ -44,8 +46,15 @@ trait Robot:
   def dropMission: Unit
 
 object Robot:
+  /** @param id
+    *   the robot's identifier
+    * @return
+    *   a new robot with the given id, no missions and idle status
+    */
   def apply(id: RobotId): Robot = new SimpleRobot(id)
 
+  /** Implementation of a [[Robot]] that can accept one mission
+    */
   private class SimpleRobot(val id: RobotId) extends Robot:
     private var _mission: Option[MissionId] = None
     private var _status: RobotStatus = RobotStatus.Idle
