@@ -1,7 +1,7 @@
 Product Backlog Item, Sprint Task, Volunteer, Initial Estimate Effort, 1, 2, 3, 4, 5, 6
 PB-04,Define `Warehouse` core domain entity to support a basic warehouse with no obstacles and loading zones,Andrea,5,"","","","","",""
 PB-04,Define `Scenario` core domain entity to configure an empty warehouse with no robot/mission,"",5,"","","","","",""
-PB-05,Define  `Robot` core domain entity,Mattia,3,"","","","","",""
+PB-05,Define  `Robot` core domain entity,Mattia,3,"DONE","-","-","-","-","-"
 PB-05,Update `Scenario` to add robot in the environment,"",3,"","","","","",""
 PB-06,Define `Mission` core domain entity and support movement mission type,Leonardo,3,"","","","","",""
 PB-06,Update `Scenario` to add a mission in the environment,"",3,"","","","","",""
