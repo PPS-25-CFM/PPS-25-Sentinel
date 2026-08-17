@@ -13,9 +13,16 @@ trait Robot:
     */
   def mission: Option[MissionId]
 
+  /** @return
+    *   the robot's current operational status
+    */
+  def status: RobotStatus
+
 object Robot:
   def apply(robotId: RobotId): Robot = new Robot:
 
     override def id: RobotId = robotId
 
     override def mission: Option[MissionId] = None
+
+    override def status: RobotStatus = RobotStatus.Idle
