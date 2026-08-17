@@ -2,10 +2,16 @@ package it.unibo.sentinel.core.warehouse
 
 import scala.annotation.internal.requiresCapability
 
-/** */
-trait Tile
+/** Represents a tile in the warehouse.
+  */
+sealed trait Tile
+object Tile:
+  /** Represents a floor tile.
+    */
+  case class Floor() extends Tile
 
-/** */
+/** Abstracts the static structure of a warehouse, which is model as a grid.
+  */
 trait Warehouse:
   /** @return
     *   the width of the warehouse.
@@ -34,7 +40,16 @@ trait Warehouse:
     * @return
     *   an [[Option]] containing the tile at the given position, if any.
     */
-  def tileAt(position: Position): Option[Tile] = None
+  def tileAt(position: Position): Option[Tile]
+
+  /** @param position
+    *   the position of the tile to add.
+    * @param tile
+    *   the tile to add.
+    * @return
+    *   a new warehouse with the given tile at the given position.
+    */
+  def withTile(position: Position)(tile: Tile): Warehouse
 
 object Warehouse:
   /** @param width
@@ -53,5 +68,11 @@ object Warehouse:
       height: Int,
       layout: Map[Position, Tile]
   ) extends Warehouse:
+
     override def inBound(position: Position): Boolean = position match
       case Position(x, y) => x >= 0 && x < width && y >= 0 && y < height
+
+    override def tileAt(position: Position): Option[Tile] = layout.get(position)
+
+    override def withTile(position: Position)(tile: Tile): Warehouse =
+      copy(layout = layout + (position -> tile))

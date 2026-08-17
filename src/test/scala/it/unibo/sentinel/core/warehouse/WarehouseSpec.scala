@@ -45,3 +45,9 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
       "consider out of bound every position outside the grid" in:
         forAll(outerPositions):
           w0.inBound(_) shouldBe false
+
+    "a tile is added" should:
+      "expose that tile at the given position" in:
+        val position = Position(1, 1)
+        val w1 = w0.withTile(position)(Tile.Floor())
+        w1.tileAt(position) shouldBe Some(Tile.Floor())
