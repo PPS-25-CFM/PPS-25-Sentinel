@@ -43,7 +43,15 @@ class RobotSpec extends UnitTest:
 
       "be ready to start the mission" in:
         withMission.status shouldBe RobotStatus.Ready
-      
+
       "start the mission" in:
         withMission.startMission
         withMission.status shouldBe RobotStatus.Moving
+
+    "dropping the mission" should:
+      val dropped: Robot = Robot(id)
+      dropped.accept("M1")
+      dropped.dropMission
+
+      "return to idle" in:
+        dropped.status shouldBe RobotStatus.Idle

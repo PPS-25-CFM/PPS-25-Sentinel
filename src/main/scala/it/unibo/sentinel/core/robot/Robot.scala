@@ -31,6 +31,10 @@ trait Robot:
     */
   def startMission: Unit
 
+  /** Interrupts and removes the mission
+    */
+  def dropMission: Unit
+
 object Robot:
   def apply(id: RobotId): Robot = new SimpleRobot(id)
 
@@ -51,3 +55,6 @@ object Robot:
 
     override def startMission: Unit =
       _status = RobotStatus.Moving
+
+    override def dropMission: Unit =
+      _status = RobotStatus.Idle
