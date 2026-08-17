@@ -22,13 +22,23 @@ trait Robot:
     */
   def canAccept: Boolean
 
+  /** Accepts a new mission
+    * 
+    * @param missionId the mission's id
+    */
+  def accept(missionId: MissionId): Unit
+
 object Robot:
-  def apply(robotId: RobotId): Robot = new Robot:
+  def apply(id: RobotId): Robot = new SimpleRobot(id)
+  
+  private class SimpleRobot(val id: RobotId) extends Robot:
+    private var _mission: Option[MissionId] = None
 
-    override def id: RobotId = robotId
-
-    override def mission: Option[MissionId] = None
+    override def mission: Option[MissionId] = _mission
 
     override def status: RobotStatus = RobotStatus.Idle
 
     override def canAccept: Boolean = true
+
+    override def accept(missionId: MissionId): Unit =
+      _mission = Some(missionId)
