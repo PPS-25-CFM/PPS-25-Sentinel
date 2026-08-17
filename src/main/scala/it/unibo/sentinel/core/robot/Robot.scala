@@ -1,6 +1,9 @@
 package it.unibo.sentinel.core.robot
 
-type MissionId = String
+opaque type MissionId = String
+
+object MissionId:
+  def apply(id: String): MissionId = id
 
 /** */
 trait Robot:

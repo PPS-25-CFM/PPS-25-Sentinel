@@ -4,6 +4,9 @@ import it.unibo.sentinel.UnitTest
 
 class RobotSpec extends UnitTest:
 
+  val m1: MissionId = MissionId("M1")
+  val m2: MissionId = MissionId("M2")
+
   "A simple robot" when:
     val id: RobotId = RobotId("R1")
     val simple: Robot = Robot(id)
@@ -25,21 +28,19 @@ class RobotSpec extends UnitTest:
         simple.canAccept shouldBe true
 
       "accept a mission" in:
-        val missionId: MissionId = "M1"
-        simple.accept(missionId)
-        simple.mission shouldBe Some(missionId)
+        simple.accept(m1)
+        simple.mission shouldBe Some(m1)
 
     "has a mission" should:
       val withMission: Robot = Robot(id)
-      withMission.accept("M1")
+      withMission.accept(m1)
 
       "not be able to accept a mission" in:
         withMission.canAccept shouldBe false
 
       "not accept a mission" in:
-        val missionId: MissionId = "M2"
-        withMission.accept(missionId)
-        withMission.mission should not be Some(missionId)
+        withMission.accept(m2)
+        withMission.mission should not be Some(m2)
 
       "be ready to start the mission" in:
         withMission.status shouldBe RobotStatus.Ready
@@ -50,7 +51,7 @@ class RobotSpec extends UnitTest:
 
     "dropping the mission" should:
       val dropped: Robot = Robot(id)
-      dropped.accept("M1")
+      dropped.accept(m1)
       dropped.dropMission
 
       "return to idle" in:
