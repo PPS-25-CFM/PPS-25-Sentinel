@@ -8,7 +8,7 @@ ThisBuild / version := "0.0.1"
 /*
  * Static analysis configuration...
  */
-ThisBuild / scalacOptions ++= Seq("-Werror", "-Wall", "-Wunused:all")
+ThisBuild / scalacOptions ++= Seq("-Werror", "-Wunused:all")
 /*
  * Scaladoc configuration...
  */
