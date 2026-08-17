@@ -109,3 +109,13 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
 
       "answer negatively on an empty position" in:
         w0.isTraversable(Position(0, 0)) shouldBe false
+
+    "asked for the traversable neighbors of a position" should:
+
+      "return only the neighbors holding a floor tile" in:
+        val p1 = Position(1, 1)
+        val p2 = Position(2, 2)
+        val area = Area(p1, p2)
+        val w1 = w0.withArea(area)(Tile.Floor())
+        w1.traversableNeighbors(p2) should contain theSameElementsAs
+          Seq(Position(2, 1), Position(1, 2))

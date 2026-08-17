@@ -127,6 +127,11 @@ trait Warehouse:
   def neighbors(position: Position)(using strategy: Adjacency): Seq[Position] =
     strategy.around(position).filter(inBound)
 
+  def traversableNeighbors(position: Position)(using
+      strategy: Adjacency
+  ): Seq[Position] =
+    neighbors(position).filter(isTraversable)
+
 object Warehouse:
   /** @param width
     *   the width of the warehouse.
