@@ -38,7 +38,7 @@ object Robot:
 
     override def status: RobotStatus = RobotStatus.Idle
 
-    override def canAccept: Boolean = true
+    override def canAccept: Boolean = mission.isEmpty
 
     override def accept(missionId: MissionId): Unit =
       _mission = Some(missionId)

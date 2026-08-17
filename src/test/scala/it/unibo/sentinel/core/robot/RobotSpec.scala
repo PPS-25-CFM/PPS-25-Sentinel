@@ -28,3 +28,8 @@ class RobotSpec extends UnitTest:
         val missionId: MissionId = "M1"
         simple.accept(missionId)
         simple.mission shouldBe Some(missionId)
+
+    "has a mission" should:
+
+      "not be able to accept a mission" in:
+        simple.canAccept shouldBe false
