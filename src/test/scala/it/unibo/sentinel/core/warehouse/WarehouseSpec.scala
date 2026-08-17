@@ -19,3 +19,6 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
       "keep the requested dimensions" in:
         w0.width shouldBe width
         w0.height shouldBe height
+
+      "have a size equal to width * height" in:
+        w0.size shouldBe width * height

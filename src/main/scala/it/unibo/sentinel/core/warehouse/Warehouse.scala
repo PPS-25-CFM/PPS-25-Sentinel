@@ -14,6 +14,11 @@ trait Warehouse:
     */
   def height: Int
 
+  /** @return
+    *   the size of the warehouse.
+    */
+  def size: Int = width * height
+
 object Warehouse:
   /** @param width
     *   the width of the warehouse.
@@ -27,3 +32,4 @@ object Warehouse:
     new Warehouse:
       override def width: Int = w
       override def height: Int = h
+      override def size: Int = w * h
