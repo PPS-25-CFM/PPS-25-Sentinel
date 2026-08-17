@@ -57,4 +57,5 @@ object Robot:
       _status = RobotStatus.Moving
 
     override def dropMission: Unit =
+      _mission = None
       _status = RobotStatus.Idle

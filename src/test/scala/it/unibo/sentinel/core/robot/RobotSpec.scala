@@ -55,3 +55,6 @@ class RobotSpec extends UnitTest:
 
       "return to idle" in:
         dropped.status shouldBe RobotStatus.Idle
+
+      "remove the mission" in:
+        dropped.mission shouldBe None
