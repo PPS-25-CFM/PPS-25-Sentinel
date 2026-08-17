@@ -8,25 +8,30 @@ object MissionId:
 /** */
 trait Robot:
 
-  /** @return the robot's identifier
+  /** @return
+    *   the robot's identifier
     */
   def id: RobotId
 
-  /** @return the id of the mission that the robot is currently executing
+  /** @return
+    *   the id of the mission that the robot is currently executing
     */
   def mission: Option[MissionId]
 
-  /** @return the robot's current operational status
+  /** @return
+    *   the robot's current operational status
     */
   def status: RobotStatus
 
-  /** @return true if the robot can accept a new mission, false otherwise
+  /** @return
+    *   true if the robot can accept a new mission, false otherwise
     */
   def canAccept: Boolean
 
   /** Accepts a new mission (if possible)
-    * 
-    * @param missionId the mission's id
+    *
+    * @param missionId
+    *   the mission's id
     */
   def accept(missionId: MissionId): Unit
 

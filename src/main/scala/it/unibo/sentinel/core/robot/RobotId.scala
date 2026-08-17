@@ -8,6 +8,7 @@ object RobotId:
   def apply(id: String): RobotId = id
 
 extension (id: RobotId)
-  /** @return the identifier as a String
+  /** @return
+    *   the identifier as a String
     */
   def value: String = id
