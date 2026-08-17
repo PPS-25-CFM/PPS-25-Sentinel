@@ -27,7 +27,7 @@ trait Warehouse:
     * @return
     *   an [[Option]] containing the tile at the given position, if any.
     */
-  def tileAt(pos: (Int, Int)): Option[Tile] = None
+  def tileAt(pos: Position): Option[Tile] = None
 
 object Warehouse:
   /** @param width

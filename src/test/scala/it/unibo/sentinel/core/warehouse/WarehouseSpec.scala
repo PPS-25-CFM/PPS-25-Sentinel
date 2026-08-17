@@ -10,7 +10,7 @@ trait WarehouseFixture:
   val gridPositions = for
     x <- 0 until width
     y <- 0 until height
-  yield (x, y)
+  yield Position(x, y)
 
 class WarehouseSpec extends UnitTest with WarehouseFixture:
   "A Warehouse" when:
