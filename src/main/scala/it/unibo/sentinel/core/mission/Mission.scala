@@ -72,6 +72,9 @@ case class Mission private(
   def fail: Mission =
     if isOver then this else copy(task = Task.Fail)
 
+  def proceed: Mission =
+    if isOver then this else if duration - 1 <= 0 then copy(duration = 0).fail else copy(duration = duration - 1)
+
 object Mission:
   def apply(
     id: MissionID,

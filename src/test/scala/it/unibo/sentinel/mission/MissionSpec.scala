@@ -73,3 +73,14 @@ class MissionSpec extends UnitTest:
       "considered Over" in:
         completed.isOver shouldBe true
 
+    "proceeding through time" should:
+      val next = mission.proceed
+      
+      "decrease the Duration" in:
+        next.duration shouldBe duration - 1
+
+      "expire if it reaches 0" in:
+        val expired = Mission(MissionID("Expired"), task, 1).proceed
+
+        expired.status shouldBe MissionStatus.Failed
+
