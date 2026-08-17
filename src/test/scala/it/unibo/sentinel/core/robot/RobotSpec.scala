@@ -43,3 +43,7 @@ class RobotSpec extends UnitTest:
 
       "be ready to start the mission" in:
         withMission.status shouldBe RobotStatus.Ready
+      
+      "start the mission" in:
+        withMission.startMission
+        withMission.status shouldBe RobotStatus.Moving

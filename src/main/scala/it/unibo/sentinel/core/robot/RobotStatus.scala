@@ -11,3 +11,7 @@ enum RobotStatus:
   /** The robot is waiting for a signal to start executing the mission
     */
   case Ready
+
+  /** The robot is executing a mission
+    */
+  case Moving

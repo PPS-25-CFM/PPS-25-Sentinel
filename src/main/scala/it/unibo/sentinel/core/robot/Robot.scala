@@ -27,19 +27,27 @@ trait Robot:
     */
   def accept(missionId: MissionId): Unit
 
+  /** Starts the mission
+    */
+  def startMission: Unit
+
 object Robot:
   def apply(id: RobotId): Robot = new SimpleRobot(id)
 
   private class SimpleRobot(val id: RobotId) extends Robot:
     private var _mission: Option[MissionId] = None
+    private var _status: RobotStatus = RobotStatus.Idle
 
     override def mission: Option[MissionId] = _mission
 
-    override def status: RobotStatus = mission match
-      case None    => RobotStatus.Idle
-      case Some(_) => RobotStatus.Ready
+    override def status: RobotStatus = _status
 
     override def canAccept: Boolean = mission.isEmpty
 
     override def accept(missionId: MissionId): Unit =
-      if canAccept then _mission = Some(missionId)
+      if canAccept then
+        _mission = Some(missionId)
+        _status = RobotStatus.Ready
+
+    override def startMission: Unit =
+      _status = RobotStatus.Moving
