@@ -1,1 +1,22 @@
-Priority,Item,Details,Initial Effort Size,1,2,3,4,5,6
+ID,Priority, Item,Dependencies, Initial Effort Size, Sprint 0, Sprint 1, Sprint 2, Sprint 3, Sprint 4, Sprint 6
+PB-01,1,"As devs, we need to setup the development process","",2,DONE,-,-,-,-,-
+PB-02,2,"As devs, we need to draft the Requirement Specification to enhance our domain awareness.","",5,DONE,-,-,-,-,-
+PB-03,3,"As devs, we need to draft an initial Architectural Design Diagram","",5,DONE,-,-,-,-,-
+PB-04,4,"As warehouse manager, I want to model a 1 room warehouse with no obstacles/loading zones","",8,8,"","","","",""
+PB-05,5,"As warehouse manager, I want to add a simple robot in the scenario","",3,3,"","","","",""
+PB-06,6,"As warehouse manager, I want to add 1 movement mission in the scenario","",3,3,"","","","",""
+PB-07,7,"As a warehouse manager, I want to configure a routing policy that minimizes hop count","",5,5,"","","","",""
+PB-08,8,"As a warehouse manager, I want to configure an assignment policy that assigns missions to the nearest robot","",5,5,"","","","",""
+PB-09,9,"As a warehouse manager, I want to run a simulation of a scenario","",13,13,"","","","",""
+PB-10,10,"As warehouse manager, I want to add multiple movement missions in the scenario","PB-06",5,5,"","","","",""
+PB-11,11,"As warehouse manager, I want to model obstacles and the traversal cost of the tiles","PB-04",8,8,"","","","",""
+PB-12,12,"As warehouse manager, I want to add multiple simple robots in the scenario","PB-05",5,5,"","","","",""
+PB-13,13,"As warehouse manager, I want to configure the scenario with a routing policy that minimizes the time needed to complete the route","PB-11",5,5,"","","","",""
+PB-14,14,"As a warehouse manager, I want to configure an assignment policy that assigns missions cyclically","",3,3,"","","","",""
+PB-15,15,"As a warehouse manager, I want to configure a collision avoidance policy based on casual waiting","PB-12",8,8,"","","","",""
+PB-16,16,"As warehouse manager, I want to model shelves and loading zones","PB-04",8,8,"","","","",""
+PB-17,17,"As warehouse manager, I want to add pickup and deposit missions","PB-16",8,8,"","","","",""
+PB-18,18,"As a warehouse manager, I want to configure a priority-based wait collision avoidance strategy, so that higher-priority missions or robots take right-of-way while lower-priority robots yield and wait until path conflicts clear","",5,5,"","","","",""
+PB-20,20,"As a warehouse manager, I want to configure an assignment policy that assigns missions to the robot with the lowest workload","",5,5,"","","","",""
+PB-22,22,"As a warehouse manager, I want to configure a collision avoidance strategy based on time remaining until deadline, so that the robot whose mission is closest to expiring is given right-of-way while other robots yield and wait","",3,3,"","","","",""
+PB-23,23,"As a warehouse manager, I want to configure a reroute collision avoidance strategy, so that conflicting robots calculate alternative paths around blocked or occupied zones rather than halting and waiting.","PB-22, PB-18, PB-15",8,8,"","","","",""

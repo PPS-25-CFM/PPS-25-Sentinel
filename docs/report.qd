@@ -52,7 +52,9 @@ Gli obiettivi principali del sistema sono i seguenti:
 
 ### Requisiti non funzionali
 
-<!-- TODO -->
+- Il sistema deve essere multipiattaforma, eseguibile su sistemi Windows, Linux e macOs.
+- Il sistema deve essere sviluppato in linguaggio Scala.
+- Il sistema deve avere una copertura di test superiore al 70% del codice sorgente.
 
 ## Modello del dominio
 
