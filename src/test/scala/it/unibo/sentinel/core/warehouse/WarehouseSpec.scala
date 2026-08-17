@@ -88,3 +88,7 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
             Position(1, 2),
             Position(3, 2)
           )
+
+      "never include the position itself" in:
+        forAll(gridPositions): p =>
+          w0.neighbors(p) should not contain p

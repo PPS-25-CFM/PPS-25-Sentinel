@@ -15,7 +15,6 @@ object Position:
     *   if the coordinates are negative.
     */
   def apply(x: Int, y: Int): Position =
-    require(x >= 0 && y >= 0)
     (x, y)
 
   /** @param p
