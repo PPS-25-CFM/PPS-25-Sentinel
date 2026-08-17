@@ -5,10 +5,33 @@ import scala.annotation.internal.requiresCapability
 /** Represents a tile in the warehouse.
   */
 sealed trait Tile
+
 object Tile:
   /** Represents a floor tile.
     */
   case class Floor() extends Tile
+
+/** The area is defined as the rectangle whose corners are the two given
+  * [[Position]]s.
+  * @param corner
+  *   the first corner of the area.
+  * @param opposite
+  *   the opposite corner of the area.
+  */
+case class Area(corner: Position, opposite: Position):
+  private val xs =
+    math.min(corner.x, opposite.x) to math.max(corner.x, opposite.x)
+  private val ys =
+    math.min(corner.y, opposite.y) to math.max(corner.y, opposite.y)
+
+  /** @return
+    *   the sequence of [[Position]]s contained in the area, including the
+    *   corners.
+    */
+  def positions: Seq[Position] = for
+    x <- xs
+    y <- ys
+  yield Position(x, y)
 
 /** Abstracts the static structure of a warehouse, which is model as a grid.
   */
@@ -50,6 +73,18 @@ trait Warehouse:
     *   a new warehouse with the given tile at the given [[position]].
     */
   def withTile(position: Position)(tile: Tile): Warehouse
+
+  /** @param area
+    *   the area to fill with the given tile.
+    * @param tile
+    *   the tile to add.
+    * @return
+    *   a new warehouse with the given tile at every position of the given
+    *   [[area]].
+    */
+  def withArea(area: Area)(tile: Tile): Warehouse =
+    area.positions.foldLeft(this):
+      _.withTile(_)(tile)
 
   /** @param position
     *   the position of the tile to remove.

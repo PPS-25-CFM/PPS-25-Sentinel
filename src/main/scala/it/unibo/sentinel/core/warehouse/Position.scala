@@ -25,6 +25,17 @@ object Position:
     */
   def unapply(p: Position): (Int, Int) = p
 
+  extension (p: Position)
+    /** @return
+      *   the x-coordinate of the position.
+      */
+    def x: Int = p._1
+
+    /** @return
+      *   the y-coordinate of the position.
+      */
+    def y: Int = p._2
+
   /** The ordering of positions is defined by the ordering of their coordinates.
     */
   given Ordering[Position] = Ordering.by { case (x, y) => (x, y) }

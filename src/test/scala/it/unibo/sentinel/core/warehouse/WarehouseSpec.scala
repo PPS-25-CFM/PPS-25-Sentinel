@@ -58,3 +58,21 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
         val w1 = w0.withTile(position)(Tile.Floor())
         val w2 = w1.withoutTile(position)
         w2.tileAt(position) shouldBe None
+
+    "an area is filled" should:
+
+      "expose a tile in each position of the area" in:
+        val p1 = Position(1, 1)
+        val p2 = Position(2, 2)
+        val area = Area(p1, p2)
+        val w1 = w0.withArea(area)(Tile.Floor())
+        forAll(area.positions):
+          w1.tileAt(_) shouldBe Some(Tile.Floor())
+
+      "leave the positions outside the area empty" in:
+        val p1 = Position(1, 1)
+        val p2 = Position(2, 2)
+        val area = Area(p1, p2)
+        val w1 = w0.withArea(area)(Tile.Floor())
+        forAll(gridPositions.filterNot(area.positions.contains)):
+          w1.tileAt(_) shouldBe None
