@@ -20,7 +20,7 @@ class MissionSpec extends UnitTest:
 
       "have no Robot assigned to" in:
         mission.carrier shouldBe None
-      
+
       "be Pending" in:
         mission.status shouldBe MissionStatus.Pending
 
@@ -75,7 +75,7 @@ class MissionSpec extends UnitTest:
 
     "proceeding through time" should:
       val next = mission.proceed
-      
+
       "decrease the Duration" in:
         next.duration shouldBe duration - 1
 
@@ -83,4 +83,3 @@ class MissionSpec extends UnitTest:
         val expired = Mission(MissionID("Expired"), task, 1).proceed
 
         expired.status shouldBe MissionStatus.Failed
-
