@@ -15,3 +15,7 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
 
       "throw an IllegalArgumentException if created with wrong dimension" in:
         an[IllegalArgumentException] should be thrownBy Warehouse.empty(0, 0)
+
+      "keep the requested dimensions" in:
+        w0.width shouldBe width
+        w0.height shouldBe height

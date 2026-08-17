@@ -3,7 +3,16 @@ package it.unibo.sentinel.core.warehouse
 import scala.annotation.internal.requiresCapability
 
 /** */
-trait Warehouse
+trait Warehouse:
+  /** @return
+    *   the width of the warehouse.
+    */
+  def width: Int
+
+  /** @return
+    *   the height of the warehouse.
+    */
+  def height: Int
 
 object Warehouse:
   /** @param width
@@ -13,6 +22,8 @@ object Warehouse:
     * @return
     *   an empty warehouse sized [[width]]x[[height]].
     */
-  def empty(width: Int, height: Int): Warehouse = 
-    require(width > 0 && height > 0)
-    ???
+  def empty(w: Int, h: Int): Warehouse =
+    require(w > 0 && h > 0)
+    new Warehouse:
+      override def width: Int = w
+      override def height: Int = h
