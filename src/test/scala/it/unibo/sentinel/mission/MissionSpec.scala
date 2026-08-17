@@ -14,3 +14,8 @@ class MissionSpec extends UnitTest:
 
       "have the right ID" in:
         mission.id shouldBe missionID
+
+      "have no Robot assigned to" in:
+        mission.carrier shouldBe None
+        
+

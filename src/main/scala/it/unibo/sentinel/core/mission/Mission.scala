@@ -10,11 +10,16 @@ object MissionID:
     /** */
     def value: String = id
 
+// TODO: Update when Robot will be introduced
+type RobotID = String
+
 case class Mission(
-  id: MissionID
+  id: MissionID,
+  carrier: Option[RobotID]
 )
+    
   
 object Mission:
   def apply(
     id: MissionID
-  ): Mission = new Mission(id)
+  ): Mission = new Mission(id, None)
