@@ -74,6 +74,16 @@ trait Warehouse:
   def inBound(position: Position): Boolean
 
   /** @param position
+    *   the position to check.
+    * @return
+    *   whether [[position]] is traversable.
+    */
+  def isTraversable(position: Position): Boolean =
+    tileAt(position) match
+      case Some(Tile.Floor()) => true
+      case _                  => false
+
+  /** @param position
     *   the position of the tile to retrieve.
     * @return
     *   an [[Option]] containing the tile at the given position, if any.

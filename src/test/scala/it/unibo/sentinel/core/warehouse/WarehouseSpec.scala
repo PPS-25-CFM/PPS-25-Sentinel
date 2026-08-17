@@ -99,3 +99,10 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
         w0.neighbors(Position(width - 1, height - 1)) should
           contain theSameElementsAs
           Seq(Position(width - 2, height - 1), Position(width - 1, height - 2))
+
+    "asked whether a position is traversable" should:
+
+      "answer positively on a floor tile" in:
+        val position = Position(1, 1)
+        val w1 = w0.withTile(position)(Tile.Floor())
+        w1.isTraversable(position) shouldBe true
