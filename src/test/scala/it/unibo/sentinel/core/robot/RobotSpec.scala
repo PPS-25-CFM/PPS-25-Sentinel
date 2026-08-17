@@ -18,3 +18,8 @@ class RobotSpec extends UnitTest:
 
       "be idle" in:
         simple.status shouldBe RobotStatus.Idle
+
+    "does not have a mission" should:
+
+      "be able to accept a mission" in:
+        simple.canAccept shouldBe true
