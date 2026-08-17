@@ -1,7 +1,5 @@
 package it.unibo.sentinel.core.warehouse
 
-import scala.annotation.internal.requiresCapability
-
 /** Represents a tile in the warehouse.
   */
 sealed trait Tile
