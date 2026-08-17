@@ -39,4 +39,14 @@ class MissionSpec extends UnitTest:
         val assigned = mission.assignTo(robotID)
 
         assigned.assignTo(replacer) shouldBe assigned
+
+    "managing the unassignment off a Robot" should:
+      val robotID: RobotID = "R1"
+      val assigned = mission.assignTo(robotID)
+
+      "unset the carrier" in:
+        assigned.unassign.carrier shouldBe None
+
+      "update the status to Pending" in:
+        assigned.unassign.status shouldBe MissionStatus.Pending
         

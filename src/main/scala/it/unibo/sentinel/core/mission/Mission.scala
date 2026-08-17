@@ -34,6 +34,9 @@ case class Mission private(
 
   def assignTo(robotID: RobotID): Mission =
     if isPending then copy(carrier = Some(robotID)) else this
+
+  def unassign: Mission =
+    copy(carrier = None) 
     
 object Mission:
   def apply(
