@@ -6,9 +6,10 @@ import it.unibo.sentinel.core.mission.*
 class MissionSpec extends UnitTest:
 
   val missionID = MissionID("M1")
-  val target = (1, 1)
+  val target: Position = (1, 1)
+  val task: Task = Task.MoveTo(target)
   val duration: Ticks = 10
-  val mission = Mission(missionID, target, duration)
+  val mission = Mission(missionID, task, duration)
 
   "A Mission" when:
 
@@ -23,8 +24,8 @@ class MissionSpec extends UnitTest:
       "be Pending" in:
         mission.status shouldBe MissionStatus.Pending
 
-      "have a Destination" in:
-        mission.destination shouldBe target
+      "have a Task" in:
+        mission.task shouldBe task
 
       "have a Duration" in:
         mission.duration shouldBe duration
@@ -53,4 +54,3 @@ class MissionSpec extends UnitTest:
 
       "update the status to Pending" in:
         assigned.unassign.status shouldBe MissionStatus.Pending
-        

@@ -22,29 +22,53 @@ type Ticks = Int
 enum MissionStatus:
   case Pending
   case Assigned
+  case Completed
+  case Failed
+
+enum Task:
+  case Done
+  case Fail
+  case MoveTo(at: Position)
+
+  def isDone: Boolean = this match
+    case Done => true
+    case _    => false
+
+  def isFail: Boolean = this match
+    case Fail => true
+    case _    => false
 
 case class Mission private(
   id: MissionID,
-  destination: Position,
+  task: Task,
   duration: Ticks,
   carrier: Option[RobotID]
 ):
-  def isPending: Boolean = status == MissionStatus.Pending
+  import MissionStatus.*
+
+  def isPending: Boolean = status == Pending
+
+  def isOver: Boolean = status match
+    case Completed | Failed => true
+    case _ => false
 
   def status: MissionStatus =
-    carrier match
-      case Some(_) => MissionStatus.Assigned
-      case _ => MissionStatus.Pending
+    if task.isFail || duration <= 0 then Failed
+      else if task.isDone then Completed
+      else
+        carrier match
+          case None    => Pending
+          case Some(_) => Assigned
 
   def assignTo(robotID: RobotID): Mission =
     if isPending then copy(carrier = Some(robotID)) else this
 
   def unassign: Mission =
     copy(carrier = None) 
-    
+
 object Mission:
   def apply(
     id: MissionID,
-    destination: Position,
+    task: Task,
     duration: Ticks
-  ): Mission = new Mission(id, destination, duration, None)
+  ): Mission = new Mission(id, task, duration, None)
