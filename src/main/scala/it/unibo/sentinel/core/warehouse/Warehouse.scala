@@ -3,6 +3,9 @@ package it.unibo.sentinel.core.warehouse
 import scala.annotation.internal.requiresCapability
 
 /** */
+trait Tile
+
+/** */
 trait Warehouse:
   /** @return
     *   the width of the warehouse.
@@ -18,6 +21,13 @@ trait Warehouse:
     *   the size of the warehouse.
     */
   def size: Int = width * height
+
+  /** @param pos
+    *   the position of the tile to retrieve.
+    * @return
+    *   an [[Option]] containing the tile at the given position, if any.
+    */
+  def tileAt(pos: (Int, Int)): Option[Tile] = None
 
 object Warehouse:
   /** @param width

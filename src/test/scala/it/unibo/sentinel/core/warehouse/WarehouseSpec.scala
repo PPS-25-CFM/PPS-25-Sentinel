@@ -7,6 +7,10 @@ trait WarehouseFixture:
   val width = 5
   val height = 5
   val w0 = Warehouse.empty(width, height)
+  val gridPositions = for
+    x <- 0 until width
+    y <- 0 until height
+  yield (x, y)
 
 class WarehouseSpec extends UnitTest with WarehouseFixture:
   "A Warehouse" when:
@@ -22,3 +26,7 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
 
       "have a size equal to width * height" in:
         w0.size shouldBe width * height
+
+      "contains no tiles" in:
+        forAll(gridPositions):
+          w0.tileAt(_) shouldBe None
