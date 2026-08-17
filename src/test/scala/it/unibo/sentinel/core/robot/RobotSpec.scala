@@ -12,3 +12,6 @@ class RobotSpec extends UnitTest:
 
       "have an ID" in:
         simple.id shouldBe id
+      
+      "not have a mission" in:
+        simple.mission shouldBe None
