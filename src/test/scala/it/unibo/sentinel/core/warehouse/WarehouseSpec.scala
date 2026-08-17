@@ -106,3 +106,6 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
         val position = Position(1, 1)
         val w1 = w0.withTile(position)(Tile.Floor())
         w1.isTraversable(position) shouldBe true
+
+      "answer negatively on an empty position" in:
+        w0.isTraversable(Position(0, 0)) shouldBe false
