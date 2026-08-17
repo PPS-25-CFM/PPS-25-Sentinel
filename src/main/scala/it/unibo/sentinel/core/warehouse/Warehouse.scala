@@ -11,11 +11,20 @@ object Tile:
     */
   case class Floor() extends Tile
 
-/** */
+/** Defines the strategy for determining adjacent positions.
+  */
 trait Adjacency:
+  /** @param position
+    *   the position whose neighbors are to be retrieved.
+    * @return
+    *   the neighbors of the given [[position]].
+    */
   def around(position: Position): Seq[Position]
 
 object Adjacency:
+  /** Considers only the four orthogonal positions as adjacent to a given
+    * position.
+    */
   given orthogonal: Adjacency with
     def around(position: Position): Seq[Position] = position match
       case (x: Int, y: Int) =>
