@@ -64,3 +64,12 @@ class MissionSpec extends UnitTest:
       "considered Over" in:
         completed.isOver shouldBe true
 
+    "failing its Task" should:
+      val completed = mission.fail
+
+      "be Failed" in:
+        completed.status shouldBe MissionStatus.Failed
+
+      "considered Over" in:
+        completed.isOver shouldBe true
+

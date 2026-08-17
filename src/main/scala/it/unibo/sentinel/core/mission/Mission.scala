@@ -69,6 +69,9 @@ case class Mission private(
   def complete: Mission =
     if isOver then this else copy(task = Task.Done)
 
+  def fail: Mission =
+    if isOver then this else copy(task = Task.Fail)
+
 object Mission:
   def apply(
     id: MissionID,
