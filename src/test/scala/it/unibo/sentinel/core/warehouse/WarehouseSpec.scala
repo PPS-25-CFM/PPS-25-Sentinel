@@ -11,6 +11,13 @@ trait WarehouseFixture:
     x <- 0 until width
     y <- 0 until height
   yield Position(x, y)
+  val outerPositions = Seq(
+    Position(width, 0),
+    Position(0, height),
+    Position(width, height),
+    Position(width, height - 1),
+    Position(width - 1, height)
+  )
 
 class WarehouseSpec extends UnitTest with WarehouseFixture:
   "A Warehouse" when:
@@ -30,3 +37,11 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
       "contains no tiles" in:
         forAll(gridPositions):
           w0.tileAt(_) shouldBe None
+
+      "consider in bound every position of the grid" in:
+        forAll(gridPositions):
+          w0.inBound(_) shouldBe true
+
+      "consider out of bound every position outside the grid" in:
+        forAll(outerPositions):
+          w0.inBound(_) shouldBe false
