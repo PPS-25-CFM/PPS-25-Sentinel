@@ -25,10 +25,15 @@ case class Mission private(
   destination: Position,
   carrier: Option[RobotID]
 ):
+  def isPending: Boolean = status == MissionStatus.Pending
+
   def status: MissionStatus =
     carrier match
       case Some(_) => MissionStatus.Assigned
       case _ => MissionStatus.Pending
+
+  def assignTo(robotID: RobotID): Mission =
+    if isPending then copy(carrier = Some(robotID)) else this
     
 object Mission:
   def apply(

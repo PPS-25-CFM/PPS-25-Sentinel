@@ -25,3 +25,11 @@ class MissionSpec extends UnitTest:
       "have a Destination" in:
         mission.destination shouldBe target
 
+    "managing the assignment to a Robot" should:
+      val robotID: RobotID = "R1"
+
+      "set the carrier" in:
+        mission.assignTo(robotID).carrier shouldBe Some(robotID)
+    
+      "update the status to Assigned" in:
+        mission.assignTo(robotID).status shouldBe MissionStatus.Assigned
