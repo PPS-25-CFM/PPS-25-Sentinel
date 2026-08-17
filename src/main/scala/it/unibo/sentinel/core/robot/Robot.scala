@@ -22,7 +22,7 @@ trait Robot:
     */
   def canAccept: Boolean
 
-  /** Accepts a new mission
+  /** Accepts a new mission (if possible)
     * 
     * @param missionId the mission's id
     */
@@ -41,4 +41,5 @@ object Robot:
     override def canAccept: Boolean = mission.isEmpty
 
     override def accept(missionId: MissionId): Unit =
-      _mission = Some(missionId)
+      if canAccept then
+        _mission = Some(missionId)
