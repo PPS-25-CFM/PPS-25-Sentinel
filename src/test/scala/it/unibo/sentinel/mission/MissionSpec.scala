@@ -54,3 +54,13 @@ class MissionSpec extends UnitTest:
 
       "update the status to Pending" in:
         assigned.unassign.status shouldBe MissionStatus.Pending
+
+    "completing its Task" should:
+      val completed = mission.complete
+
+      "be Complete" in:
+        completed.status shouldBe MissionStatus.Completed
+
+      "considered Over" in:
+        completed.isOver shouldBe true
+

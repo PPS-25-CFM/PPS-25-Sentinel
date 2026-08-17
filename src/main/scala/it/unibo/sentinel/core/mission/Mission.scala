@@ -66,6 +66,9 @@ case class Mission private(
   def unassign: Mission =
     copy(carrier = None) 
 
+  def complete: Mission =
+    if isOver then this else copy(task = Task.Done)
+
 object Mission:
   def apply(
     id: MissionID,
