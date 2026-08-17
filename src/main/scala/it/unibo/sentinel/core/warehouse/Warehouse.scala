@@ -11,6 +11,21 @@ object Tile:
     */
   case class Floor() extends Tile
 
+/** */
+trait Adjacency:
+  def around(position: Position): Seq[Position]
+
+object Adjacency:
+  given orthogonal: Adjacency with
+    def around(position: Position): Seq[Position] = position match
+      case (x: Int, y: Int) =>
+        Seq(
+          Position(x + 1, y),
+          Position(x, y + 1),
+          Position(x - 1, y),
+          Position(x, y - 1)
+        )
+
 /** The area is defined as the rectangle whose corners are the two given
   * [[Position]]s.
   * @param corner
@@ -92,6 +107,15 @@ trait Warehouse:
     *   a new warehouse without the tile at the given [[position]].
     */
   def withoutTile(position: Position): Warehouse
+
+  /** @param position
+    *   the position whose neighbors are to be retrieved.
+    * @return
+    *   the neighbors of the given [[position]], according to the given
+    *   [[Adjacency]]' strategy.
+    */
+  def neighbors(position: Position)(using strategy: Adjacency): Seq[Position] =
+    strategy.around(position).filter(inBound)
 
 object Warehouse:
   /** @param width

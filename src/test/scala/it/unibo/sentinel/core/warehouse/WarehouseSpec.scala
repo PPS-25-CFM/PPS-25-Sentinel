@@ -76,3 +76,15 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
         val w1 = w0.withArea(area)(Tile.Floor())
         forAll(gridPositions.filterNot(area.positions.contains)):
           w1.tileAt(_) shouldBe None
+
+    "asked for the neighbors of a position" should:
+
+      "return the four orthogonal ones, for an inner position" in:
+        val inner = Position(2, 2)
+        w0.neighbors(inner) should contain theSameElementsAs
+          Seq(
+            Position(2, 1),
+            Position(2, 3),
+            Position(1, 2),
+            Position(3, 2)
+          )
