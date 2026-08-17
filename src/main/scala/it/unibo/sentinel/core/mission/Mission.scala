@@ -25,10 +25,14 @@ enum MissionStatus:
 enum Task:
   case Done
   case Fail
-  case MoveTo(at: Position)
+  case Move(at: Position)
 
   def isDone: Boolean = this == Task.Done
   def isFail: Boolean = this == Task.Fail
+
+  def where: Option[Position] = this match
+    case Move(at) => Some(at)
+    case _ => None
 
 case class Mission private (
     id: MissionID,

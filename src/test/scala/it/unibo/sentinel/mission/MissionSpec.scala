@@ -7,7 +7,7 @@ class MissionSpec extends UnitTest:
 
   val missionID = MissionID("M1")
   val target: Position = (1, 1)
-  val task: Task = Task.MoveTo(target)
+  val task: Task = Task.Move(target)
   val duration: Ticks = 10
   val mission = Mission(missionID, task, duration)
 
