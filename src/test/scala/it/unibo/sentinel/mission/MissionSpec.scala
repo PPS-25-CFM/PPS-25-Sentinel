@@ -7,7 +7,8 @@ class MissionSpec extends UnitTest:
 
   val missionID = MissionID("M1")
   val target = (1, 1)
-  val mission = Mission(missionID, target)
+  val duration: Ticks = 10
+  val mission = Mission(missionID, target, duration)
 
   "A Mission" when:
 
@@ -24,6 +25,9 @@ class MissionSpec extends UnitTest:
 
       "have a Destination" in:
         mission.destination shouldBe target
+
+      "have a Duration" in:
+        mission.duration shouldBe duration
 
     "managing the assignment to a Robot" should:
       val robotID: RobotID = "R1"
