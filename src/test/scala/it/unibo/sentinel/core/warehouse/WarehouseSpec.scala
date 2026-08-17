@@ -92,3 +92,10 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
       "never include the position itself" in:
         forAll(gridPositions): p =>
           w0.neighbors(p) should not contain p
+
+      "drop the ones falling outside the grid, on the borders" in:
+        w0.neighbors(Position(0, 0)) should contain theSameElementsAs
+          Seq(Position(1, 0), Position(0, 1))
+        w0.neighbors(Position(width - 1, height - 1)) should
+          contain theSameElementsAs
+          Seq(Position(width - 2, height - 1), Position(width - 1, height - 2))
