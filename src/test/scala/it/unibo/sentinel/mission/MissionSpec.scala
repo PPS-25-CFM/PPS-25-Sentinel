@@ -17,5 +17,7 @@ class MissionSpec extends UnitTest:
 
       "have no Robot assigned to" in:
         mission.carrier shouldBe None
-        
+      
+      "be Pending" in:
+        mission.status shouldBe MissionStatus.Pending
 

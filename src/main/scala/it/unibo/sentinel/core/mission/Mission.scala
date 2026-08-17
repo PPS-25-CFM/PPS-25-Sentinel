@@ -13,10 +13,18 @@ object MissionID:
 // TODO: Update when Robot will be introduced
 type RobotID = String
 
+enum MissionStatus:
+  case Pending
+  case Assigned
+
 case class Mission(
   id: MissionID,
   carrier: Option[RobotID]
-)
+):
+  def status: MissionStatus =
+    carrier match
+      case Some(_) => MissionStatus.Assigned
+      case _ => MissionStatus.Pending
     
   
 object Mission:
