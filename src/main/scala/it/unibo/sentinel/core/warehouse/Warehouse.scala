@@ -47,9 +47,16 @@ trait Warehouse:
     * @param tile
     *   the tile to add.
     * @return
-    *   a new warehouse with the given tile at the given position.
+    *   a new warehouse with the given tile at the given [[position]].
     */
   def withTile(position: Position)(tile: Tile): Warehouse
+
+  /** @param position
+    *   the position of the tile to remove.
+    * @return
+    *   a new warehouse without the tile at the given [[position]].
+    */
+  def withoutTile(position: Position): Warehouse
 
 object Warehouse:
   /** @param width
@@ -76,3 +83,6 @@ object Warehouse:
 
     override def withTile(position: Position)(tile: Tile): Warehouse =
       copy(layout = layout + (position -> tile))
+
+    override def withoutTile(position: Position): Warehouse =
+      copy(layout = layout - position)

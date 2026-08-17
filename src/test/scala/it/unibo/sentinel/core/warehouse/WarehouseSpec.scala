@@ -51,3 +51,10 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
         val position = Position(1, 1)
         val w1 = w0.withTile(position)(Tile.Floor())
         w1.tileAt(position) shouldBe Some(Tile.Floor())
+
+    "a tile is removed" should:
+      "no longer expose it" in:
+        val position = Position(1, 1)
+        val w1 = w0.withTile(position)(Tile.Floor())
+        val w2 = w1.withoutTile(position)
+        w2.tileAt(position) shouldBe None
