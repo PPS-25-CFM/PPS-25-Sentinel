@@ -13,8 +13,7 @@ trait Robot:
     */
   def mission: Option[MissionId]
 
-  /** @return
-    *   the robot's current operational status
+  /** @return the robot's current operational status
     */
   def status: RobotStatus
 
@@ -30,16 +29,17 @@ trait Robot:
 
 object Robot:
   def apply(id: RobotId): Robot = new SimpleRobot(id)
-  
+
   private class SimpleRobot(val id: RobotId) extends Robot:
     private var _mission: Option[MissionId] = None
 
     override def mission: Option[MissionId] = _mission
 
-    override def status: RobotStatus = RobotStatus.Idle
+    override def status: RobotStatus = mission match
+      case None    => RobotStatus.Idle
+      case Some(_) => RobotStatus.Ready
 
     override def canAccept: Boolean = mission.isEmpty
 
     override def accept(missionId: MissionId): Unit =
-      if canAccept then
-        _mission = Some(missionId)
+      if canAccept then _mission = Some(missionId)

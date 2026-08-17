@@ -35,8 +35,11 @@ class RobotSpec extends UnitTest:
 
       "not be able to accept a mission" in:
         withMission.canAccept shouldBe false
-      
+
       "not accept a mission" in:
         val missionId: MissionId = "M2"
         withMission.accept(missionId)
         withMission.mission should not be Some(missionId)
+
+      "be ready to start the mission" in:
+        withMission.status shouldBe RobotStatus.Ready
