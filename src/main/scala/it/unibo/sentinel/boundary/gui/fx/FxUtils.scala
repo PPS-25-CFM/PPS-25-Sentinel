@@ -8,11 +8,11 @@ object FxUtils:
 
   /** Default window width
     */
-  val defaultWidth: Double = 1200.0
+  val defaultWidth: Double = 1400.0
 
   /** Default window height
     */
-  val defaultHeight: Double = 800.0
+  val defaultHeight: Double = 900.0
 
   /** Executes an action on the JavaFx Application Thread.
     *
