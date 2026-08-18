@@ -8,7 +8,10 @@ import it.unibo.sentinel.core.warehouse
   * between two positions.
   */
 trait Metric:
-  /** Compute the cost for moving in [[to]] based on the given [[Metric]].
+  /** @param to
+    *   the position to move to.
+    * @return
+    *   the cost for moving in [[to]] based on the given [[Metric]].
     */
   def cost(to: Position)(using warehouse: Warehouse): Int
 
@@ -32,13 +35,23 @@ trait Navigator:
     */
   given warehouse: Warehouse
 
-  /** Compute a [[Path]] between [[from]] and [[to]] if a path exists in the
-    * given [[Warehouse]].
+  /** @param from
+    *   the starting [[Position]].
+    * @param to
+    *   the destination [[Position]].
+    * @return
+    *   A [[Path]] between [[from]] and [[to]] if a path exists in the given
+    *   [[Warehouse]].
     */
   def path(from: Position, to: Position): Option[Path]
 
-  /** Compute the distance between [[from]] and [[to]] if a path exists in the
-    * given [[Warehouse]].
+  /** @param from
+    *   the starting [[Position]].
+    * @param to
+    *   the destination [[Position]].
+    * @return
+    *   The distance between [[from]] and [[to]] if a path exists in the given
+    *   [[Warehouse]].
     */
   def distance(from: Position, to: Position): Option[Int] =
     path(from, to).map(_.size)
@@ -46,8 +59,10 @@ trait Navigator:
 object Navigator:
   /** @param metric
     *   the metric to be used for computing distances.
+    * @param w
+    *   the [[Warehouse]] to navigate.
     * @return
-    *   a [[Navigator]] that uses the given [[metric]].
+    *   a [[Navigator]] that minimizes the given [[metric]].
     */
   def apply(metric: Metric)(using w: Warehouse): Navigator =
     new Navigator:
