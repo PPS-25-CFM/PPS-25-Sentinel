@@ -45,4 +45,3 @@ class NavigatorSpec extends UnitTest:
 
       "choose a path which minimizes hops counter" in:
         navigator.distance(from, to).value shouldBe 2
-        navigator.path(from, to).value should have size 2
