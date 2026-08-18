@@ -34,7 +34,6 @@ object Selector:
           available: Iterable[Placement]
       ): Option[Placement] =
         mission.currentDestination match
-          case None         => available.headOption
           case Some(target) =>
             available
               .flatMap(candidate =>
@@ -42,3 +41,4 @@ object Selector:
               )
               .minByOption(_._2)
               .map(_._1)
+          case None         => None
