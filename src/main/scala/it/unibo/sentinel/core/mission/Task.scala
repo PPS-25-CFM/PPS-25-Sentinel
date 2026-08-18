@@ -16,7 +16,7 @@ enum Task:
 
   /** Represents an operational task requiring movement to a specific warehouse
     * position.
-    * 
+    *
     * @param at
     *   The target destination to reach
     */

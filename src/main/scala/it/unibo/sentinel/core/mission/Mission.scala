@@ -25,12 +25,14 @@ final case class Mission private (
   import MissionStatus.*
 
   /** @return
-    *   whether the [[Mission]] is currently waiting to be assigned to a [[Robot]].
+    *   whether the [[Mission]] is currently waiting to be assigned to a
+    *   [[Robot]].
     */
   def isPending: Boolean = status == Pending
 
   /** @return
-    *   whether the [[Mission]] has reached a terminal state ([[Completed]] or [[Failed]]).
+    *   whether the [[Mission]] has reached a terminal state ([[Completed]] or
+    *   [[Failed]]).
     */
   def isOver: Boolean = status match
     case Completed | Failed => true
@@ -38,38 +40,38 @@ final case class Mission private (
 
   /** Dynamically computes the current lifecycle status of the [[Mission]]. */
   def status: MissionStatus = (task, carrier) match
-    case (task, _) if task.isFail           => Failed
-    case (task, _) if task.isDone           => Completed
-    case (_, carrier) if carrier.isDefined  => Assigned
-    case _                                  => Pending
+    case (task, _) if task.isFail          => Failed
+    case (task, _) if task.isDone          => Completed
+    case (_, carrier) if carrier.isDefined => Assigned
+    case _                                 => Pending
 
   /** @param robotID
     *   Identifier of the mission carrier
-    *  @return
+    * @return
     *   A new [[Mission]] with the assigned [[Robot]].
     */
   def assignTo(robotID: RobotId): Mission =
     if isPending then copy(carrier = Some(robotID)) else this
 
-  /**  @return
+  /** @return
     *   A new [[Mission]] without an assigned [[Robot]].
     */
   def unassign: Mission =
     if isOver then this else copy(carrier = None)
 
-  /**  @return
+  /** @return
     *   A new completed [[Mission]].
     */
   def complete: Mission =
     if isOver then this else copy(task = Task.Done)
 
-  /**  @return
+  /** @return
     *   A new failed [[Mission]].
     */
   def fail: Mission =
     if isOver then this else copy(task = Task.Fail)
 
-  /**  @return
+  /** @return
     *   A new completed [[Mission]] with its lifecycle advanced by one [[Tick]].
     */
   def proceed: Mission =
