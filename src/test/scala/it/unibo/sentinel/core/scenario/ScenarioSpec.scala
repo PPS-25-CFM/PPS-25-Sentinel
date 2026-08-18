@@ -5,6 +5,7 @@ import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Area, Tile}
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.mission.{Mission, MissionId, Task}
 import org.mockito.Mockito
+import it.unibo.sentinel.core.mission.Step
 
 class ScenarioSpec extends UnitTest:
   import Validation.*
@@ -31,6 +32,9 @@ class ScenarioSpec extends UnitTest:
 
       "have a default routing policy" in:
         s0.routing shouldBe Policies.Routing.Distance
+
+      "have a default assignment policy" in:
+        s0.assignment shouldBe Policies.Assignment.Nearest
 
     "place a robot" should:
 
@@ -71,7 +75,7 @@ class ScenarioSpec extends UnitTest:
       "return a new scenario with the mission added" in:
         val mission = Mission(
           id = MissionId("M1"),
-          task = Task.Move(Position(1, 1)),
+          task = Task.Act(Step.Goto(Position(1, 1))),
           duration = 10
         )
         val result = s0.load(mission).right.value
@@ -80,7 +84,7 @@ class ScenarioSpec extends UnitTest:
       "signal that the mission id already exists" in:
         val mission = Mission(
           id = MissionId("M1"),
-          task = Task.Move(Position(1, 1)),
+          task = Task.Act(Step.Goto(Position(1, 1))),
           duration = 10
         )
         val result =
@@ -96,3 +100,10 @@ class ScenarioSpec extends UnitTest:
         val newRouting = Mockito.mock[Policies.Routing]()
         val result = s0.withRouting(newRouting)
         result.routing shouldBe newRouting
+
+    "change the assignment policy" should:
+
+      "return a new scenario with the assignment policy changed" in:
+        val newAssignment = Mockito.mock[Policies.Assignment]()
+        val result = s0.withAssignment(newAssignment)
+        result.assignment shouldBe newAssignment

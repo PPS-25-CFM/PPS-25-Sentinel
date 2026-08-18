@@ -4,6 +4,7 @@ import it.unibo.sentinel.core.warehouse.{Warehouse, Position}
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.scenario.Policies.Routing
+import it.unibo.sentinel.core.scenario.Policies.Assignment
 
 /** Represents a [[Robot]] placed in a [[Position]] in the [[Warehouse]].
   *
@@ -64,12 +65,24 @@ trait Scenario:
     */
   def routing: Policies.Routing
 
+  /** @return
+    *   the [[Policies.Assignment]] policy of the [[Scenario]].
+    */
+  def assignment: Policies.Assignment
+
   /** @param routing
     *   the [[Policies.Routing]] policy to use in the new [[Scenario]].
     * @return
     *   a new [[Scenario]] with the given [[Policies.Routing]] policy.
     */
   def withRouting(routing: Policies.Routing): Scenario
+
+  /** @param routing
+    *   the [[Policies.Assignment]] policy to use in the new [[Scenario]].
+    * @return
+    *   a new [[Scenario]] with the given [[Policies.Assignment]] policy.
+    */
+  def withAssignment(assignment: Policies.Assignment): Scenario
 
   /** @return
     *   the [[Spawn]]s of the [[Scenario]].
@@ -107,13 +120,20 @@ object Scenario:
     *   [[Warehouse]].
     */
   def in(warehouse: Warehouse): Scenario =
-    Blueprint(warehouse, Seq.empty, Seq.empty, Routing.Distance)
+    Blueprint(
+      warehouse,
+      Seq.empty,
+      Seq.empty,
+      Routing.Distance,
+      Assignment.Nearest
+    )
 
   private case class Blueprint(
       warehouse: Warehouse,
       spawns: Seq[Spawn],
       missions: Seq[Mission],
-      routing: Policies.Routing
+      routing: Policies.Routing,
+      assignment: Policies.Assignment
   ) extends Scenario:
 
     override def place(spawn: Spawn): Either[Validation, Scenario] =
@@ -141,6 +161,9 @@ object Scenario:
 
     override def withRouting(routing: Routing): Scenario =
       copy(routing = routing)
+
+    override def withAssignment(assignment: Assignment): Scenario =
+      copy(assignment = assignment)
 
     private def ensure(
         cond: => Boolean,

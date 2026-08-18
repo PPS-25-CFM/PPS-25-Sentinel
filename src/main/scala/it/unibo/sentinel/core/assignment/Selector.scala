@@ -1,20 +1,7 @@
 package it.unibo.sentinel.core.selection
 
 import it.unibo.sentinel.core.mission.Mission
-import it.unibo.sentinel.core.robot.Robot
-import it.unibo.sentinel.core.warehouse.Position
-
-/** Represents a robot's spatial context.
-  *
-  * @param robot
-  *   The robot candidate.
-  * @param at
-  *   The current warehouse position of the robot.
-  */
-final case class Placement(
-    robot: Robot,
-    at: Position
-)
+import it.unibo.sentinel.core.scenario.Placement
 
 /** Domain strategy interface for selecting the best suitable candidate
   * placement for a given mission.

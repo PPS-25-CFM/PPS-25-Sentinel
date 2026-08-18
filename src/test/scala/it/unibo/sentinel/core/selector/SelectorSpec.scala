@@ -8,6 +8,7 @@ import it.unibo.sentinel.core.robot.Robot
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.selection.*
 import it.unibo.sentinel.core.routing.Navigator
+import it.unibo.sentinel.core.scenario.Placement
 
 /** Shared behavior contract for any Selector implementation
   */
