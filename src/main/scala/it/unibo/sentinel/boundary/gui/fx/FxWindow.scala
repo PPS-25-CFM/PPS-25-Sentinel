@@ -1,18 +1,31 @@
 package it.unibo.sentinel.boundary.gui.fx
 
 import it.unibo.sentinel.boundary.gui.toolkit.Window
+import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import scalafx.stage.Stage
+import scalafx.application.Platform
 
 /** [[Window]] implementation based on the fx library
   */
-final class FxWindow extends Window:
+final class FxWindow(
+    defaultWidth: Option[Double] = None,
+    defaultHeight: Option[Double] = None
+) extends Window:
 
-  private lazy val stage: Stage = new Stage()
+  private lazy val stage: Stage = new Stage():
+    defaultWidth.foreach(w => width = w)
+    defaultHeight.foreach(h => height = h)
 
   override type V[Model] = FxView[Model]
 
-  override def open(): Unit = stage.show()
+  override def open(): Unit = onFx(stage.show())
 
-  override def close(): Unit = stage.close()
+  override def close(): Unit = onFx(stage.close())
 
-  override def show[Model](view: V[Model]): Unit = stage.scene = view.scene
+  override def show[Model](view: V[Model]): Unit = onFx:
+    stage.scene = view.scene
+
+  /** Resizes the window to fit the content
+    */
+  def resize(): Unit = onFx:
+    Platform.runLater(stage.sizeToScene())
