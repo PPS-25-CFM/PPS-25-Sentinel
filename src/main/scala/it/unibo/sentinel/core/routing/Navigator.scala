@@ -42,4 +42,6 @@ object Navigator:
       given warehouse: Warehouse = w
       val _ = metric
       override def path(from: Position, to: Position): Option[Path] =
-        None
+        (from, to) match
+          case (from, to) if from == to => Some(Seq.empty)
+          case _                        => None
