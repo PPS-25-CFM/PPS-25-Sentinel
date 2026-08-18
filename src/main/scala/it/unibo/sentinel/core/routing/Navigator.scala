@@ -37,6 +37,12 @@ trait Navigator:
     */
   def path(from: Position, to: Position): Option[Path]
 
+  /** Compute the distance between [[from]] and [[to]] if a path exists in the
+    * given [[Warehouse]].
+    */
+  def distance(from: Position, to: Position): Option[Int] =
+    path(from, to).map(_.size)
+
 object Navigator:
   /** @param metric
     *   the metric to be used for computing distances.

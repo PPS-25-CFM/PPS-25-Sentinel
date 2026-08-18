@@ -30,5 +30,19 @@ class NavigatorSpec extends UnitTest:
 
       "return such path" in:
         navigator.path(Position(0, 0), Position(0, 2)).value shouldBe Seq(
-          Position(0, 1), Position(0, 2)
+          Position(0, 1),
+          Position(0, 2)
         )
+
+    "multiple paths connect two positions" should:
+      val from = Position(0, 1)
+      val to = Position(2, 1)
+      given Warehouse =
+        Warehouse
+          .empty(3, 3)
+          .withArea(Area(Position(0, 0), Position(2, 2)))(Tile.Floor())
+      val navigator = Navigator(Metric.Hops)
+
+      "choose a path which minimizes hops counter" in:
+        navigator.distance(from, to).value shouldBe 2
+        navigator.path(from, to).value should have size 2
