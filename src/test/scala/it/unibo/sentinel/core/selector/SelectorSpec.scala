@@ -5,8 +5,7 @@ import it.unibo.sentinel.core.robot.*
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.selection.Placement
-import it.unibo.sentinel.core.selection.Selector.*
-import it.unibo.sentinel.core.routing.Navigator
+import it.unibo.sentinel.core.selection.Selector
 
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -17,13 +16,11 @@ class SelectorSpec extends UnitTest:
   val duration: Ticks = 10
   val mission = Mission(
     missionID,
-    Task.Move(Position(1, 1)),
+    Task.Act(Step.Goto(Position(1, 1))),
     duration
   )
-  
-  val navigator = Mockito.mock(classOf[Navigator])
-  
-  val selector = NearestSelector(navigator)
+
+  val selector = Selector
 
   "A Selector" when:
 

@@ -1,6 +1,7 @@
 package it.unibo.sentinel.core.mission
 
 import it.unibo.sentinel.core.robot.RobotId
+import it.unibo.sentinel.core.warehouse.Position
 
 // TODO: Update when the concept of Tick will be introduced
 type Ticks = Int
@@ -20,6 +21,7 @@ final case class Mission private (
     id: MissionId,
     task: Task,
     duration: Ticks,
+    status: MissionStatus,
     carrier: Option[RobotId]
 ):
   import MissionStatus.*
@@ -38,12 +40,9 @@ final case class Mission private (
     case Completed | Failed => true
     case _                  => false
 
-  /** Dynamically computes the current lifecycle status of the [[Mission]]. */
-  def status: MissionStatus = (task, carrier) match
-    case (task, _) if task.isFail          => Failed
-    case (task, _) if task.isDone          => Completed
-    case (_, carrier) if carrier.isDefined => Assigned
-    case _                                 => Pending
+  def currentDestination: Option[Position] =
+    if isOver then None
+    else Some(task.destination)
 
   /** @param robotID
     *   Identifier of the mission carrier
@@ -51,25 +50,27 @@ final case class Mission private (
     *   A new [[Mission]] with the assigned [[Robot]].
     */
   def assignTo(robotID: RobotId): Mission =
-    if isPending then copy(carrier = Some(robotID)) else this
+    if isPending then copy(carrier = Some(robotID), status = Assigned)
+    else this
 
   /** @return
     *   A new [[Mission]] without an assigned [[Robot]].
     */
   def unassign: Mission =
-    if isOver then this else copy(carrier = None)
+    if isOver then this
+    else copy(carrier = None, status = Pending)
 
   /** @return
     *   A new completed [[Mission]].
     */
   def complete: Mission =
-    if isOver then this else copy(task = Task.Done)
+    if isOver then this else copy(status = Completed)
 
   /** @return
     *   A new failed [[Mission]].
     */
   def fail: Mission =
-    if isOver then this else copy(task = Task.Fail)
+    if isOver then this else copy(status = Failed)
 
   /** @return
     *   A new completed [[Mission]] with its lifecycle advanced by one [[Tick]].
@@ -93,4 +94,10 @@ object Mission:
       id: MissionId,
       task: Task,
       duration: Ticks
-  ): Mission = new Mission(id, task, duration, None)
+  ): Mission = new Mission(
+    id,
+    task,
+    duration,
+    MissionStatus.Pending,
+    None
+  )
