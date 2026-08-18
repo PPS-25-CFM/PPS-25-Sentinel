@@ -1,8 +1,9 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
 import it.unibo.sentinel.core.warehouse.Warehouse
+import it.unibo.sentinel.core.mission.Mission
 
-type Snapshot = Warehouse
+type Snapshot = (Warehouse, Iterable[Mission])
 
 /** Contains a set of components and methods needed to run the application
   */

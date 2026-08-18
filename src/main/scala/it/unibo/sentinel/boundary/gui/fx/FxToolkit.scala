@@ -9,6 +9,7 @@ import it.unibo.sentinel.boundary.gui.fx.FxUtils.defaultHeight
 import scalafx.scene.Scene
 import scalafx.scene.layout.BorderPane
 import scalafx.application.Platform
+import it.unibo.sentinel.boundary.gui.fx.panels.MissionsPanel
 
 /** Toolkit implementation using the fx library
   */
@@ -28,5 +29,6 @@ object FxToolkit extends Toolkit:
     override def scene: Scene = new Scene(root)
 
     override def render(model: Snapshot): Unit = onFx:
-      root.center = new WarehousePanel(model)
+      root.center = new WarehousePanel(model._1)
+      root.left = new MissionsPanel(model._2)
       window.resize()

@@ -17,5 +17,4 @@ object Launcher extends Dataset:
     val panel = toolkit.simulation
     window.show(panel)
     window.open()
-
-    panel.render(warehouse)
+    panel.render((warehouse, missions))
