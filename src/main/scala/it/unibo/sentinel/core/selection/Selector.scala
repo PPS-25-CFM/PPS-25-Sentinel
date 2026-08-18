@@ -9,7 +9,7 @@ final case class Placement(
   at: Position
 )
 
-object Selector:
+trait Selector:
 
   def choose(
     mission: Mission,
@@ -24,3 +24,21 @@ object Selector:
     available: Iterable[Placement]
   ): Option[Placement] = ???
 
+object Selector:
+
+  import it.unibo.sentinel.core.routing.Navigator
+
+  case class Nearest(navigator: Navigator) extends Selector:
+      override def selectFromAvailable(
+          mission: Mission,
+          available: Iterable[Placement]
+      ): Option[Placement] =
+        mission.currentDestination match
+          case None         => available.headOption
+          case Some(target) =>
+            available
+              .flatMap(candidate =>
+                navigator.distance(candidate.at, target).map(candidate -> _)
+              )
+              .minByOption(_._2)
+              .map(_._1)

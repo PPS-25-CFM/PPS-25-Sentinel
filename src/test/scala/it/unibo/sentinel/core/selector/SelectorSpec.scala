@@ -5,7 +5,8 @@ import it.unibo.sentinel.core.robot.*
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.selection.Placement
-import it.unibo.sentinel.core.selection.Selector
+import it.unibo.sentinel.core.selection.Selector.*
+import it.unibo.sentinel.core.routing.Navigator
 
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -14,13 +15,23 @@ class SelectorSpec extends UnitTest:
 
   val missionID = MissionId("M1")
   val duration: Ticks = 10
+  val destination = Position(0, 0)
   val mission = Mission(
     missionID,
-    Task.Act(Step.Goto(Position(1, 1))),
+    Task.Act(Step.Goto(destination)),
     duration
   )
 
-  val selector = Selector
+  val robot1 = Placement(Robot(RobotId("Robot1")), Position(1, 1))
+  val robot2 = Placement(Robot(RobotId("Robot2")), Position(2, 2))
+
+  val robots = Iterable(robot1, robot2)
+
+  val navigator = Mockito.mock(classOf[Navigator])
+  when(navigator.distance(robot1.at, destination)).thenReturn(Some(2))
+  when(navigator.distance(robot2.at, destination)).thenReturn(Some(4))
+
+  val selector = Nearest(navigator)
 
   "A Selector" when:
 
@@ -46,15 +57,9 @@ class SelectorSpec extends UnitTest:
         result shouldBe None
 
     "evaluating" should:
-      val robot1 = Robot(RobotId("Robot1"))
-      val robot2 = Robot(RobotId("Robot2"))
-      val placement1 = Placement(robot1, Position(1, 1))
-      val placement2 = Placement(robot2, Position(2, 2))
-
-      val robots = Iterable(placement1, placement2)
 
       "return the available robot to the mission position" in:
 
         val result = selector.choose(mission, robots)
 
-        result shouldBe Some(placement1)
+        result shouldBe Some(robot1)
