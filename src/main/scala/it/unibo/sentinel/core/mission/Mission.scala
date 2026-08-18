@@ -16,7 +16,7 @@ type Ticks = Int
   * @param carrier
   *   The robot currently assigned to carry out the mission, if any.
   */
-case class Mission private (
+final case class Mission private (
     id: MissionId,
     task: Task,
     duration: Ticks,
@@ -24,54 +24,68 @@ case class Mission private (
 ):
   import MissionStatus.*
 
-  /** Returns true if the mission is currently waiting to be assigned to a
-    * robot.
+  /** @return
+    *   whether the [[Mission]] is currently waiting to be assigned to a [[Robot]].
     */
   def isPending: Boolean = status == Pending
 
-  /** Returns true if the mission has reached a terminal state (Completed or
-    * Failed).
+  /** @return
+    *   whether the [[Mission]] has reached a terminal state ([[Completed]] or [[Failed]]).
     */
   def isOver: Boolean = status match
     case Completed | Failed => true
     case _                  => false
 
-  /** Dynamically computes the current lifecycle status of the mission. */
-  def status: MissionStatus =
-    if task.isFail || duration <= 0 then Failed
-    else if task.isDone then Completed
-    else if carrier.isDefined then Assigned
-    else Pending
+  /** Dynamically computes the current lifecycle status of the [[Mission]]. */
+  def status: MissionStatus = (task, carrier) match
+    case (task, _) if task.isFail           => Failed
+    case (task, _) if task.isDone           => Completed
+    case (_, carrier) if carrier.isDefined  => Assigned
+    case _                                  => Pending
 
-  /** Assigns the mission to the specified robot.
+  /** @param robotID
+    *   Identifier of the mission carrier
+    *  @return
+    *   A new [[Mission]] with the assigned [[Robot]].
     */
   def assignTo(robotID: RobotId): Mission =
     if isPending then copy(carrier = Some(robotID)) else this
 
-  /** Unassigns the currently assigned robot.
+  /**  @return
+    *   A new [[Mission]] without an assigned [[Robot]].
     */
   def unassign: Mission =
     if isOver then this else copy(carrier = None)
 
-  /** Marks the task and the mission as completed.
+  /**  @return
+    *   A new completed [[Mission]].
     */
   def complete: Mission =
     if isOver then this else copy(task = Task.Done)
 
-  /** Marks the task and the mission as failed.
+  /**  @return
+    *   A new failed [[Mission]].
     */
   def fail: Mission =
     if isOver then this else copy(task = Task.Fail)
 
-  /** Advances the mission lifecycle by one tick. */
+  /**  @return
+    *   A new completed [[Mission]] with its lifecycle advanced by one [[Tick]].
+    */
   def proceed: Mission =
     if isOver then this
     else if duration <= 1 then copy(duration = 0).fail
     else copy(duration = duration - 1)
 
 object Mission:
-  /** Factory method to create a new Mission in its initial unassigned (Pending)
-    * state.
+  /** @param id
+    *   The mission unique ID.
+    * @param task
+    *   The task to complete.
+    * @param duration
+    *   The expiration time of the mission expressed by [[Ticks]] remaining
+    * @return
+    *   A new Mission in its initial unassigned (Pending) state.
     */
   def apply(
       id: MissionId,

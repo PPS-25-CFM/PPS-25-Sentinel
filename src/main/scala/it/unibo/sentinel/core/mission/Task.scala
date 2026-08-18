@@ -8,25 +8,32 @@ import it.unibo.sentinel.core.warehouse.Position
   * state (Done or Fail).
   */
 enum Task:
-  /** Indicates that the task has been successfully completed. */
+  /** Represents a successfully completed task */
   case Done
 
-  /** Indicates that the task execution has failed. */
+  /** Represents a failed task. */
   case Fail
 
   /** Represents an operational task requiring movement to a specific warehouse
     * position.
+    * 
+    * @param at
+    *   The target destination to reach
     */
   case Move(at: Position)
 
-  /** Returns true if the task has been successfully completed. */
+  /** @return
+    *   whether the task is completed.
+    */
   def isDone: Boolean = this == Task.Done
 
-  /** Returns true if the task execution has failed. */
+  /** @return
+    *   whether the task is failed.
+    */
   def isFail: Boolean = this == Task.Fail
 
-  /** Returns the target warehouse position if this is a Move task, or None
-    * otherwise.
+  /** @return
+    *   the target warehouse position if this is a Move task, or None otherwise.
     */
   def where: Option[Position] = this match
     case Move(at) => Some(at)

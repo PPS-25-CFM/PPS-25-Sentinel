@@ -1,6 +1,6 @@
 package it.unibo.sentinel.core.mission
 
-/** Represents the possible lifecycle states of a Mission within the Sentinel
+/** Represents the possible lifecycle states of a [[Mission]] within the Sentinel
   * system.
   */
 enum MissionStatus:
