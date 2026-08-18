@@ -1,7 +1,7 @@
 package it.unibo.sentinel.core.routing
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Tile}
+import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Tile, Area}
 
 class NavigatorSpec extends UnitTest:
   "An Hops Navigator" when:
@@ -21,3 +21,14 @@ class NavigatorSpec extends UnitTest:
 
       "return an empty path " in:
         navigator.path(Position(0, 0), Position(0, 0)).value shouldBe Seq.empty
+
+    "only a path exists between two positions" should:
+      given Warehouse = Warehouse
+        .empty(5, 5)
+        .withArea(Area(Position(0, 0), Position(0, 2)))(Tile.Floor())
+      val navigator = Navigator(metric = Metric.Hops)
+
+      "return such path" in:
+        navigator.path(Position(0, 0), Position(0, 2)).value shouldBe Seq(
+          Position(0, 1), Position(0, 2)
+        )

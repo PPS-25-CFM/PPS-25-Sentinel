@@ -1,16 +1,22 @@
 package it.unibo.sentinel.core.routing
 
 import it.unibo.sentinel.core.warehouse.{Warehouse, Position}
+import scala.annotation.tailrec
+import it.unibo.sentinel.core.warehouse
 
 /** Abstracts the metric that a [[Navigator]] uses in order to compute a path
   * between two positions.
   */
-trait Metric
+trait Metric:
+  /** Compute the cost for moving in [[to]] based on the given [[Metric]].
+    */
+  def cost(to: Position)(using warehouse: Warehouse): Int
 
 object Metric:
   /** Metric that assigns a unit cost to every traversed position.
     */
-  object Hops extends Metric
+  object Hops extends Metric:
+    override def cost(to: Position)(using warehouse: Warehouse): Int = 1
 
 /** A [[Path]] is a type alias for a [[Seq]] of [[Position]], where each
   * [[Position]] is a step in the [[Path]].
@@ -40,8 +46,34 @@ object Navigator:
   def apply(metric: Metric)(using w: Warehouse): Navigator =
     new Navigator:
       given warehouse: Warehouse = w
-      val _ = metric
       override def path(from: Position, to: Position): Option[Path] =
-        (from, to) match
-          case (from, to) if from == to => Some(Seq.empty)
-          case _                        => None
+        @tailrec
+        def loop(
+            fringe: Map[Position, Int],
+            visited: Set[Position],
+            parent: Map[Position, Position]
+        ): Option[Path] =
+          fringe.minByOption((_, d) => d) match
+            case None            => None
+            case Some((`to`, _)) => Some(fromParent(parent)(from, to))
+            case Some((curr, d)) =>
+              val seen = visited + curr
+              val relaxed = warehouse
+                .traversableNeighbors(curr)
+                .filterNot(seen)
+                .map(next => next -> (d + metric.cost(next)))
+                .filterNot((next, c) => fringe.get(next).exists(_ <= c))
+              loop(
+                fringe - curr ++ relaxed,
+                seen,
+                parent ++ relaxed.map((next, _) => next -> curr)
+              )
+        loop(Map(from -> 0), Set.empty, Map.empty)
+
+      private def fromParent(
+          parent: Map[Position, Position]
+      )(from: Position, to: Position): Path =
+        @tailrec
+        def go(pos: Position, acc: Path): Path =
+          if pos == from then acc else go(parent(pos), pos +: acc)
+        go(to, Seq.empty)
