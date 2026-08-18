@@ -49,7 +49,8 @@ trait SelectorBehaviors:
 class SelectorSpec extends UnitTest with SelectorBehaviors:
 
   val targetPosition = Position(0, 0)
-  val mission = Mission(MissionId("M01"), Task.Act(Step.Goto(targetPosition)), 10)
+  val mission =
+    Mission(MissionId("M01"), Task.Act(Step.Goto(targetPosition)), 10)
 
   "A Nearest Selector" when:
     val robot1 = Mockito.mock(classOf[Robot])
@@ -89,8 +90,10 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
         when(strandedRobot.canAccept).thenReturn(true)
         val strandedPlacement = Placement(strandedRobot, Position(3, 3))
 
-        when(navigator.distance(strandedPlacement.at, destination)).thenReturn(None)
+        when(navigator.distance(strandedPlacement.at, destination))
+          .thenReturn(None)
 
-        val result = selector.choose(mission, Iterable(strandedPlacement, placement2))
+        val result =
+          selector.choose(mission, Iterable(strandedPlacement, placement2))
 
         result shouldBe Some(placement2)

@@ -8,4 +8,7 @@ trait Targeted:
 /** A single atomic physical operation required by a mission.
   */
 enum Step extends Targeted:
+  /** @param target
+    *   The target [[Position]] to reach.
+    */
   case Goto(target: Position)

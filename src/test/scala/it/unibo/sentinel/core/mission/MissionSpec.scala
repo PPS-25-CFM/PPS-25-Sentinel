@@ -11,7 +11,7 @@ class MissionSpec extends UnitTest:
   val step: Step = Step.Goto(target)
   val task: Task = Task.Act(step)
   val duration: Ticks = 10
-  
+
   val pendingMission: Mission = Mission(missionID, task, duration)
 
   "A Mission" when:
