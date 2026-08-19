@@ -1,87 +1,112 @@
 package it.unibo.sentinel.core.mission
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.mission.*
-import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.robot.RobotId
+import it.unibo.sentinel.core.warehouse.Position
 
 class MissionSpec extends UnitTest:
 
-  val missionID = MissionId("M1")
-  val target = Position(1, 1)
-  val task: Task = Task.Move(target)
+  val missionID: MissionId = MissionId("M1")
+  val target: Position = Position(1, 1)
+  val task: Task = Task.goto(target)
   val duration: Ticks = 10
-  val mission = Mission(missionID, task, duration)
+
+  val pendingMission: Mission = Mission(missionID, task, duration)
 
   "A Mission" when:
 
     "newly created" should:
 
-      "have the right ID" in:
-        mission.id shouldBe missionID
+      "have the correct ID" in:
+        pendingMission.id shouldBe missionID
 
-      "have no Robot assigned to" in:
-        mission.carrier shouldBe None
+      "have no Robot assigned" in:
+        pendingMission.carrier shouldBe None
 
-      "be Pending" in:
-        mission.status shouldBe MissionStatus.Pending
+      "be in Pending status" in:
+        pendingMission.status shouldBe MissionStatus.Pending
+        pendingMission.isPending shouldBe true
 
-      "have a Task" in:
-        mission.task shouldBe task
+      "not be considered Over" in:
+        pendingMission.isOver shouldBe false
 
-      "have a Duration" in:
-        mission.duration shouldBe duration
+      "have the assigned Task" in:
+        pendingMission.task shouldBe task
 
-    "managing the assignment to a Robot" should:
+      "have the initial Duration" in:
+        pendingMission.duration shouldBe duration
+
+      "expose the current destination of its active Step" in:
+        pendingMission.currentDestination shouldBe Some(target)
+
+    "managing carrier assignment" should:
       val robotID = RobotId("R1")
-      val replacer = RobotId("R2")
+      val replacerID = RobotId("R2")
+      val assignedMission = pendingMission.assignTo(robotID)
 
-      "set the carrier" in:
-        mission.assignTo(robotID).carrier shouldBe Some(robotID)
+      "set the carrier correctly" in:
+        assignedMission.carrier shouldBe Some(robotID)
 
       "update the status to Assigned" in:
-        mission.assignTo(robotID).status shouldBe MissionStatus.Assigned
+        assignedMission.status shouldBe MissionStatus.Assigned
 
-      "be possible only if pending" in:
-        val assigned = mission.assignTo(robotID)
+      "preserve the current destination when assigned" in:
+        assignedMission.currentDestination shouldBe Some(target)
 
-        assigned.assignTo(replacer) shouldBe assigned
+      "prevent re-assignment to another robot if already assigned" in:
+        assignedMission.assignTo(replacerID) shouldBe assignedMission
 
-    "managing the unassignment off a Robot" should:
-      val robotID = RobotId("R1")
-      val assigned = mission.assignTo(robotID)
+      "unset the carrier and revert status to Pending on unassign" in:
+        val unassigned = assignedMission.unassign
+        unassigned.carrier shouldBe None
+        unassigned.status shouldBe MissionStatus.Pending
 
-      "unset the carrier" in:
-        assigned.unassign.carrier shouldBe None
+    "completing its execution" should:
+      val completedMission = pendingMission.complete
 
-      "update the status to Pending" in:
-        assigned.unassign.status shouldBe MissionStatus.Pending
+      "update the status to Completed" in:
+        completedMission.status shouldBe MissionStatus.Completed
 
-    "completing its Task" should:
-      val completed = mission.complete
+      "be considered Over" in:
+        completedMission.isOver shouldBe true
 
-      "be Complete" in:
-        completed.status shouldBe MissionStatus.Completed
+      "return None as currentDestination once Over" in:
+        completedMission.currentDestination shouldBe None
 
-      "considered Over" in:
-        completed.isOver shouldBe true
+      "ignore further assignment attempts" in:
+        completedMission.assignTo(RobotId("R1")) shouldBe completedMission
 
-    "failing its Task" should:
-      val completed = mission.fail
+      "ignore unassign attempts" in:
+        completedMission.unassign shouldBe completedMission
 
-      "be Failed" in:
-        completed.status shouldBe MissionStatus.Failed
+    "failing its execution" should:
+      val failedMission = pendingMission.fail
 
-      "considered Over" in:
-        completed.isOver shouldBe true
+      "update the status to Failed" in:
+        failedMission.status shouldBe MissionStatus.Failed
 
-    "proceeding through time" should:
-      val next = mission.proceed
+      "be considered Over" in:
+        failedMission.isOver shouldBe true
 
-      "decrease the Duration" in:
-        next.duration shouldBe duration - 1
+      "return None as currentDestination once Over" in:
+        failedMission.currentDestination shouldBe None
 
-      "expire if it reaches 0" in:
-        val expired = Mission(MissionId("Expired"), task, 1).proceed
+    "proceeding through time (Ticks)" should:
 
-        expired.status shouldBe MissionStatus.Failed
+      "decrease the duration by 1 Tick when active" in:
+        val nextMission = pendingMission.proceed
+        nextMission.duration shouldBe (duration - 1)
+
+      "expire and fail when duration reaches 0" in:
+        val lastTickMission = Mission(MissionId("M_EXP"), task, duration = 1)
+        val expiredMission = lastTickMission.proceed
+
+        expiredMission.duration shouldBe 0
+        expiredMission.status shouldBe MissionStatus.Failed
+        expiredMission.isOver shouldBe true
+
+      "not decrease duration or change status if already Over" in:
+        val completedMission = pendingMission.complete
+        val proceedAfterOver = completedMission.proceed
+
+        proceedAfterOver shouldBe completedMission

@@ -1,6 +1,8 @@
 package it.unibo.sentinel.core.robot
 
 import it.unibo.sentinel.core.mission.MissionId
+import it.unibo.sentinel.core.routing.Path
+import it.unibo.sentinel.core.warehouse.Position
 
 /** Abstracts the concept of a robot, which is an entity capable of accepting
   * and executing missions while moving through the [[Warehouse]]
@@ -34,13 +36,30 @@ trait Robot:
     */
   def accept(missionId: MissionId): Unit
 
-  /** Starts the mission
-    */
-  def startMission: Unit
-
   /** Interrupts and removes the mission
     */
-  def dropMission: Unit
+  def release(): Unit
+
+  /** Sets a [[Path]] to follow
+    *
+    * @param path
+    *   a sequence of [[Position]]s
+    */
+  def follow(path: Path): Unit
+
+  /** @return
+    *   the [[Path]] that the robot is currently following
+    */
+  def path: Option[Path]
+
+  /** @return
+    *   the next [[Position]] in the robot's [[Path]] (if there is one)
+    */
+  def next: Option[Position]
+
+  /** Advances its [[Path]]
+    */
+  def step(): Unit
 
 object Robot:
   /** @param id
@@ -53,23 +72,32 @@ object Robot:
   /** Implementation of a [[Robot]] that can accept one mission
     */
   private class SimpleRobot(val id: RobotId) extends Robot:
+
     private var _mission: Option[MissionId] = None
-    private var _status: RobotStatus = RobotStatus.Idle
+    private var _path: Option[Path] = None
 
     override def mission: Option[MissionId] = _mission
 
-    override def status: RobotStatus = _status
+    override def status: RobotStatus = (_mission, _path) match
+      case (None, None)    => RobotStatus.Idle
+      case (Some(_), None) => RobotStatus.Ready
+      case (_, Some(_))    => RobotStatus.Moving
 
     override def canAccept: Boolean = mission.isEmpty
 
     override def accept(missionId: MissionId): Unit =
-      if canAccept then
-        _mission = Some(missionId)
-        _status = RobotStatus.Ready
+      if canAccept then _mission = Some(missionId)
 
-    override def startMission: Unit =
-      _status = RobotStatus.Moving
-
-    override def dropMission: Unit =
+    override def release(): Unit =
       _mission = None
-      _status = RobotStatus.Idle
+      _path = None
+
+    override def path: Option[Path] = _path
+
+    override def follow(path: Path): Unit = _path = Some(path)
+
+    override def next: Option[Position] = _path.flatMap(_.headOption)
+
+    override def step(): Unit = _path = _path match
+      case Some(_ +: rest) => Some(rest)
+      case _               => _path

@@ -1,6 +1,7 @@
 package it.unibo.sentinel.core.mission
 
 import it.unibo.sentinel.core.robot.RobotId
+import it.unibo.sentinel.core.warehouse.Position
 
 // TODO: Update when the concept of Tick will be introduced
 type Ticks = Int
@@ -10,9 +11,11 @@ type Ticks = Int
   * @param id
   *   Unique identifier of the mission.
   * @param task
-  *   The task to be performed within this mission.
+  *   The operational task to be performed within this mission.
   * @param duration
-  *   Remaining mission duration measured in Ticks.
+  *   Remaining mission execution window measured in [[Ticks]].
+  * @param status
+  *   The current lifecycle state of the mission.
   * @param carrier
   *   The robot currently assigned to carry out the mission, if any.
   */
@@ -20,13 +23,14 @@ final case class Mission private (
     id: MissionId,
     task: Task,
     duration: Ticks,
+    status: MissionStatus,
     carrier: Option[RobotId]
 ):
   import MissionStatus.*
 
   /** @return
     *   whether the [[Mission]] is currently waiting to be assigned to a
-    *   [[Robot]].
+    *   carrier.
     */
   def isPending: Boolean = status == Pending
 
@@ -38,41 +42,53 @@ final case class Mission private (
     case Completed | Failed => true
     case _                  => false
 
-  /** Dynamically computes the current lifecycle status of the [[Mission]]. */
-  def status: MissionStatus = (task, carrier) match
-    case (task, _) if task.isFail          => Failed
-    case (task, _) if task.isDone          => Completed
-    case (_, carrier) if carrier.isDefined => Assigned
-    case _                                 => Pending
+  /** Retrieves the target position of the current step.
+    *
+    * @return
+    *   [[Some]] destination [[Position]] if the mission is active, or [[None]]
+    *   if it has reached a terminal state.
+    */
+  def currentDestination: Option[Position] =
+    if isOver then None
+    else Some(task.destination)
 
   /** @param robotID
-    *   Identifier of the mission carrier
+    *   Identifier of the robot assigned to carry out the mission.
     * @return
-    *   A new [[Mission]] with the assigned [[Robot]].
+    *   A new [[Mission]] assigned to the specified robot with status set to
+    *   [[Assigned]], or the unchanged [[Mission]] if it was not in [[Pending]]
+    *   status.
     */
   def assignTo(robotID: RobotId): Mission =
-    if isPending then copy(carrier = Some(robotID)) else this
+    if isPending then copy(carrier = Some(robotID), status = Assigned)
+    else this
 
   /** @return
-    *   A new [[Mission]] without an assigned [[Robot]].
+    *   A new [[Mission]] without an assigned carrier and status reset to
+    *   [[Pending]], or the unchanged [[Mission]] if it has already reached a
+    *   terminal state.
     */
   def unassign: Mission =
-    if isOver then this else copy(carrier = None)
+    if isOver then this
+    else copy(carrier = None, status = Pending)
 
   /** @return
-    *   A new completed [[Mission]].
+    *   A new completed [[Mission]], or the unchanged [[Mission]] if it is
+    *   already over.
     */
   def complete: Mission =
-    if isOver then this else copy(task = Task.Done)
+    if isOver then this else copy(status = Completed)
 
   /** @return
-    *   A new failed [[Mission]].
+    *   A new failed [[Mission]], or the unchanged [[Mission]] if it is already
+    *   over.
     */
   def fail: Mission =
-    if isOver then this else copy(task = Task.Fail)
+    if isOver then this else copy(status = Failed)
 
   /** @return
-    *   A new completed [[Mission]] with its lifecycle advanced by one [[Tick]].
+    *   A new [[Mission]] with updated duration, or failed if duration expires.
+    *   Returns the unchanged [[Mission]] if it is already over.
     */
   def proceed: Mission =
     if isOver then this
@@ -80,17 +96,26 @@ final case class Mission private (
     else copy(duration = duration - 1)
 
 object Mission:
-  /** @param id
-    *   The mission unique ID.
+  /** Factory method to instantiate a new mission.
+    *
+    * @param id
+    *   The unique identifier for the mission.
     * @param task
-    *   The task to complete.
+    *   The task to be completed.
     * @param duration
-    *   The expiration time of the mission expressed by [[Ticks]] remaining
+    *   The total time window allocated for the mission, expressed in [[Ticks]].
     * @return
-    *   A new Mission in its initial unassigned (Pending) state.
+    *   A new [[Mission]] initialized in the unassigned
+    *   [[MissionStatus.Pending]] state.
     */
   def apply(
       id: MissionId,
       task: Task,
       duration: Ticks
-  ): Mission = new Mission(id, task, duration, None)
+  ): Mission = new Mission(
+    id,
+    task,
+    duration,
+    MissionStatus.Pending,
+    None
+  )
