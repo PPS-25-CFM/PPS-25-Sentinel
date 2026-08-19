@@ -8,7 +8,7 @@ import it.unibo.sentinel.core.routing.Path
 
 private[core] final class Environment private[core](
   val warehouse: Warehouse,
-  private val fleet: Map[RobotId, Placement],
+  private var fleet: Map[RobotId, Placement],
   private var board: Map[MissionId, Mission]
 ):
 
@@ -29,3 +29,13 @@ private[core] final class Environment private[core](
       spot <- fleet.get(rid)
       robot = spot.robot
     do robot.follow(path)
+
+  def advance(rid: RobotId): Unit =
+    for
+      spot <- fleet.get(rid)
+      robot = spot.robot
+      to <- robot.next
+    do
+      if !fleet.values.exists(_.at == to) then
+        robot.step()
+        fleet = fleet + (rid -> spot.copy(at = to))

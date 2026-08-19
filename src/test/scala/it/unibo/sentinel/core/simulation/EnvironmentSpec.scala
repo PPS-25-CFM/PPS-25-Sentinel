@@ -11,8 +11,8 @@ import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.mission.Task
 import it.unibo.sentinel.core.mission.MissionStatus
 import it.unibo.sentinel.core.robot.RobotStatus
-import org.mockito.Mockito
 import it.unibo.sentinel.core.routing.Path
+import org.mockito.Mockito
 
 class EnvironmentSpec extends UnitTest:
 
@@ -116,3 +116,17 @@ class EnvironmentSpec extends UnitTest:
 
         env.placements shouldBe fleet.values.toSeq
         env.missions shouldBe board.values.toSeq        
+
+    "advancing a robot" should:
+
+      "update placement and step the robot if target position is free" in:
+        val testEnv = Environment(warehouse, fleet, board)
+        val target = Position(1, 2)
+        val path: Path = Seq(target)
+        
+        testEnv.route(r_id1, path)
+        testEnv.advance(r_id1)
+
+        val updatedPlacement = testEnv.placements.find(_.robot.id == r_id1).value
+        
+        updatedPlacement.at shouldBe target
