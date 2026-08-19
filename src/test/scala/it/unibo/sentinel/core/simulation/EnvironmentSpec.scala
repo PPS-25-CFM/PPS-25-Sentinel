@@ -11,6 +11,8 @@ import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.mission.Task
 import it.unibo.sentinel.core.mission.MissionStatus
 import it.unibo.sentinel.core.robot.RobotStatus
+import org.mockito.Mockito
+import it.unibo.sentinel.core.routing.Path
 
 class EnvironmentSpec extends UnitTest:
 
@@ -91,3 +93,15 @@ class EnvironmentSpec extends UnitTest:
         env.assign(r_id1, MissionId("UNKNOWN"))
 
         env.missions shouldBe board.values.toSeq
+
+    "routing a robot" should:
+
+      "instruct the robot to follow the path if it exists in fleet" in:
+        val env = Environment(warehouse, fleet, board)
+        val path = Mockito.mock(classOf[Path])
+        
+        env.route(r_id1, path)
+
+        val routedBot = env.placements.find(_.robot.id == r_id1).value.robot
+
+        routedBot.path shouldBe Some(path)

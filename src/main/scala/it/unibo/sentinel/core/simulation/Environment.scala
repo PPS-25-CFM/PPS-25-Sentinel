@@ -4,6 +4,7 @@ import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
+import it.unibo.sentinel.core.routing.Path
 
 private[core] final class Environment private[core](
   val warehouse: Warehouse,
@@ -22,3 +23,9 @@ private[core] final class Environment private[core](
     do
       robot.accept(m_id)
       board = board + (m_id -> mission.assignTo(r_id))
+
+  def route(rid: RobotId, path: Path): Unit =
+    for
+      spot <- fleet.get(rid)
+      robot = spot.robot
+    do robot.follow(path)
