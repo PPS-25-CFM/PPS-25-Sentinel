@@ -130,3 +130,14 @@ class EnvironmentSpec extends UnitTest:
         val updatedPlacement = testEnv.placements.find(_.robot.id == r_id1).value
         
         updatedPlacement.at shouldBe target
+
+      "prevent movement if the target position is occupied by another robot" in:
+        val env = Environment(warehouse, fleet, board)
+        val collisionPath: Path = Seq(pos1, pos2)
+
+        env.route(r_id1, collisionPath)
+        env.advance(r_id1)
+
+        val placementAfterCollision = env.placements.find(_.robot.id == r_id1).value
+        
+        placementAfterCollision.at shouldBe pos1
