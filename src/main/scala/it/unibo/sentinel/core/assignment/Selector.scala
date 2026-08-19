@@ -47,7 +47,7 @@ object Selector:
     * @param navigator
     *   The spatial navigation routing engine used to compute distances.
     */
-  case class Nearest(navigator: Navigator) extends Selector:
+  final case class Nearest(navigator: Navigator) extends Selector:
 
     /** @param mission
       *   The mission whose destination is evaluated.
@@ -62,12 +62,8 @@ object Selector:
         mission: Mission,
         available: Iterable[Placement]
     ): Option[Placement] =
-      mission.currentDestination match
-        case Some(target) =>
-          available
-            .flatMap(candidate =>
-              navigator.distance(candidate.at, target).map(candidate -> _)
-            )
-            .minByOption(_._2)
-            .map(_._1)
-        case None => None
+      (for
+        candidate <- available
+        target <- mission.currentDestination
+        distance <- navigator.distance(candidate.at, target)
+      yield candidate -> distance).minByOption(_._2).map(_._1)
