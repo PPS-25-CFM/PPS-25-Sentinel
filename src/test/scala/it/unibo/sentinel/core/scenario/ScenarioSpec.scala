@@ -128,4 +128,6 @@ class ScenarioSpec extends UnitTest:
 
         env.warehouse shouldBe warehouse
         env.missions should contain only mission
-        env.placements.map(p => (p.robot.id, p.at)) should contain only (robotId -> position)
+        env.placements.map(p =>
+          (p.robot.id, p.at)
+        ) should contain only (robotId -> position)

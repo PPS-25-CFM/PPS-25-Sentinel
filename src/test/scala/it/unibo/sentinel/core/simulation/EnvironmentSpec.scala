@@ -36,7 +36,8 @@ trait EnvironmentFixture:
     s4 <- s3.load(Mission(m_id2, Task.goto(Position(4, 4)), 10))
   yield s4).value
 
-/** We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
+/** We suppressed null warning due to the ScalaTest lifecycle `uninitialized`
+  * var usage in beforeEach.
   */
 @SuppressWarnings(Array("org.wartremover.warts.Null"))
 class EnvironmentSpec
@@ -56,8 +57,13 @@ class EnvironmentSpec
 
       "have its parameters correctly set" in:
         environment.warehouse shouldBe warehouse
-        environment.placements.map(_.robot.id) should contain theSameElementsAs Seq(r_id1, r_id2)
-        environment.missions.map(_.id) should contain theSameElementsAs Seq(m_id1, m_id2)
+        environment.placements.map(
+          _.robot.id
+        ) should contain theSameElementsAs Seq(r_id1, r_id2)
+        environment.missions.map(_.id) should contain theSameElementsAs Seq(
+          m_id1,
+          m_id2
+        )
 
     "assigning a mission" should:
 
@@ -68,7 +74,8 @@ class EnvironmentSpec
         assignedMission.carrier shouldBe Some(r_id1)
         assignedMission.status shouldBe MissionStatus.Assigned
 
-        val assignedRobot = environment.placements.map(_.robot).find(_.id == r_id1).value
+        val assignedRobot =
+          environment.placements.map(_.robot).find(_.id == r_id1).value
         assignedRobot.status shouldBe RobotStatus.Ready
         assignedRobot.mission.value shouldBe m_id1
 
@@ -96,7 +103,8 @@ class EnvironmentSpec
         val path: Path = Seq.empty
         environment.route(r_id1, path)
 
-        val routedBot = environment.placements.find(_.robot.id == r_id1).value.robot
+        val routedBot =
+          environment.placements.find(_.robot.id == r_id1).value.robot
         routedBot.path shouldBe Some(path)
 
       "do nothing if the robot ID does not exist" in:
@@ -118,7 +126,8 @@ class EnvironmentSpec
         environment.route(r_id1, path)
         environment.advance(r_id1)
 
-        val updatedPlacement = environment.placements.find(_.robot.id == r_id1).value
+        val updatedPlacement =
+          environment.placements.find(_.robot.id == r_id1).value
         updatedPlacement.at shouldBe target
 
       "prevent movement if the target position is occupied by another robot" in:
@@ -128,7 +137,8 @@ class EnvironmentSpec
         environment.route(r_id1, collisionPath)
         environment.advance(r_id1)
 
-        val placementAfterCollision = environment.placements.find(_.robot.id == r_id1).value
+        val placementAfterCollision =
+          environment.placements.find(_.robot.id == r_id1).value
         placementAfterCollision.at shouldBe pos1
 
       "advance step-by-step through a Path" in:
@@ -147,19 +157,29 @@ class EnvironmentSpec
     "queried about Standings" should:
 
       "return Placements matching a specific Robot status" in:
-        environment.standing(RobotStatus.Idle).map(_.robot.id) should contain theSameElementsAs Seq(r_id1, r_id2)
+        environment
+          .standing(RobotStatus.Idle)
+          .map(_.robot.id) should contain theSameElementsAs Seq(r_id1, r_id2)
         environment.standing(RobotStatus.Ready) shouldBe empty
 
         environment.assign(r_id1, m_id1)
 
-        environment.standing(RobotStatus.Ready).map(_.robot.id) should contain theSameElementsAs Seq(r_id1)
-        environment.standing(RobotStatus.Idle).map(_.robot.id) should contain theSameElementsAs Seq(r_id2)
+        environment
+          .standing(RobotStatus.Ready)
+          .map(_.robot.id) should contain theSameElementsAs Seq(r_id1)
+        environment
+          .standing(RobotStatus.Idle)
+          .map(_.robot.id) should contain theSameElementsAs Seq(r_id2)
 
     "queried about Pending Missions" should:
 
       "return only missions in Pending status with pendingMissions" in:
-        environment.pendingMissions.map(_.id) should contain theSameElementsAs Seq(m_id1, m_id2)
+        environment.pendingMissions.map(
+          _.id
+        ) should contain theSameElementsAs Seq(m_id1, m_id2)
 
         environment.assign(r_id1, m_id1)
 
-        environment.pendingMissions.map(_.id) should contain theSameElementsAs Seq(m_id2)
+        environment.pendingMissions.map(
+          _.id
+        ) should contain theSameElementsAs Seq(m_id2)

@@ -25,7 +25,8 @@ trait Queries:
   /** @param status
     *   the [[RobotStatus]] to filter robots by.
     * @return
-    *   the [[Placement]]s of robots that currently have the given [[RobotStatus]].
+    *   the [[Placement]]s of robots that currently have the given
+    *   [[RobotStatus]].
     */
   def standing(status: RobotStatus): Seq[Placement] =
     placements.filter(_.robot.status == status).toSeq
@@ -36,8 +37,8 @@ trait Queries:
   def pendingMissions: Seq[Mission] =
     missions.filter(_.status == Pending).toSeq
 
-/** Represents the mutable simulation state, maintaining the [[Warehouse]] layout,
-  * the robot [[fleet]], and the mission [[board]].
+/** Represents the mutable simulation state, maintaining the [[Warehouse]]
+  * layout, the robot [[fleet]], and the mission [[board]].
   *
   * @param warehouse
   *   the [[Warehouse]] where the simulation takes place.
@@ -46,7 +47,7 @@ trait Queries:
   * @param board
   *   the map of active [[Mission]]s indexed by [[MissionId]].
   */
-private[core] final class Environment private[core](
+private[core] final class Environment private[core] (
     val warehouse: Warehouse,
     private var fleet: Map[RobotId, Placement],
     private var board: Map[MissionId, Mission]
@@ -55,7 +56,8 @@ private[core] final class Environment private[core](
   override def placements: Seq[Placement] = fleet.values.toSeq
   override def missions: Seq[Mission] = board.values.toSeq
 
-  /** Assigns a mission to a robot, notifying the robot and updating the mission status.
+  /** Assigns a mission to a robot, notifying the robot and updating the mission
+    * status.
     *
     * @param r_id
     *   the [[RobotId]] of the target robot.
