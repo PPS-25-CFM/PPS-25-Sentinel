@@ -57,6 +57,10 @@ trait Robot:
     */
   def next: Option[Position]
 
+  /** Advances its [[Path]]
+    */
+  def step(): Unit
+
 object Robot:
   /** @param id
     *   the robot's identifier
@@ -75,9 +79,9 @@ object Robot:
     override def mission: Option[MissionId] = _mission
 
     override def status: RobotStatus = (_mission, _path) match
-      case (None, _)          => RobotStatus.Idle
-      case (Some(_), None)    => RobotStatus.Ready
-      case (Some(_), Some(_)) => RobotStatus.Moving
+      case (None, None)    => RobotStatus.Idle
+      case (Some(_), None) => RobotStatus.Ready
+      case (_, Some(_))    => RobotStatus.Moving
 
     override def canAccept: Boolean = mission.isEmpty
 
@@ -93,3 +97,7 @@ object Robot:
     override def follow(path: Path): Unit = _path = Some(path)
 
     override def next: Option[Position] = _path.flatMap(_.headOption)
+
+    override def step(): Unit = _path = _path match
+      case Some(_ +: rest) => Some(rest)
+      case _               => _path
