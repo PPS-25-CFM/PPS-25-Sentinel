@@ -111,6 +111,12 @@ trait Scenario:
     */
   def load(mission: Mission): Either[Validation, Scenario]
 
+  /** Builds and initializes the simulation [[Environment]] from this [[Scenario]].
+    *
+    * @return
+    *   a new [[Environment]] populated with the current [[Warehouse]], spawned
+    *   [[Robot]]s as [[Placement]]s, and loaded [[Mission]]s.
+    */
   private[core] def build: Environment
 
 object Scenario:
