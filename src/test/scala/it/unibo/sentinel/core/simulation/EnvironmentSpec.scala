@@ -53,24 +53,21 @@ class EnvironmentSpec extends UnitTest:
     (m_id2, mission2)
   )
 
-  val env = Environment(
-    warehouse,
-    fleet,
-    board
-  )
-
   "An Environment" when:
 
     "initialized" should:
 
       "have its parameters correctly set" in:
+        val env = Environment(warehouse, fleet, board)
+
         env.warehouse shouldBe warehouse
         env.placements shouldBe fleet.values.toSeq
         env.missions shouldBe board.values.toSeq
 
     "assigning a mission" should:
 
-      "update the robot status and board when IDs exist" in:
+      "update the robot and board when IDs exist" in:
+        val env = Environment(warehouse, fleet, board)
         env.assign(r_id1, m_id1)
 
         val assignedMission = env.missions.find(_.id == m_id1).value
@@ -83,7 +80,14 @@ class EnvironmentSpec extends UnitTest:
         assignedRobot.status shouldBe RobotStatus.Ready
         assignedRobot.mission.value shouldBe m_id1
 
-      
+      "do nothing if the robot ID does not exist" in:
+        val env = Environment(warehouse, fleet, board)
+        env.assign(RobotId("UNKNOWN"), m_id1)
 
+        env.missions shouldBe board.values.toSeq
 
-      
+      "do nothing if the mission ID does not exist" in:
+        val env = Environment(warehouse, fleet, board)
+        env.assign(r_id1, MissionId("UNKNOWN"))
+
+        env.missions shouldBe board.values.toSeq
