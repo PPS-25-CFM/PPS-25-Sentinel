@@ -1,4 +1,4 @@
-package it.unibo.sentinel.core.selection
+package it.unibo.sentinel.core.assignment
 
 import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.scenario.Placement

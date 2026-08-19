@@ -2,13 +2,17 @@ package it.unibo.sentinel.core.mission
 
 import it.unibo.sentinel.core.warehouse.Position
 
-trait Targeted:
-  def target: Position
-
 /** A single atomic physical operation required by a mission.
   */
-enum Step extends Targeted:
+private[mission] enum Step:
+
   /** @param target
     *   The target [[Position]] to reach.
     */
-  case Goto(target: Position)
+  case Move(target: Position)
+
+  /** @return
+    *   The target [[Position]] associated with this step, if applicable.
+    */
+  def targetPosition: Position = this match
+    case Move(pos) => pos

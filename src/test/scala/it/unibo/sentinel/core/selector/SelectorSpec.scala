@@ -6,7 +6,7 @@ import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.robot.Robot
 import it.unibo.sentinel.core.warehouse.Position
-import it.unibo.sentinel.core.selection.*
+import it.unibo.sentinel.core.assignment.*
 import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.scenario.Placement
 
@@ -18,7 +18,7 @@ trait SelectorBehaviors:
   def commonSelector(selectorBuilder: => Selector): Unit =
     val mission = Mission(
       MissionId("M01"),
-      Task.Act(Step.Goto(Position(0, 0))),
+      Task.goto(Position(0, 0)),
       10
     )
 
@@ -51,7 +51,7 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
 
   val targetPosition = Position(0, 0)
   val mission =
-    Mission(MissionId("M01"), Task.Act(Step.Goto(targetPosition)), 10)
+    Mission(MissionId("M01"), Task.goto(targetPosition), 10)
 
   "A Nearest Selector" when:
     val robot1 = Mockito.mock(classOf[Robot])

@@ -2,7 +2,7 @@ package it.unibo.sentinel.core.scenario
 
 import it.unibo.sentinel.core.routing.{Navigator, Metric}
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.core.selection.Selector
+import it.unibo.sentinel.core.assignment.Selector
 
 /** Represents the policies that govern the behavior of the simulation.
   */

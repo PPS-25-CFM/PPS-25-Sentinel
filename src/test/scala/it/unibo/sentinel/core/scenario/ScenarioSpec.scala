@@ -5,7 +5,6 @@ import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Area, Tile}
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.mission.{Mission, MissionId, Task}
 import org.mockito.Mockito
-import it.unibo.sentinel.core.mission.Step
 
 class ScenarioSpec extends UnitTest:
   import Validation.*
@@ -75,7 +74,7 @@ class ScenarioSpec extends UnitTest:
       "return a new scenario with the mission added" in:
         val mission = Mission(
           id = MissionId("M1"),
-          task = Task.Act(Step.Goto(Position(1, 1))),
+          task = Task.goto(Position(1, 1)),
           duration = 10
         )
         val result = s0.load(mission).right.value
@@ -84,7 +83,7 @@ class ScenarioSpec extends UnitTest:
       "signal that the mission id already exists" in:
         val mission = Mission(
           id = MissionId("M1"),
-          task = Task.Act(Step.Goto(Position(1, 1))),
+          task = Task.goto(Position(1, 1)),
           duration = 10
         )
         val result =
