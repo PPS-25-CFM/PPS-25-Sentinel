@@ -74,6 +74,8 @@ class RobotSpec extends UnitTest with RobotFixture:
         robot.next shouldBe Some(Position(3, 0))
         robot.step()
         robot.next shouldBe None
+        robot.step()
+        robot.next shouldBe None
 
     "releasing the mission" should:
       val released: Robot = withMission(m1)
