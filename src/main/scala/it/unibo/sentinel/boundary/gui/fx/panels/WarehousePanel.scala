@@ -12,13 +12,16 @@ import scalafx.scene.layout.{
   StackPane
 }
 import scalafx.scene.paint.Color
+import it.unibo.sentinel.core.scenario.Spawn
+import it.unibo.sentinel.core.robot.value
 
 /** Panel used to display a [[Warehouse]]
   *
   * @param warehouse
   *   the [[Warehouse]] to display
   */
-final class WarehousePanel(warehouse: Warehouse) extends GridPane:
+final class WarehousePanel(warehouse: Warehouse, spawns: Seq[Spawn])
+    extends GridPane:
 
   private val rows: Int = warehouse.height
   private val cols: Int = warehouse.width
@@ -51,7 +54,8 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
     c <- 0 until cols
   do
     val traversable = warehouse.isTraversable(Position(c, r))
-    add(createCellNode(traversable), c, r)
+    val id = spawns.find(_.at == Position(c, r)).map(_.id.value)
+    add(createCellNode(traversable, id.getOrElse("")), c, r)
 
   /** Creates a new cell to add to the grid
     *
@@ -61,12 +65,12 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
     * @return
     *   a cell represented by a [[StackPane]]
     */
-  private def createCellNode(traversable: Boolean): StackPane =
+  private def createCellNode(traversable: Boolean, robotId: String): StackPane =
     val bgColor = if traversable then "#F8FAFC" else "#334155"
     val borderColor = if traversable then "#E0E6ED" else "#1C2739"
     val textColor = if traversable then "#0F172A" else "#F8FAFC"
     val cellLabel = new Label:
-      text = ""
+      text = robotId
       textFill = Color.web(textColor)
       style = "-fx-font-weight: bold; -fx-font-size: 12px;"
 

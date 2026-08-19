@@ -1,6 +1,6 @@
 package it.unibo.sentinel.boundary.gui.fx.panels
 
-import it.unibo.sentinel.core.mission.{Mission, MissionStatus, Task}
+import it.unibo.sentinel.core.mission.{Mission, MissionStatus}
 import scalafx.geometry.Insets
 import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
 import scalafx.scene.control.{Label, ListView, ScrollPane, SelectionMode}
@@ -51,9 +51,9 @@ class MissionsPanel(missions: Iterable[Mission]) extends ScrollPane:
     *   a brief description of the given mission
     */
   private def parseMission(mission: Mission): String =
-    val destinationLabel = mission.task match
-      case Task.Move(destination) => s" - move to $destination"
-      case _                      => ""
+    val destinationLabel = mission.currentDestination match
+      case Some(p) => s" - move to $p"
+      case _       => ""
     s"${mission.id}$destinationLabel - ${mission.duration} ticks remaining"
 
   /** @param sectionTitle

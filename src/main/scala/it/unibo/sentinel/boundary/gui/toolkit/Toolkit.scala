@@ -1,9 +1,6 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
-import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.core.mission.Mission
-
-type Snapshot = (Warehouse, Iterable[Mission])
+import it.unibo.sentinel.core.scenario.Scenario
 
 /** Contains a set of components and methods needed to run the application
   */
@@ -21,4 +18,4 @@ trait Toolkit:
     * @return
     *   the simulation [[View]] to display the snapshot
     */
-  def simulation: V[Snapshot]
+  def simulation: V[Scenario]
