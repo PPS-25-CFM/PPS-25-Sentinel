@@ -2,6 +2,8 @@ package it.unibo.sentinel.core.robot
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.MissionId
+import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.routing.Path
 
 class RobotSpec extends UnitTest:
 
@@ -46,14 +48,17 @@ class RobotSpec extends UnitTest:
       "be ready to start the mission" in:
         withMission.status shouldBe RobotStatus.Ready
 
-      "start the mission" in:
-        withMission.startMission
+      "follow a path" in:
+        val path: Path = Seq(Position(1, 0), Position(2, 0), Position(3, 0))
+        withMission.follow(path)
+        withMission.path shouldBe Some(path)
         withMission.status shouldBe RobotStatus.Moving
+        withMission.next shouldBe Some(Position(1, 0))
 
     "dropping the mission" should:
       val dropped: Robot = Robot(id)
       dropped.accept(m1)
-      dropped.dropMission
+      dropped.release()
 
       "return to idle" in:
         dropped.status shouldBe RobotStatus.Idle
