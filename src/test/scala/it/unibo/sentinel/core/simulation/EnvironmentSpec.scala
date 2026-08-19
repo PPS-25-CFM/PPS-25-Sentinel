@@ -9,6 +9,8 @@ import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.mission.Task
+import it.unibo.sentinel.core.mission.MissionStatus
+import it.unibo.sentinel.core.robot.RobotStatus
 
 class EnvironmentSpec extends UnitTest:
 
@@ -62,8 +64,26 @@ class EnvironmentSpec extends UnitTest:
     "initialized" should:
 
       "have its parameters correctly set" in:
+        env.warehouse shouldBe warehouse
+        env.placements shouldBe fleet.values.toSeq
+        env.missions shouldBe board.values.toSeq
+
+    "assigning a mission" should:
+
+      "update the robot status and board when IDs exist" in:
+        env.assign(r_id1, m_id1)
+
+        val assignedMission = env.missions.find(_.id == m_id1).value
         
-        env.placements should contain theSameElementsAs fleet.values
-        env.missions should contain theSameElementsAs board.values
+        assignedMission.carrier shouldBe Some(r_id1)
+        assignedMission.status shouldBe MissionStatus.Assigned
+
+        val assignedRobot = env.placements.map(_.robot).find(_.id == r_id1).value
+
+        assignedRobot.status shouldBe RobotStatus.Ready
+        assignedRobot.mission.value shouldBe m_id1
+
+      
+
 
       

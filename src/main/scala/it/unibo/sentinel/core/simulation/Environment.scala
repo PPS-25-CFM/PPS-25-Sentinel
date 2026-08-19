@@ -5,11 +5,20 @@ import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 
-final class Environment (
+private[core] final class Environment private[core](
   val warehouse: Warehouse,
-  var fleet: Map[RobotId, Placement],
-  var board: Map[MissionId, Mission]
+  private val fleet: Map[RobotId, Placement],
+  private var board: Map[MissionId, Mission]
 ):
 
-  def placements: Iterable[Placement] = fleet.values
-  def missions: Iterable[Mission] = board.values
+  def placements: Seq[Placement] = fleet.values.toSeq
+  def missions: Seq[Mission] = board.values.toSeq
+
+  def assign(r_id: RobotId, m_id: MissionId): Unit =
+    for
+      place <- fleet.get(r_id)
+      robot = place.robot
+      mission <- board.get(m_id)
+    do
+      robot.accept(m_id)
+      board = board + (m_id -> mission.assignTo(r_id))
