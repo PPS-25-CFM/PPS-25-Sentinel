@@ -86,17 +86,19 @@ class EnvironmentSpec extends UnitTest:
         val env = Environment(warehouse, fleet, board)
         env.assign(RobotId("UNKNOWN"), m_id1)
 
+        env.placements shouldBe fleet.values.toSeq
         env.missions shouldBe board.values.toSeq
 
       "do nothing if the mission ID does not exist" in:
         val env = Environment(warehouse, fleet, board)
         env.assign(r_id1, MissionId("UNKNOWN"))
 
+        env.placements shouldBe fleet.values.toSeq
         env.missions shouldBe board.values.toSeq
 
     "routing a robot" should:
 
-      "instruct the robot to follow the path if it exists in fleet" in:
+      "assign to the robot the path, if it exists in fleet" in:
         val env = Environment(warehouse, fleet, board)
         val path = Mockito.mock(classOf[Path])
         
@@ -105,3 +107,12 @@ class EnvironmentSpec extends UnitTest:
         val routedBot = env.placements.find(_.robot.id == r_id1).value.robot
 
         routedBot.path shouldBe Some(path)
+
+      "do nothing if the robot ID does not exist" in:
+        val env = Environment(warehouse, fleet, board)
+        val path = Mockito.mock(classOf[Path])
+
+        env.route(RobotId("UNKNOWN"), path)
+
+        env.placements shouldBe fleet.values.toSeq
+        env.missions shouldBe board.values.toSeq        
