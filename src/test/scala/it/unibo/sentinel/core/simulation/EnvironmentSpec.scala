@@ -141,3 +141,17 @@ class EnvironmentSpec extends UnitTest:
         val placementAfterCollision = env.placements.find(_.robot.id == r_id1).value
         
         placementAfterCollision.at shouldBe pos1
+
+      "advance step-by-step through a Path" in:
+        val env = Environment(warehouse, fleet, board)
+        val step1 = Position(1, 2)
+        val step2 = Position(1, 3)
+        val path: Path = Seq(step1, step2)
+
+        env.route(r_id1, path)
+        
+        env.advance(r_id1)
+        env.placements.find(_.robot.id == r_id1).value.at shouldBe step1
+
+        env.advance(r_id1)
+        env.placements.find(_.robot.id == r_id1).value.at shouldBe step2

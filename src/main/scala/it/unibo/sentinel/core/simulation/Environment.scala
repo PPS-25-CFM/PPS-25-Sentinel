@@ -24,18 +24,18 @@ private[core] final class Environment private[core](
       robot.accept(m_id)
       board = board + (m_id -> mission.assignTo(r_id))
 
-  def route(rid: RobotId, path: Path): Unit =
+  def route(r_id: RobotId, path: Path): Unit =
     for
-      spot <- fleet.get(rid)
+      spot <- fleet.get(r_id)
       robot = spot.robot
     do robot.follow(path)
 
-  def advance(rid: RobotId): Unit =
+  def advance(r_id: RobotId): Unit =
     for
-      spot <- fleet.get(rid)
+      spot <- fleet.get(r_id)
       robot = spot.robot
       to <- robot.next
     do
       if !fleet.values.exists(_.at == to) then
         robot.step()
-        fleet = fleet + (rid -> spot.copy(at = to))
+        fleet = fleet + (r_id -> spot.copy(at = to))
