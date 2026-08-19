@@ -139,7 +139,12 @@ object Scenario:
       assignment: Policies.Assignment
   ) extends Scenario:
 
-    override def build: Environment = ???
+    override def build: Environment =
+      Environment(
+        warehouse = warehouse,
+        fleet = spawns.map(s => s.id -> s.toPlacement).toMap,
+        board = missions.map(m => m.id -> m).toMap
+      )
 
     override def place(spawn: Spawn): Either[Validation, Scenario] =
       for
