@@ -10,7 +10,8 @@ import it.unibo.sentinel.core.routing.Path
   */
 trait Queries:
   import it.unibo.sentinel.core.mission.MissionStatus.*
-  import it.unibo.sentinel.core.robot.RobotStatus
+  import it.unibo.sentinel.core.robot.{Robot, RobotStatus}
+
 
   /** @return
     *   the current [[Placement]]s of all robots in the simulation.
@@ -21,6 +22,30 @@ trait Queries:
     *   all [[Mission]]s present in the simulation.
     */
   def missions: Seq[Mission]
+  
+  /** @param robotId
+    *   the [[RobotId]] of the robot to query.
+    * @return
+    *   the [[Robot]] with the given id, if any.
+    */
+  def robot(r_id: RobotId): Option[Robot] =
+    placements.find(_.robot.id == r_id).map(_.robot)
+
+  /** @param m_id
+    *   the [[MissionId]] of the mission to query
+    * @return
+    *   the [[Mission]] with the given id, if any.
+    */
+  def mission(m_id: MissionId): Option[Mission] =
+    missions.find(_.id == m_id)
+
+  /** @param robotId
+    *   the [[RobotId]] of the robot contained in the placement to query.
+    * @return
+    *   the [[Placement]] with the given id, if any.
+    */
+  def placement(r_id: RobotId): Option[Placement] =
+    placements.find(_.robot.id == r_id)
 
   /** @param status
     *   the [[RobotStatus]] to filter robots by.
@@ -29,13 +54,13 @@ trait Queries:
     *   [[RobotStatus]].
     */
   def standing(status: RobotStatus): Seq[Placement] =
-    placements.filter(_.robot.status == status).toSeq
+    placements.filter(_.robot.status == status)
 
   /** @return
     *   all [[Mission]]s currently in [[Pending]] status.
     */
   def pendingMissions: Seq[Mission] =
-    missions.filter(_.status == Pending).toSeq
+    missions.filter(_.status == Pending)
 
 /** Represents the mutable simulation state, maintaining the [[Warehouse]]
   * layout, the robot [[fleet]], and the mission [[board]].
