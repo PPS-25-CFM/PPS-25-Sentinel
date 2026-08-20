@@ -38,7 +38,7 @@ trait EnvironmentFixture:
   yield s4).value
 
 /* We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
-*/
+ */
 @SuppressWarnings(Array("org.wartremover.warts.Null"))
 class EnvironmentSpec
     extends UnitTest
@@ -180,5 +180,5 @@ class EnvironmentSpec
         val place = environment.placement(r_id1).value
         place.robot.id shouldBe r_id1
         place.at shouldBe pos1
-        
+
         environment.placement(RobotId("UNKNOWN")) shouldBe None

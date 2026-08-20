@@ -12,7 +12,6 @@ trait Queries:
   import it.unibo.sentinel.core.mission.MissionStatus.*
   import it.unibo.sentinel.core.robot.{Robot, RobotStatus}
 
-
   /** @return
     *   the current [[Placement]]s of all robots in the simulation.
     */
@@ -22,7 +21,7 @@ trait Queries:
     *   all [[Mission]]s present in the simulation.
     */
   def missions: Seq[Mission]
-  
+
   /** @param robotId
     *   the [[RobotId]] of the robot to query.
     * @return
