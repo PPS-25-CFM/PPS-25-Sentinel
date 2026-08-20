@@ -138,10 +138,14 @@ class EnvironmentSpec
 
         environment.route(r_id1, path)
 
-        environment.advance(r_id1) shouldBe Some(Event.RobotMoved(r_id1, pos1, step1))
+        environment.advance(r_id1) shouldBe Some(
+          Event.RobotMoved(r_id1, pos1, step1)
+        )
         environment.placement(r_id1).value.at shouldBe step1
 
-        environment.advance(r_id1) shouldBe Some(Event.RobotMoved(r_id1, step1, step2))
+        environment.advance(r_id1) shouldBe Some(
+          Event.RobotMoved(r_id1, step1, step2)
+        )
         environment.placement(r_id1).value.at shouldBe step2
 
     "performing a mission" should:
