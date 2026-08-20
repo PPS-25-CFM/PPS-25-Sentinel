@@ -1,18 +1,21 @@
 package it.unibo.sentinel.boundary.gui.fx.panels
 
-import it.unibo.sentinel.core.mission.{Mission, MissionStatus}
+import scalafx.scene.control.ScrollPane
+import scalafx.scene.layout.VBox
 import scalafx.geometry.Insets
-import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
-import scalafx.scene.control.{Label, ListView, ScrollPane, SelectionMode}
-import scalafx.scene.layout.{Priority, VBox}
+import scalafx.scene.control.Label
 import scalafx.scene.paint.Color
+import scalafx.scene.control.ListView
+import scalafx.scene.layout.Priority
+import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
+import scalafx.scene.control.SelectionMode
 
-/** Panel used to display all the current and past [[Mission]]s
-  *
-  * @param missions
-  *   all the [[Mission]]s created in the simulation
-  */
-class MissionsPanel(missions: Iterable[Mission]) extends ScrollPane:
+case class SideData(
+  title: String,
+  items: Iterable[String]
+)
+
+final class SidePanel(data: Iterable[SideData]) extends ScrollPane:
 
   style = "-fx-background-color: #0F172A; -fx-background: #0F172A;"
   fitToWidth = true
@@ -22,39 +25,9 @@ class MissionsPanel(missions: Iterable[Mission]) extends ScrollPane:
     padding = Insets(12.0)
     style = "-fx-background-color: #0F172A;"
 
+  val sections = data.map(d => createListSection(d.title, d.items))
+  contentBox.children = sections
   content = contentBox
-
-  private val pending =
-    createListSection("Pending missions", filterAndParse(MissionStatus.Pending))
-  private val active =
-    createListSection("Active missions", filterAndParse(MissionStatus.Assigned))
-  private val completed = createListSection(
-    "Completed missions",
-    filterAndParse(MissionStatus.Completed)
-  )
-  private val failed =
-    createListSection("Failed missions", filterAndParse(MissionStatus.Failed))
-
-  contentBox.children = Seq(pending, active, completed, failed)
-
-  /** @param status
-    *   used to filter the missions
-    * @return
-    *   a list of descriptions, one for each of the filtered missions
-    */
-  private def filterAndParse(status: MissionStatus): Iterable[String] =
-    missions.filter(_.status == status).map(parseMission)
-
-  /** @param mission
-    *   the mission to extract the description from
-    * @return
-    *   a brief description of the given mission
-    */
-  private def parseMission(mission: Mission): String =
-    val destinationLabel = mission.currentDestination match
-      case Some(p) => s" - move to $p"
-      case _       => ""
-    s"${mission.id}$destinationLabel - ${mission.duration} ticks remaining"
 
   /** @param sectionTitle
     *   title of the section
