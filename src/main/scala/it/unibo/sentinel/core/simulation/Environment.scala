@@ -5,11 +5,11 @@ import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.routing.Path
+import it.unibo.sentinel.core.mission.MissionStatus
 
 /** Provides query operations to inspect the state of the simulation.
   */
 trait Queries:
-  import it.unibo.sentinel.core.mission.MissionStatus.*
   import it.unibo.sentinel.core.robot.{Robot, RobotStatus}
 
   /** @return
@@ -59,7 +59,7 @@ trait Queries:
     *   all [[Mission]]s currently in [[Pending]] status.
     */
   def pendingMissions: Seq[Mission] =
-    missions.filter(_.status == Pending)
+    missions.filter(_.status == MissionStatus.Pending)
 
 /** Represents the mutable simulation state, maintaining the [[Warehouse]]
   * layout, the robot [[fleet]], and the mission [[board]].
@@ -80,48 +80,48 @@ private[core] final class Environment private[core] (
   override def placements: Seq[Placement] = fleet.values.toSeq
   override def missions: Seq[Mission] = board.values.toSeq
 
-  /** Assigns a mission to a robot, notifying the robot and updating the mission
-    * status.
-    *
-    * @param r_id
-    *   the [[RobotId]] of the target robot.
+  /** @param r_id
     * @param m_id
-    *   the [[MissionId]] of the mission to assign.
+    * @return
+    *   an [[Event]] if the assignment was successful, None otherwise
     */
-  def assign(r_id: RobotId, m_id: MissionId): Unit =
+  def assign(r_id: RobotId, m_id: MissionId): Option[Event] =
     for
-      place <- fleet.get(r_id)
-      robot = place.robot
+      spot <- fleet.get(r_id)
+      robot = spot.robot
       mission <- board.get(m_id)
-    do
+    yield
       robot.accept(m_id)
       board = board + (m_id -> mission.assignTo(r_id))
+      Event.MissionAssigned(r_id, m_id)
 
-  /** Instructs a robot to follow a planned routing path.
-    *
-    * @param r_id
-    *   the [[RobotId]] of the robot.
+  /** @param r_id
     * @param path
-    *   the [[Path]] to follow.
+    * @return
+    *   an [[Event]] if the routing was successful, None otherwise
     */
-  def route(r_id: RobotId, path: Path): Unit =
+  def route(r_id: RobotId, path: Path): Option[Event] =
     for
       spot <- fleet.get(r_id)
       robot = spot.robot
-    do robot.follow(path)
+    yield
+      robot.follow(path)
+      Event.RobotRouted(r_id, path)
 
-  /** Advances the robot to its next position along its assigned path, provided
-    * that the target position is not currently occupied by another robot.
-    *
-    * @param r_id
-    *   the [[RobotId]] of the robot to step forward.
+  /** @param r_id
+    * @return
+    *   an [[Event]] if the [[Robot]] was able to move, None otherwise
     */
-  def advance(r_id: RobotId): Unit =
+  def advance(r_id: RobotId): Option[Event] =
     for
       spot <- fleet.get(r_id)
       robot = spot.robot
+      from = spot.at
       to <- robot.next
-    do
-      if !fleet.values.exists(_.at == to) then
+    yield
+      if !fleet.values.exists(_.at == to)
+      then
         robot.step()
         fleet = fleet + (r_id -> spot.copy(at = to))
+        Event.RobotMoved(r_id, from, to)
+      else Event.RobotBlocked(r_id, from)
