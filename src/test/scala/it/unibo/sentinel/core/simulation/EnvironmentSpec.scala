@@ -144,6 +144,40 @@ class EnvironmentSpec
         environment.advance(r_id1) shouldBe Some(Event.RobotMoved(r_id1, step1, step2))
         environment.placement(r_id1).value.at shouldBe step2
 
+    "performing a mission" should:
+
+      "complete the mission, release the robot, and return MissionCompleted when assigned" in:
+        environment.assign(r_id1, m_id1)
+
+        val event = environment.perform(r_id1)
+        event shouldBe Some(Event.MissionCompleted(m_id1))
+
+        environment.mission(m_id1).value.status shouldBe MissionStatus.Completed
+        environment.robot(r_id1).value.mission shouldBe None
+
+      "return None if the robot ID does not exist" in:
+        val event = environment.perform(RobotId("UNKNOWN"))
+        event shouldBe None
+
+      "return None if the robot has no mission assigned" in:
+        val event = environment.perform(r_id1)
+        event shouldBe None
+
+    "ticking simulation time" should:
+
+      "advance all missions and return empty events when no mission fails" in:
+        val events = environment.tick()
+        events shouldBe empty
+
+      "return MissionFailed events when a mission expires or transitions to Failed status" in:
+        // Avanza il tempo oltre la durata della missione (10 tick) per provocare il fallimento
+        val events = (1 to 11).flatMap(_ => environment.tick())
+
+        events should contain(Event.MissionFailed(m_id1))
+        events should contain(Event.MissionFailed(m_id2))
+        environment.mission(m_id1).value.status shouldBe MissionStatus.Failed
+        environment.mission(m_id2).value.status shouldBe MissionStatus.Failed
+
     "queried about Standings" should:
 
       "return Placements matching a specific Robot status" in:

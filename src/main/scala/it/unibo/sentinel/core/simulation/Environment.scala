@@ -1,6 +1,6 @@
 package it.unibo.sentinel.core.simulation
 
-import it.unibo.sentinel.core.robot.RobotId
+import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
@@ -27,24 +27,21 @@ trait Queries:
     * @return
     *   the [[Robot]] with the given id, if any.
     */
-  def robot(r_id: RobotId): Option[Robot] =
-    placements.find(_.robot.id == r_id).map(_.robot)
+  def robot(r_id: RobotId): Option[Robot]
 
   /** @param m_id
     *   the [[MissionId]] of the mission to query
     * @return
     *   the [[Mission]] with the given id, if any.
     */
-  def mission(m_id: MissionId): Option[Mission] =
-    missions.find(_.id == m_id)
+  def mission(m_id: MissionId): Option[Mission]
 
   /** @param robotId
     *   the [[RobotId]] of the robot contained in the placement to query.
     * @return
     *   the [[Placement]] with the given id, if any.
     */
-  def placement(r_id: RobotId): Option[Placement] =
-    placements.find(_.robot.id == r_id)
+  def placement(r_id: RobotId): Option[Placement]
 
   /** @param status
     *   the [[RobotStatus]] to filter robots by.
@@ -79,6 +76,15 @@ private[core] final class Environment private[core] (
 
   override def placements: Seq[Placement] = fleet.values.toSeq
   override def missions: Seq[Mission] = board.values.toSeq
+
+  override def robot(r_id: RobotId): Option[Robot] = 
+    fleet.get(r_id).map(_.robot)
+
+  override def mission(m_id: MissionId): Option[Mission] = 
+    board.get(m_id)
+
+  override def placement(r_id: RobotId): Option[Placement] = 
+    fleet.get(r_id)
 
   /** @param r_id
     * @param m_id
@@ -122,6 +128,37 @@ private[core] final class Environment private[core] (
       if !fleet.values.exists(_.at == to)
       then
         robot.step()
-        fleet = fleet + (r_id -> spot.copy(at = to))
+        fleet += (r_id -> spot.copy(at = to))
         Event.RobotMoved(r_id, from, to)
       else Event.RobotBlocked(r_id, from)
+
+  /** @param r_id
+    * @return [[Event.MissionCompleted]] if the mission was active, [[None]] otherwise
+    */
+  def perform(r_id: RobotId): Option[Event] =
+    for
+      spot <- fleet.get(r_id)
+      robot = spot.robot
+      m_id <- robot.mission
+      mission <- board.get(m_id)
+    yield
+      robot.release()
+      board += (m_id -> mission.complete)
+      Event.MissionCompleted(m_id)
+
+  /** Advances all missions in the environment by one step.
+    *
+    * @return the sequence of generated [[Event]]s (e.g. mission failures)
+    */
+  def tick(): Seq[Event] =
+    val updated =
+      for mission <- missions
+      yield
+        val next = mission.proceed
+        board += (mission.id -> next)
+        next
+    val events = updated.flatMap: mission =>
+      mission.status match
+        case MissionStatus.Failed => Some(Event.MissionFailed(mission.id))
+        case _                    => None
+    events
