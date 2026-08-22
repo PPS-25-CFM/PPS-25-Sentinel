@@ -12,6 +12,10 @@ trait Simulation:
     */
   def time: Tick
 
+  /** Advances the simulation by one tick.
+    */
+  def step(): Unit
+
 object Simulation:
   /** @param scenario
     *   the scenario to simulate.
@@ -21,4 +25,6 @@ object Simulation:
     */
   def of(scenario: Scenario): Simulation = new Simulation:
     val _ = scenario
-    def time: Tick = Tick(0)
+    private var currentTime: Tick = Tick(0)
+    def time: Tick = currentTime
+    def step(): Unit = currentTime = currentTime.next
