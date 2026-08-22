@@ -164,3 +164,8 @@ private[core] final class Environment private[core] (
         case MissionStatus.Failed => Some(Event.MissionFailed(mission.id))
         case _                    => None
     events
+
+  /** @return
+    *   a snapshot of the current state of the simulation.
+    */
+  def snapshot: Snapshot = Snapshot()

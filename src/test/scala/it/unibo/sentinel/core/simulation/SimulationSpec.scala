@@ -18,3 +18,7 @@ class SimulationSpec extends UnitTest with TestData:
       "increment the time by one tick" in:
         sim.step()
         sim.time shouldBe Tick(1)
+
+      "return a step result with no events if nothing happens" in:
+        val result = sim.step()
+        result.events shouldBe empty
