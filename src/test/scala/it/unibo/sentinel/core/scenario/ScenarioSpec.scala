@@ -39,7 +39,7 @@ class ScenarioSpec extends UnitTest:
 
       "return a new scenario with the robot placed" in:
         val result =
-          s0.place(Spawn(id = RobotId("R1"), at = Position(1, 1))).right.value
+          s0.place(Spawn(id = RobotId("R1"), at = Position(1, 1))).value
         result.spawns should contain only Spawn(
           id = RobotId("R1"),
           at = Position(1, 1)
@@ -77,7 +77,7 @@ class ScenarioSpec extends UnitTest:
           task = Task.goto(Position(1, 1)),
           duration = 10
         )
-        val result = s0.load(mission).right.value
+        val result = s0.load(mission).value
         result.missions should contain only mission
 
       "signal that the mission id already exists" in:
@@ -122,7 +122,7 @@ class ScenarioSpec extends UnitTest:
         val scenario = (for
           s1 <- s0.place(spawn)
           s2 <- s1.load(mission)
-        yield s2).right.value
+        yield s2).value
 
         val env = scenario.build
 
