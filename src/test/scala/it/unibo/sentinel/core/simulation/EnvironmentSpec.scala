@@ -1,39 +1,13 @@
 package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.TestData
-import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus, Task}
-import it.unibo.sentinel.core.robot.{Robot, RobotId, RobotStatus}
+import it.unibo.sentinel.core.mission.{MissionId, MissionStatus}
+import it.unibo.sentinel.core.robot.{RobotId, RobotStatus}
 import it.unibo.sentinel.core.routing.Path
-import it.unibo.sentinel.core.scenario.{Scenario, Spawn}
 import it.unibo.sentinel.core.warehouse.Position
 import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
-
-trait EnvironmentFixture extends TestData:
-  self: UnitTest =>
-
-  val r1: RobotId = RobotId("R1")
-  val r2: RobotId = RobotId("R2")
-  val m1: MissionId = MissionId("M1")
-  val m2: MissionId = MissionId("M2")
-
-  val p1: Position = Position(0, 0)
-  val p2: Position = Position(2, 2)
-
-  val p3: Position = Position(0, 1)
-  val p4: Position = Position(4, 4)
-
-  val deadline = 10
-
-  val scenario: Scenario = (for
-    s0 <- Right(emptyScenario)
-    s1 <- s0.place(Spawn(r1, p1))
-    s2 <- s1.place(Spawn(r2, p2))
-    s3 <- s2.load(Mission(m1, Task.goto(p3), deadline))
-    s4 <- s3.load(Mission(m2, Task.goto(p4), deadline))
-  yield s4).value
 
 /*
  * We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
@@ -109,7 +83,7 @@ class EnvironmentSpec
     "advancing a robot" should:
 
       "update placement, step the robot and return RobotMoved if target position is free" in:
-        val target = Position(0, 1)
+        val target = Position(1, 2)
         val path: Path = Seq(target)
 
         environment.route(r1, path)
@@ -132,8 +106,8 @@ class EnvironmentSpec
         placementAfterCollision.at shouldBe p1
 
       "advance step-by-step through a Path returning RobotMoved events" in:
-        val step1 = Position(0, 1)
-        val step2 = Position(0, 2)
+        val step1 = Position(1, 2)
+        val step2 = Position(1, 3)
         val path: Path = Seq(step1, step2)
 
         environment.route(r1, path)

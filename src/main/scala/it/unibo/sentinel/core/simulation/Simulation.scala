@@ -31,6 +31,9 @@ object Simulation:
     *   completed or failed.
     */
   def of(scenario: Scenario): Simulation =
+    // given Warehouse = scenario.warehouse
+    // given Navigator = scenario.routing()
+    // given Selector = scenario.assignment()
     val world = scenario.build
     BasicSimulation(world)
 

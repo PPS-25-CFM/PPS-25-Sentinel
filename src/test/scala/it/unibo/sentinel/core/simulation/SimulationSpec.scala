@@ -5,7 +5,7 @@ import it.unibo.sentinel.core.TestData
 
 class SimulationSpec extends UnitTest with TestData:
   "A Simulation" when:
-    
+
     "created" should:
       val sim = Simulation.of(emptyScenario)
 
