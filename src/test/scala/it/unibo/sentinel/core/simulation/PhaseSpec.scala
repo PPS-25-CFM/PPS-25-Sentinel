@@ -68,7 +68,9 @@ class PhaseSpec
       "do nothing" in:
         Phase.routing(world) shouldBe empty
 
-    "there are moving robots" should:
+  "The moving phase" when:
+
+    "robots are routed" should:
 
       "advance every one of them by one position" in:
         Phase.assigning(world)
@@ -77,3 +79,8 @@ class PhaseSpec
           Event.RobotMoved(r1, from = p1, to = p3),
           Event.RobotMoved(r2, from = p2, to = Position(3, 2))
         )
+    
+    "robots are not routed" should:
+
+      "do nothing" in:
+        Phase.moving(world) shouldBe empty
