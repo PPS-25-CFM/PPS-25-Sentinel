@@ -37,7 +37,7 @@ private[core] object Phase:
       moved <- world.advance(robot.id)
     yield moved
 
-  val performing: Phase = world =>
+  def performing: Phase = world =>
     for
       spot <- world.placements
       robot = spot.robot
@@ -47,3 +47,5 @@ private[core] object Phase:
       if spot.at == target
       performed <- world.perform(robot.id)
     yield performed
+
+  def expiring: Phase = _.tick()
