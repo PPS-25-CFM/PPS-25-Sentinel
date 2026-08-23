@@ -13,7 +13,7 @@ import it.unibo.sentinel.core.robot.RobotStatus
   * @param status
   *   the [[RobotStatus]] of the robot.
   * @param position
-  *  the [[Position]] of the robot in the warehouse.
+  *   the [[Position]] of the robot in the warehouse.
   */
 final case class RobotSnapshot(
     id: RobotId,
