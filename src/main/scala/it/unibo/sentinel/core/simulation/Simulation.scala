@@ -42,7 +42,6 @@ object Simulation:
 
   private final class BasicSimulation(world: Environment, phases: Seq[Phase])
       extends Simulation:
-    val _ = world
     private var currentTime: Tick = Tick(0)
     def time: Tick = currentTime
     def step(): StepResult =
