@@ -5,6 +5,7 @@ import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.scenario.Policies.Routing
 import it.unibo.sentinel.core.scenario.Policies.Assignment
+import it.unibo.sentinel.core.simulation.Environment
 
 /** Represents a [[Robot]] placed in a [[Position]] in the [[Warehouse]].
   *
@@ -110,6 +111,15 @@ trait Scenario:
     */
   def load(mission: Mission): Either[Validation, Scenario]
 
+  /** Builds and initializes the simulation [[Environment]] from this
+    * [[Scenario]].
+    *
+    * @return
+    *   a new [[Environment]] populated with the current [[Warehouse]], spawned
+    *   [[Robot]]s as [[Placement]]s, and loaded [[Mission]]s.
+    */
+  private[core] def build: Environment
+
 object Scenario:
   import Validation.*
 
@@ -128,13 +138,20 @@ object Scenario:
       Assignment.Nearest
     )
 
-  private case class Blueprint(
+  private final case class Blueprint(
       warehouse: Warehouse,
       spawns: Seq[Spawn],
       missions: Seq[Mission],
       routing: Policies.Routing,
       assignment: Policies.Assignment
   ) extends Scenario:
+
+    override def build: Environment =
+      Environment(
+        warehouse = warehouse,
+        fleet = spawns.map(s => s.id -> s.toPlacement).toMap,
+        board = missions.map(m => m.id -> m).toMap
+      )
 
     override def place(spawn: Spawn): Either[Validation, Scenario] =
       for

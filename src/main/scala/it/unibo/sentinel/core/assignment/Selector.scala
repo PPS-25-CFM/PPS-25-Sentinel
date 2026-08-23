@@ -35,7 +35,7 @@ trait Selector:
   protected def selectFromAvailable(
       mission: Mission,
       available: Iterable[Placement]
-  ): Option[Placement] = ???
+  ): Option[Placement]
 
 object Selector:
 

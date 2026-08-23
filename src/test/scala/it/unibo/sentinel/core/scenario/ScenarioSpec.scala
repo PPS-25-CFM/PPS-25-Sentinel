@@ -106,3 +106,28 @@ class ScenarioSpec extends UnitTest:
         val newAssignment = Mockito.mock[Policies.Assignment]()
         val result = s0.withAssignment(newAssignment)
         result.assignment shouldBe newAssignment
+
+    "build an environment" should:
+
+      "produce an Environment containing the warehouse, placed robots, and loaded missions" in:
+        val robotId = RobotId("R1")
+        val position = Position(1, 1)
+        val spawn = Spawn(id = robotId, at = position)
+        val mission = Mission(
+          id = MissionId("M1"),
+          task = Task.goto(position),
+          duration = 10
+        )
+
+        val scenario = (for
+          s1 <- s0.place(spawn)
+          s2 <- s1.load(mission)
+        yield s2).right.value
+
+        val env = scenario.build
+
+        env.warehouse shouldBe warehouse
+        env.missions should contain only mission
+        env.placements.map(p =>
+          (p.robot.id, p.at)
+        ) should contain only (robotId -> position)
