@@ -51,4 +51,4 @@ private[core] object Phase:
   def expiring: Phase = _.tick()
 
   def all(using Selector, Navigator): Seq[Phase] =
-    Seq(assigning, routing, moving, performing, expiring)
+    Seq(expiring, assigning, routing, moving, performing)
