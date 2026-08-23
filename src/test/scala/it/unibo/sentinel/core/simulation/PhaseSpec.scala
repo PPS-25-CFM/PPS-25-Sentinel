@@ -7,6 +7,7 @@ import it.unibo.sentinel.core.warehouse.Warehouse
 import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
+import it.unibo.sentinel.core.warehouse.Position
 
 class PhaseSpec
     extends UnitTest
@@ -49,3 +50,15 @@ class PhaseSpec
         val _ = world.assign(r2, m2)
 
         Phase.assigning(world) shouldBe empty
+
+  "The routing phase" when:
+
+    "there are ready robots" should:
+
+      "route each ready robot to its destination" in:
+        Phase.assigning(world)
+
+        Phase.routing(world) should contain theSameElementsAs Seq(
+          Event.RobotRouted(r1, Seq(p3)),
+          Event.RobotRouted(r2, Seq(Position(3, 2), p4))
+        )

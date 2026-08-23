@@ -1,6 +1,8 @@
 package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.core.assignment.Selector
+import it.unibo.sentinel.core.routing.Navigator
+import it.unibo.sentinel.core.robot.RobotStatus.*
 
 private[core] type Phase = Environment => Seq[Event]
 
@@ -13,3 +15,17 @@ private[core] object Phase:
       chosen = spot.robot
       assigned <- world.assign(chosen.id, mission.id)
     yield assigned
+
+  def routing(using navigator: Navigator): Phase = world =>
+    for
+      spot <- world.standing(Ready)
+      robot = spot.robot
+      current <-
+        for
+          mid <- robot.mission;
+          mission <- world.mission(mid)
+        yield mission
+      destination <- current.currentDestination
+      path <- navigator.path(spot.at, destination)
+      routed <- world.route(robot.id, path)
+    yield routed
