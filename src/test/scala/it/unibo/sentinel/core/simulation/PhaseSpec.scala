@@ -62,3 +62,8 @@ class PhaseSpec
           Event.RobotRouted(r1, Seq(p3)),
           Event.RobotRouted(r2, Seq(Position(3, 2), p4))
         )
+
+    "there are no ready robots" should:
+      
+      "do nothing" in:
+        Phase.routing(world) shouldBe empty
