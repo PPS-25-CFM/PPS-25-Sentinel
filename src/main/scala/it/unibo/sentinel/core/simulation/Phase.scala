@@ -36,3 +36,14 @@ private[core] object Phase:
       robot = spot.robot
       moved <- world.advance(robot.id)
     yield moved
+
+  val performing: Phase = world =>
+    for
+      spot <- world.placements
+      robot = spot.robot
+      mid <- robot.mission
+      mission <- world.mission(mid)
+      target <- mission.currentDestination
+      if spot.at == target
+      performed <- world.perform(robot.id)
+    yield performed

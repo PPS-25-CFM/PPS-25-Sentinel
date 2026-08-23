@@ -79,8 +79,21 @@ class PhaseSpec
           Event.RobotMoved(r1, from = p1, to = p3),
           Event.RobotMoved(r2, from = p2, to = Position(3, 2))
         )
-    
+
     "robots are not routed" should:
 
       "do nothing" in:
         Phase.moving(world) shouldBe empty
+
+  "The performing phase" when:
+
+    "a robot stands on the destination of its mission" should:
+
+      "complete the mission" in:
+        Phase.assigning(world)
+        Phase.routing(world)
+        Phase.moving(world)
+
+        Phase.performing(world) should contain theSameElementsAs Seq(
+          Event.MissionCompleted(m1)
+        )
