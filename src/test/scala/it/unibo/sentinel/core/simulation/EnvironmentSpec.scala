@@ -1,42 +1,16 @@
 package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus, Task}
-import it.unibo.sentinel.core.robot.{Robot, RobotId, RobotStatus}
+import it.unibo.sentinel.core.mission.{MissionId, MissionStatus}
+import it.unibo.sentinel.core.robot.{RobotId, RobotStatus}
 import it.unibo.sentinel.core.routing.Path
-import it.unibo.sentinel.core.scenario.{Scenario, Spawn}
-import it.unibo.sentinel.core.warehouse.{Area, Position, Tile, Warehouse}
+import it.unibo.sentinel.core.warehouse.Position
 import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
 
-trait EnvironmentFixture:
-  self: UnitTest =>
-
-  val width = 5
-  val r_id1: RobotId = RobotId("R1")
-  val r_id2: RobotId = RobotId("R2")
-  val m_id1: MissionId = MissionId("M1")
-  val m_id2: MissionId = MissionId("M2")
-
-  val pos1: Position = Position(0, 0)
-  val pos2: Position = Position(2, 2)
-
-  val warehouse: Warehouse = Warehouse
-    .empty(width, width)
-    .withArea(Area(Position(0, 0), Position(width - 1, width - 1)))(
-      Tile.Floor()
-    )
-
-  val scenario: Scenario = (for
-    s0 <- Right(Scenario.in(warehouse))
-    s1 <- s0.place(Spawn(r_id1, pos1))
-    s2 <- s1.place(Spawn(r_id2, pos2))
-    s3 <- s2.load(Mission(m_id1, Task.goto(Position(0, 1)), 10))
-    s4 <- s3.load(Mission(m_id2, Task.goto(Position(4, 4)), 10))
-  yield s4).value
-
-/* We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
+/*
+ * We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
  */
 @SuppressWarnings(Array("org.wartremover.warts.Null"))
 class EnvironmentSpec
@@ -54,22 +28,22 @@ class EnvironmentSpec
     "assigning a mission" should:
 
       "update the robot and board and return MissionAssigned when IDs exist" in:
-        val event = environment.assign(r_id1, m_id1)
-        event shouldBe Some(Event.MissionAssigned(r_id1, m_id1))
+        val event = environment.assign(r1, m1)
+        event shouldBe Some(Event.MissionAssigned(r1, m1))
 
-        val assignedMission = environment.mission(m_id1).value
-        assignedMission.carrier shouldBe Some(r_id1)
+        val assignedMission = environment.mission(m1).value
+        assignedMission.carrier shouldBe Some(r1)
         assignedMission.status shouldBe MissionStatus.Assigned
 
-        val assignedRobot = environment.robot(r_id1).value
+        val assignedRobot = environment.robot(r1).value
         assignedRobot.status shouldBe RobotStatus.Ready
-        assignedRobot.mission.value shouldBe m_id1
+        assignedRobot.mission.value shouldBe m1
 
       "return None and do nothing if the robot ID does not exist" in:
         val initialPlacements = environment.placements
         val initialMissions = environment.missions
 
-        val event = environment.assign(RobotId("UNKNOWN"), m_id1)
+        val event = environment.assign(RobotId("UNKNOWN"), m1)
         event shouldBe None
 
         environment.placements shouldBe initialPlacements
@@ -79,7 +53,7 @@ class EnvironmentSpec
         val initialPlacements = environment.placements
         val initialMissions = environment.missions
 
-        val event = environment.assign(r_id1, MissionId("UNKNOWN"))
+        val event = environment.assign(r1, MissionId("UNKNOWN"))
         event shouldBe None
 
         environment.placements shouldBe initialPlacements
@@ -89,10 +63,10 @@ class EnvironmentSpec
 
       "assign to the robot the path and return RobotRouted if it exists in fleet" in:
         val path: Path = Seq.empty
-        val event = environment.route(r_id1, path)
-        event shouldBe Some(Event.RobotRouted(r_id1, path))
+        val event = environment.route(r1, path)
+        event shouldBe Some(Event.RobotRouted(r1, path))
 
-        val routedBot = environment.robot(r_id1).value
+        val routedBot = environment.robot(r1).value
         routedBot.path shouldBe Some(path)
 
       "return None and do nothing if the robot ID does not exist" in:
@@ -109,62 +83,62 @@ class EnvironmentSpec
     "advancing a robot" should:
 
       "update placement, step the robot and return RobotMoved if target position is free" in:
-        val target = Position(0, 1)
+        val target = Position(1, 2)
         val path: Path = Seq(target)
 
-        environment.route(r_id1, path)
-        val event = environment.advance(r_id1)
+        environment.route(r1, path)
+        val event = environment.advance(r1)
 
-        event shouldBe Some(Event.RobotMoved(r_id1, pos1, target))
+        event shouldBe Some(Event.RobotMoved(r1, p1, target))
 
-        val updatedPlacement = environment.placement(r_id1).value
+        val updatedPlacement = environment.placement(r1).value
         updatedPlacement.at shouldBe target
 
       "prevent movement and return RobotBlocked if target position is occupied by another robot" in:
-        val collisionPath: Path = Seq(pos2)
+        val collisionPath: Path = Seq(p2)
 
-        environment.route(r_id1, collisionPath)
-        val event = environment.advance(r_id1)
+        environment.route(r1, collisionPath)
+        val event = environment.advance(r1)
 
-        event shouldBe Some(Event.RobotBlocked(r_id1, pos1))
+        event shouldBe Some(Event.RobotBlocked(r1, p1))
 
-        val placementAfterCollision = environment.placement(r_id1).value
-        placementAfterCollision.at shouldBe pos1
+        val placementAfterCollision = environment.placement(r1).value
+        placementAfterCollision.at shouldBe p1
 
       "advance step-by-step through a Path returning RobotMoved events" in:
-        val step1 = Position(0, 1)
-        val step2 = Position(0, 2)
+        val step1 = Position(1, 2)
+        val step2 = Position(1, 3)
         val path: Path = Seq(step1, step2)
 
-        environment.route(r_id1, path)
+        environment.route(r1, path)
 
-        environment.advance(r_id1) shouldBe Some(
-          Event.RobotMoved(r_id1, pos1, step1)
+        environment.advance(r1) shouldBe Some(
+          Event.RobotMoved(r1, p1, step1)
         )
-        environment.placement(r_id1).value.at shouldBe step1
+        environment.placement(r1).value.at shouldBe step1
 
-        environment.advance(r_id1) shouldBe Some(
-          Event.RobotMoved(r_id1, step1, step2)
+        environment.advance(r1) shouldBe Some(
+          Event.RobotMoved(r1, step1, step2)
         )
-        environment.placement(r_id1).value.at shouldBe step2
+        environment.placement(r1).value.at shouldBe step2
 
     "performing a mission" should:
 
       "complete the mission, release the robot, and return MissionCompleted when assigned" in:
-        environment.assign(r_id1, m_id1)
+        environment.assign(r1, m1)
 
-        val event = environment.perform(r_id1)
-        event shouldBe Some(Event.MissionCompleted(m_id1))
+        val event = environment.perform(r1)
+        event shouldBe Some(Event.MissionCompleted(m1))
 
-        environment.mission(m_id1).value.status shouldBe MissionStatus.Completed
-        environment.robot(r_id1).value.mission shouldBe None
+        environment.mission(m1).value.status shouldBe MissionStatus.Completed
+        environment.robot(r1).value.mission shouldBe None
 
       "return None if the robot ID does not exist" in:
         val event = environment.perform(RobotId("UNKNOWN"))
         event shouldBe None
 
       "return None if the robot has no mission assigned" in:
-        val event = environment.perform(r_id1)
+        val event = environment.perform(r1)
         event shouldBe None
 
     "ticking simulation time" should:
@@ -177,54 +151,54 @@ class EnvironmentSpec
         // Avanza il tempo oltre la durata della missione (10 tick) per provocare il fallimento
         val events = (1 to 11).flatMap(_ => environment.tick())
 
-        events should contain(Event.MissionFailed(m_id1))
-        events should contain(Event.MissionFailed(m_id2))
-        environment.mission(m_id1).value.status shouldBe MissionStatus.Failed
-        environment.mission(m_id2).value.status shouldBe MissionStatus.Failed
+        events should contain(Event.MissionFailed(m1))
+        events should contain(Event.MissionFailed(m2))
+        environment.mission(m1).value.status shouldBe MissionStatus.Failed
+        environment.mission(m2).value.status shouldBe MissionStatus.Failed
 
     "queried about Standings" should:
 
       "return Placements matching a specific Robot status" in:
         environment
           .standing(RobotStatus.Idle)
-          .map(_.robot.id) should contain theSameElementsAs Seq(r_id1, r_id2)
+          .map(_.robot.id) should contain theSameElementsAs Seq(r1, r2)
         environment.standing(RobotStatus.Ready) shouldBe empty
 
-        environment.assign(r_id1, m_id1)
+        environment.assign(r1, m1)
 
         environment
           .standing(RobotStatus.Ready)
-          .map(_.robot.id) should contain theSameElementsAs Seq(r_id1)
+          .map(_.robot.id) should contain theSameElementsAs Seq(r1)
         environment
           .standing(RobotStatus.Idle)
-          .map(_.robot.id) should contain theSameElementsAs Seq(r_id2)
+          .map(_.robot.id) should contain theSameElementsAs Seq(r2)
 
     "queried about Pending Missions" should:
 
       "return only missions in Pending status with pendingMissions" in:
         environment.pendingMissions.map(
           _.id
-        ) should contain theSameElementsAs Seq(m_id1, m_id2)
+        ) should contain theSameElementsAs Seq(m1, m2)
 
-        environment.assign(r_id1, m_id1)
+        environment.assign(r1, m1)
 
         environment.pendingMissions.map(
           _.id
-        ) should contain theSameElementsAs Seq(m_id2)
+        ) should contain theSameElementsAs Seq(m2)
 
     "querying entities by ID" should:
 
       "return the robot if it exists" in:
-        environment.robot(r_id1).value.id shouldBe r_id1
+        environment.robot(r1).value.id shouldBe r1
         environment.robot(RobotId("UNKNOWN")) shouldBe None
 
       "return the mission if it exists" in:
-        environment.mission(m_id1).value.id shouldBe m_id1
+        environment.mission(m1).value.id shouldBe m1
         environment.mission(MissionId("UNKNOWN")) shouldBe None
 
       "return the placement if it exists" in:
-        val place = environment.placement(r_id1).value
-        place.robot.id shouldBe r_id1
-        place.at shouldBe pos1
+        val place = environment.placement(r1).value
+        place.robot.id shouldBe r1
+        place.at shouldBe p1
 
         environment.placement(RobotId("UNKNOWN")) shouldBe None

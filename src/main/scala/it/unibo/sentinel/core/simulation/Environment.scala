@@ -164,3 +164,14 @@ private[core] final class Environment private[core] (
         case MissionStatus.Failed => Some(Event.MissionFailed(mission.id))
         case _                    => None
     events
+
+  /** @return
+    *   a snapshot of the current state of the simulation.
+    */
+  def snapshot: Snapshot = Snapshot(
+    warehouse = warehouse,
+    robots = placements.map(spot =>
+      RobotSnapshot(spot.robot.id, spot.robot.status, spot.at)
+    ),
+    missions = missions
+  )
