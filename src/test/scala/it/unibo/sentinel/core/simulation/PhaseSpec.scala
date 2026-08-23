@@ -101,3 +101,14 @@ class PhaseSpec
         )
         world.mission(m1).value.status shouldBe MissionStatus.Completed
         world.robot(r1).value.status shouldBe RobotStatus.Idle
+
+    "a robot has not reached its destination" should:
+
+      "leave it untouched" in:
+        Phase.assigning(world)
+        Phase.routing(world)
+        Phase.moving(world)
+
+        Phase.performing(world) should not contain Event.MissionCompleted(m2)
+        world.mission(m2).value.status shouldBe MissionStatus.Assigned
+        world.robot(r2).value.status shouldBe RobotStatus.Moving
