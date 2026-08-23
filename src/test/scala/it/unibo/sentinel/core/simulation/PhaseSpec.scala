@@ -112,3 +112,19 @@ class PhaseSpec
         Phase.performing(world) should not contain Event.MissionCompleted(m2)
         world.mission(m2).value.status shouldBe MissionStatus.Assigned
         world.robot(r2).value.status shouldBe RobotStatus.Moving
+
+    "The expiring phase" when:
+
+      "the duration of a mission is exhausted" should:
+
+        "fail it" in:
+          val events =
+            for
+              _ <- 1 to deadline
+              event <- Phase.expiring(world)
+            yield event
+
+          events should contain theSameElementsAs Seq(
+            Event.MissionFailed(m1),
+            Event.MissionFailed(m2)
+          )
