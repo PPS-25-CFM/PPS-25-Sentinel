@@ -29,8 +29,13 @@ object Dependencies {
         module <- modules
         os <- oss
       } yield  "org.openjfx" % s"javafx-$module" % fxVersion classifier os
+    /*
+     * Monix 
+     */
+    lazy val monix = "io.monix" %% "monix" % "3.4.0"
   }
   import Modules.*
+  lazy val reactive: Seq[ModuleID] = Seq(monix)
   /** GUI dependencies. 
    */
   lazy val gui: Seq[ModuleID] = scalafx +: fxDependencies

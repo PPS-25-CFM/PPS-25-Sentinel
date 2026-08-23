@@ -63,7 +63,7 @@ lazy val generateReport =
 lazy val root = (project in file("."))
   .settings(
     name := "Sentinel",
-    libraryDependencies ++= Dependencies.gui,
+    libraryDependencies ++= Dependencies.gui ++ Dependencies.reactive,
     // Assembly configuration...
     assembly / assemblyOutputPath := baseDirectory.value / "target" / "dist" / s"${name.value}-${version.value}.jar",
     assembly / mainClass := Some("it.unibo.sentinel.Launcher"),
