@@ -49,3 +49,6 @@ private[core] object Phase:
     yield performed
 
   def expiring: Phase = _.tick()
+
+  def all(using Selector, Navigator): Seq[Phase] =
+    Seq(assigning, routing, moving, performing, expiring)

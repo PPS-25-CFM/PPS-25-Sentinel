@@ -1,6 +1,9 @@
 package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.core.scenario.Scenario
+import it.unibo.sentinel.core.routing.Navigator
+import it.unibo.sentinel.core.assignment.Selector
+import it.unibo.sentinel.core.warehouse.Warehouse
 
 /** @param snapshot
   *   the snapshot of the simulation after the step.
@@ -31,16 +34,18 @@ object Simulation:
     *   completed or failed.
     */
   def of(scenario: Scenario): Simulation =
-    // given Warehouse = scenario.warehouse
-    // given Navigator = scenario.routing()
-    // given Selector = scenario.assignment()
+    given Warehouse = scenario.warehouse
+    given Navigator = scenario.routing()
+    given Selector = scenario.assignment()
     val world = scenario.build
-    BasicSimulation(world)
+    BasicSimulation(world, Phase.all)
 
-  private final class BasicSimulation(world: Environment) extends Simulation:
+  private final class BasicSimulation(world: Environment, phases: Seq[Phase])
+      extends Simulation:
     val _ = world
     private var currentTime: Tick = Tick(0)
     def time: Tick = currentTime
     def step(): StepResult =
+      val events = phases.flatMap(_.apply(world))
       currentTime = currentTime.next
-      StepResult(snapshot = world.snapshot, events = Seq.empty)
+      StepResult(snapshot = world.snapshot, events = events)
