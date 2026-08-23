@@ -8,6 +8,8 @@ import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.mission.MissionStatus
+import it.unibo.sentinel.core.robot.RobotStatus
 
 class PhaseSpec
     extends UnitTest
@@ -97,3 +99,5 @@ class PhaseSpec
         Phase.performing(world) should contain theSameElementsAs Seq(
           Event.MissionCompleted(m1)
         )
+        world.mission(m1).value.status shouldBe MissionStatus.Completed
+        world.robot(r1).value.status shouldBe RobotStatus.Idle
