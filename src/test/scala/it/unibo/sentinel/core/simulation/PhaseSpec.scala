@@ -117,7 +117,7 @@ class PhaseSpec
 
       "the duration of a mission is exhausted" should:
 
-        "fail it" in:
+        "signal its failure" in:
           val events =
             for
               _ <- 1 to deadline
