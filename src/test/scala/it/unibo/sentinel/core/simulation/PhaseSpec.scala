@@ -64,6 +64,16 @@ class PhaseSpec
         )
 
     "there are no ready robots" should:
-      
+
       "do nothing" in:
         Phase.routing(world) shouldBe empty
+
+    "there are moving robots" should:
+
+      "advance every one of them by one position" in:
+        Phase.assigning(world)
+        Phase.routing(world)
+        Phase.moving(world) should contain theSameElementsAs Seq(
+          Event.RobotMoved(r1, from = p1, to = p3),
+          Event.RobotMoved(r2, from = p2, to = Position(3, 2))
+        )

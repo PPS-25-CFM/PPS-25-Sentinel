@@ -29,3 +29,10 @@ private[core] object Phase:
       path <- navigator.path(spot.at, destination)
       routed <- world.route(robot.id, path)
     yield routed
+
+  def moving: Phase = world =>
+    for
+      spot <- world.standing(Moving)
+      robot = spot.robot
+      moved <- world.advance(robot.id)
+    yield moved
