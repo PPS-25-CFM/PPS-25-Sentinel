@@ -6,7 +6,7 @@ import it.unibo.sentinel.core.robot.RobotStatus
 import it.unibo.sentinel.core.mission.MissionStatus
 
 class SimulationSpec extends UnitTest with TestData with EnvironmentFixture:
-  "A Simulation" when:
+  "A BasicSimulation" when:
 
     "created" should:
       val sim = Simulation.of(emptyScenario)
@@ -42,3 +42,13 @@ class SimulationSpec extends UnitTest with TestData with EnvironmentFixture:
         val completed = snapshot.missions.find(_.id == m1).value
         completed.status shouldBe MissionStatus.Completed
         completed.duration shouldBe deadline - 1
+
+    "when all missions are completed" should:
+      val sim = Simulation.of(emptyScenario)
+      "be over" in:
+        sim.isOver shouldBe true
+
+    "when there are still missions" should:
+      val sim = Simulation.of(scenario)
+      "not be over" in:
+        sim.isOver shouldBe false

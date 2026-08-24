@@ -26,6 +26,11 @@ trait Simulation:
     */
   def step(): StepResult
 
+  /** @return
+    *   whether the simulation is over.
+    */
+  def isOver: Boolean
+
 object Simulation:
   /** @param scenario
     *   the scenario to simulate.
@@ -43,8 +48,12 @@ object Simulation:
   private final class BasicSimulation(world: Environment, phases: Seq[Phase])
       extends Simulation:
     private var currentTime: Tick = Tick(0)
+
     def time: Tick = currentTime
+
     def step(): StepResult =
       val events = phases.flatMap(_.apply(world))
       currentTime = currentTime.next
       StepResult(snapshot = world.snapshot, events = events)
+
+    def isOver: Boolean = world.missions.forall(_.isOver)
