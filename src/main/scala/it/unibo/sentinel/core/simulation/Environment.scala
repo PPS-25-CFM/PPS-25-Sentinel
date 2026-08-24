@@ -153,17 +153,26 @@ private[core] final class Environment private[core] (
     *   the sequence of generated [[Event]]s (e.g. mission failures)
     */
   def tick(): Seq[Event] =
-    val updated =
-      for mission <- missions
-      yield
-        val next = mission.proceed
-        board += (mission.id -> next)
-        next
-    val events = updated.flatMap: mission =>
-      mission.status match
-        case MissionStatus.Failed => Some(Event.MissionFailed(mission.id))
-        case _                    => None
-    events
+    val events = for
+      mission <- missions
+      next = mission.proceed
+    yield
+      board += (mission.id -> next)
+
+      if next.status == MissionStatus.Failed then
+        releaseCarrier(mission)
+        Some(Event.MissionFailed(mission.id))
+      else None
+
+    events.flatten
+
+  /** Releases the carrier of a mission if it exists.
+    */
+  private def releaseCarrier(mission: Mission): Unit =
+    for
+      rid <- mission.carrier
+      carrier <- robot(rid)
+    do carrier.release()
 
   /** @return
     *   a snapshot of the current state of the simulation.
