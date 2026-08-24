@@ -77,14 +77,14 @@ final case class Mission private (
     *   already over.
     */
   def complete: Mission =
-    if isOver then this else copy(status = Completed)
+    if isOver then this else unassign.copy(status = Completed)
 
   /** @return
     *   A new failed [[Mission]], or the unchanged [[Mission]] if it is already
     *   over.
     */
   def fail: Mission =
-    if isOver then this else copy(status = Failed)
+    if isOver then this else unassign.copy(status = Failed)
 
   /** @return
     *   A new [[Mission]] with updated duration, or failed if duration expires.

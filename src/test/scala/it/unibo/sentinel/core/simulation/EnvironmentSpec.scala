@@ -8,6 +8,7 @@ import it.unibo.sentinel.core.warehouse.Position
 import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
+import it.unibo.sentinel.core.mission.{Mission, Task}
 
 /*
  * We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
@@ -147,14 +148,24 @@ class EnvironmentSpec
         val events = environment.tick()
         events shouldBe empty
 
-      "return MissionFailed events when a mission expires or transitions to Failed status" in:
-        // Avanza il tempo oltre la durata della missione (10 tick) per provocare il fallimento
-        val events = (1 to 11).flatMap(_ => environment.tick())
+      "return MissionFailed events and release assigned carriers when missions fail" in:
+        val uncopletable = Mission(MissionId("Uncompletable"), Task.goto(p4), 1)
+        val uncScenario = scenario.load(uncopletable).right.value
+        environment = uncScenario.build
 
-        events should contain(Event.MissionFailed(m1))
-        events should contain(Event.MissionFailed(m2))
-        environment.mission(m1).value.status shouldBe MissionStatus.Failed
-        environment.mission(m2).value.status shouldBe MissionStatus.Failed
+        environment.assign(r1, uncopletable.id)
+        val events = environment.tick()
+
+        events should contain(Event.MissionFailed(uncopletable.id))
+
+        val failed = environment.mission(uncopletable.id).value
+
+        failed.status shouldBe MissionStatus.Failed
+        failed.carrier shouldBe None
+
+        val robot = environment.robot(r1).value
+        robot.status shouldBe RobotStatus.Idle
+        robot.mission shouldBe None
 
     "queried about Standings" should:
 
