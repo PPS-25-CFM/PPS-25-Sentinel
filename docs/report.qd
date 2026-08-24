@@ -149,6 +149,8 @@ A fine della simulazione, il sistema produce le statistiche sulle prestazioni de
 
 ## Architettura del sistema
 
+.image {diagrams/architecture.svg} label:{diagramma architetturale.} 
+
 ## Design in dettaglio
 
 <!-- Chapter: Sviluppo  -->
