@@ -64,15 +64,21 @@ lazy val root = (project in file("."))
   .settings(
     name := "Sentinel",
     libraryDependencies ++= Dependencies.gui ++ Dependencies.reactive,
+    Compile / run / fork := true,
+    Compile / run / javaOptions += "--enable-native-access=ALL-UNNAMED",
     // Assembly configuration...
     assembly / assemblyOutputPath := baseDirectory.value / "target" / "dist" / s"${name.value}-${version.value}.jar",
     assembly / mainClass := Some(
       "it.unibo.sentinel.boundary.launcher.Launcher"
     ),
+    assembly / packageOptions += Package.ManifestAttributes(
+      "Enable-Native-Access" -> "ALL-UNNAMED"
+    ),
     assembly / assemblyMergeStrategy := {
       case PathList("module-info.class")         => MergeStrategy.discard
       case x if x.endsWith("/module-info.class") => MergeStrategy.discard
       case PathList("META-INF", _*)              => MergeStrategy.discard
+      case PathList("scala", _*)                 => MergeStrategy.last
       case x                                     => MergeStrategy.first
     },
     // Report Generation Tasks
