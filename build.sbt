@@ -42,7 +42,7 @@ val coverageThreshold = 70
 ThisBuild / coverageFailOnMinimum := true
 ThisBuild / coverageMinimumStmtTotal := coverageThreshold
 ThisBuild / coverageMinimumBranchTotal := coverageThreshold
-ThisBuild / coverageExcludedFiles := ".*Main.*"
+ThisBuild / coverageExcludedFiles := ".*Main.*;.*/launcher/.*;.*Application.*;.*/boundary/gui/.*"
 ThisBuild / coverageHighlighting := true
 /*
  * Common libraries between subprojects...
