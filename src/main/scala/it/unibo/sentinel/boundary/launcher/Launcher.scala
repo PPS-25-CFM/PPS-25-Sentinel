@@ -22,7 +22,7 @@ object Launcher extends Dataset:
     window.show(panel)
     window.open()
     val sim = Simulation.of(scenario)
-    given Scheduler = Scheduler.singleThread("engine", daemonic = false)
+    given Scheduler = Scheduler.singleThread("engine")
     val engine: Engine = Engine(sim, 1.second)
     engine.observe(panel.render)
     engine.start()
