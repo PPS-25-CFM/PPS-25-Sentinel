@@ -9,10 +9,11 @@ import scalafx.scene.control.ListView
 import scalafx.scene.layout.Priority
 import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
 import scalafx.scene.control.SelectionMode
+import scalafx.collections.ObservableBuffer
 
 case class SideData(
-  title: String,
-  items: Iterable[String]
+    title: String,
+    items: Iterable[String]
 )
 
 final class SidePanel(data: Iterable[SideData]) extends ScrollPane:
@@ -25,9 +26,32 @@ final class SidePanel(data: Iterable[SideData]) extends ScrollPane:
     padding = Insets(12.0)
     style = "-fx-background-color: #0F172A;"
 
-  val sections = data.map(d => createListSection(d.title, d.items))
-  contentBox.children = sections
+  private var sections
+      : Map[String, (ListView[String], ObservableBuffer[String])] = Map.empty
+
   content = contentBox
+  updateData(data)
+
+  def updateData(newData: Iterable[SideData]): Unit =
+    val currentTitles = newData.map(_.title).toSet
+    val existingTitles = sections.keySet
+
+    if currentTitles != existingTitles then
+      contentBox.children.clear()
+      sections = newData.map { d =>
+        val (vbox, listView, buffer) = createListSection(d.title, d.items)
+        contentBox.children.add(vbox)
+        d.title -> (listView, buffer)
+      }.toMap
+    else
+      newData.foreach { d =>
+        sections.get(d.title).foreach { case (listView, buffer) =>
+          val itemList = d.items.toSeq
+          buffer.setAll(itemList*)
+          val visibleItems = Math.min(itemList.size, 5).max(1)
+          listView.prefHeight = visibleItems * 28 + 6
+        }
+      }
 
   /** @param sectionTitle
     *   title of the section
@@ -40,16 +64,18 @@ final class SidePanel(data: Iterable[SideData]) extends ScrollPane:
   private def createListSection(
       sectionTitle: String,
       items: Iterable[String]
-  ): VBox =
+  ): (VBox, ListView[String], ObservableBuffer[String]) =
     val itemList = items.toSeq
+    val buffer = ObservableBuffer.from(itemList)
     val header = new Label:
       text = sectionTitle.toUpperCase
       textFill = Color.web("#94A3B8")
       style =
         "-fx-font-weight: bold; -fx-font-size: 11px; -fx-letter-spacing: 1px;"
+
     val visibleItems = Math.min(itemList.size, 5).max(1)
     val calculatedHeight = visibleItems * 28 + 6
-    val listView = new ListView[String](itemList):
+    val listView = new ListView[String](buffer):
       prefHeight = calculatedHeight
       maxHeight = 150.0
       vgrow = Priority.Never
@@ -66,7 +92,9 @@ final class SidePanel(data: Iterable[SideData]) extends ScrollPane:
         -fx-text-fill: #F8FAFC;
       """
 
-    new VBox:
+    val sectionBox = new VBox:
       spacing = 4.0
       vgrow = Priority.Never
       children = Seq(header, listView)
+
+    (sectionBox, listView, buffer)

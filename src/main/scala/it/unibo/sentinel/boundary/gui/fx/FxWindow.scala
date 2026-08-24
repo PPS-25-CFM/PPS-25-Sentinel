@@ -3,7 +3,6 @@ package it.unibo.sentinel.boundary.gui.fx
 import it.unibo.sentinel.boundary.gui.toolkit.Window
 import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import scalafx.stage.Stage
-import scalafx.application.Platform
 
 /** [[Window]] implementation based on the fx library
   */
@@ -24,8 +23,3 @@ final class FxWindow(
 
   override def show[Model](view: V[Model]): Unit = onFx:
     stage.scene = view.scene
-
-  /** Resizes the window to fit the content
-    */
-  def resize(): Unit = onFx:
-    Platform.runLater(stage.sizeToScene())

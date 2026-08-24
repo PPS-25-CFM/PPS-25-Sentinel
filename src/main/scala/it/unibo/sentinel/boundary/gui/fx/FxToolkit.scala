@@ -2,17 +2,17 @@ package it.unibo.sentinel.boundary.gui.fx
 
 import it.unibo.sentinel.boundary.gui.toolkit.Toolkit
 import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
-import it.unibo.sentinel.boundary.gui.fx.panels.WarehousePanel
-import it.unibo.sentinel.boundary.gui.fx.FxUtils.defaultWidth
-import it.unibo.sentinel.boundary.gui.fx.FxUtils.defaultHeight
+import it.unibo.sentinel.boundary.gui.fx.FxUtils.{defaultWidth, defaultHeight}
 import scalafx.scene.Scene
 import scalafx.scene.layout.BorderPane
 import scalafx.application.Platform
-import it.unibo.sentinel.core.scenario.Scenario
-import it.unibo.sentinel.core.mission.MissionStatus
-import it.unibo.sentinel.core.mission.Mission
-import it.unibo.sentinel.boundary.gui.fx.panels.SideData
-import it.unibo.sentinel.boundary.gui.fx.panels.SidePanel
+import it.unibo.sentinel.core.mission.{Mission, MissionStatus}
+import it.unibo.sentinel.boundary.gui.fx.panels.{
+  SideData,
+  SidePanel,
+  WarehousePanel
+}
+import it.unibo.sentinel.core.simulation.{StepResult, Event}
 
 /** Toolkit implementation using the fx library
   */
@@ -25,32 +25,49 @@ object FxToolkit extends Toolkit:
 
   override val window: W = new FxWindow(Some(defaultWidth), Some(defaultHeight))
 
-  override def simulation: V[Scenario] = new FxView[Scenario]:
-
+  override def simulation: V[StepResult] = new FxView[StepResult]:
     private val root = new BorderPane
+    private var warehousePanel: Option[WarehousePanel] = None
+    private val leftSidePanel = new SidePanel(Iterable.empty)
+    private val rightSidePanel = new SidePanel(Iterable.empty)
+
+    root.left = leftSidePanel
+    root.right = rightSidePanel
 
     override def scene: Scene = new Scene(root)
 
-    override def render(model: Scenario): Unit = onFx:
-      root.center = new WarehousePanel(model.warehouse, model.spawns)
-      val missions =
+    override def render(model: StepResult): Unit = onFx:
+      val panel = warehousePanel.getOrElse {
+        val p = new WarehousePanel(model.snapshot.warehouse)
+        root.center = p
+        warehousePanel = Some(p)
+        p
+      }
+      panel.updateRobots(model.snapshot.robots)
+
+      val sideMissions =
         for status <- MissionStatus.values
         yield SideData(
           status.toString(),
-          filterAndParse(status, model.missions)
+          filterAndParseMissions(status, model.snapshot.missions)
         )
-      root.left = new SidePanel(missions)
-      val robots = SideData("Robots", model.spawns.map(r => s"${r.id} at ${r.at} - TODO: STATUS"))
-      val events = SideData("Events", Iterable.empty)
-      root.right = new SidePanel(Iterable(robots, events))
-      window.resize()
+      leftSidePanel.updateData(sideMissions)
+
+      val robotsData = SideData(
+        "Robots",
+        model.snapshot.robots.map(r =>
+          s"${r.id} at ${r.position} - ${r.status}"
+        )
+      )
+      val eventsData = SideData("Events", model.events.map(parseEvent(_)))
+      rightSidePanel.updateData(Iterable(robotsData, eventsData))
 
     /** @param status
       *   used to filter the missions
       * @return
       *   a list of descriptions, one for each of the filtered missions
       */
-    private def filterAndParse(
+    private def filterAndParseMissions(
         status: MissionStatus,
         missions: Seq[Mission]
     ): Iterable[String] =
@@ -66,3 +83,21 @@ object FxToolkit extends Toolkit:
         case Some(p) => s" - move to $p"
         case _       => ""
       s"${mission.id}$destinationLabel - ${mission.duration} ticks remaining"
+
+    /** @param event
+      *   the event to extract the description from
+      * @return
+      *   a brief description of the given event
+      */
+    private def parseEvent(event: Event): String =
+      event match
+        case Event.MissionAssigned(robotId, missionId) =>
+          s"Assigned $missionId to $robotId"
+        case Event.MissionCompleted(missionId) => s"$missionId completed"
+        case Event.MissionFailed(missionId)    => s"$missionId failed"
+        case Event.RobotRouted(robotId, path)  =>
+          val pString = path.map(_.toString()).mkString("->")
+          s"$robotId following path $pString"
+        case Event.RobotMoved(robotId, from, to) =>
+          s"$robotId moved from $from to $to"
+        case Event.RobotBlocked(robotId, at) => s"$robotId blocked at $at"

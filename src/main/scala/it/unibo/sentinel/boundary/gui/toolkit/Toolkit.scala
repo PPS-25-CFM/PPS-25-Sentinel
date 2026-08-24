@@ -1,6 +1,6 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
-import it.unibo.sentinel.core.scenario.Scenario
+import it.unibo.sentinel.core.simulation.StepResult
 
 /** Contains a set of components and methods needed to run the application
   */
@@ -18,4 +18,4 @@ trait Toolkit:
     * @return
     *   the simulation [[View]] to display the snapshot
     */
-  def simulation: V[Scenario]
+  def simulation: V[StepResult]
