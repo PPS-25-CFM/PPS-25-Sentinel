@@ -3,8 +3,11 @@ package it.unibo.sentinel.boundary.launcher
 import it.unibo.sentinel.boundary.gui.toolkit.Toolkit
 import it.unibo.sentinel.boundary.gui.fx.FxToolkit
 import it.unibo.sentinel.core.simulation.Simulation
+import it.unibo.sentinel.control.Engine
+import scala.concurrent.duration.*
+import monix.execution.Scheduler
 
-/** Application launcher.
+/** Application launcher.w
   *
   * Uses a [[Toolkit]] to create and setup a [[Window]], which will display the
   * simulation's [[View]]s.
@@ -18,11 +21,8 @@ object Launcher extends Dataset:
     val panel = toolkit.simulation
     window.show(panel)
     window.open()
-
     val sim = Simulation.of(scenario)
-    new Thread(() =>
-      while true do
-        val stepResult = sim.step()
-        panel.render(stepResult)
-        Thread.sleep(1000)
-    ).start()
+    given Scheduler = Scheduler.singleThread("engine", daemonic = false)
+    val engine: Engine = Engine(sim, 1.second)
+    engine.observe(panel.render)
+    engine.start()

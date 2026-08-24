@@ -66,7 +66,9 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Dependencies.gui ++ Dependencies.reactive,
     // Assembly configuration...
     assembly / assemblyOutputPath := baseDirectory.value / "target" / "dist" / s"${name.value}-${version.value}.jar",
-    assembly / mainClass := Some("it.unibo.sentinel.Launcher"),
+    assembly / mainClass := Some(
+      "it.unibo.sentinel.boundary.launcher.Launcher"
+    ),
     assembly / assemblyMergeStrategy := {
       case PathList("module-info.class")         => MergeStrategy.discard
       case x if x.endsWith("/module-info.class") => MergeStrategy.discard
