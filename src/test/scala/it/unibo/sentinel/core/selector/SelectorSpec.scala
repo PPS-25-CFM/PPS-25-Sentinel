@@ -115,3 +115,15 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
 
         val second = cycleSelector.choose(mission, candidates)
         second shouldBe Some(placement2)
+
+      "rotate back to the least recently used candidate once all have been used" in:
+        val cycleSelector = CycleSelector()
+
+        cycleSelector.choose(mission, candidates)
+        cycleSelector.choose(mission, candidates)
+
+        val third = cycleSelector.choose(mission, candidates)
+        third shouldBe Some(placement1)
+
+        val fourth = cycleSelector.choose(mission, candidates)
+        fourth shouldBe Some(placement2)

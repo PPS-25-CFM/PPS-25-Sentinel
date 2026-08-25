@@ -75,7 +75,7 @@ object Selector:
       mission: Mission,
       available: Iterable[Placement]
     ): Option[Placement] =
-      tracker.firstUnused(available)
+      tracker.firstUnused(available).orElse(tracker.nextInTheCycle(available))
 
     private class Tracker:
       private var cycle = Vector.empty[Placement]
@@ -85,4 +85,12 @@ object Selector:
           cycle = cycle :+ unused
           unused
 
-        
+      def nextInTheCycle(candidates: Iterable[Placement]): Option[Placement] =
+        val candidateSet = candidates.toSet
+
+        cycle.find(candidateSet.contains).map: valid =>
+          turnCycle(valid)
+          valid
+
+      private def turnCycle(placement: Placement): Unit =
+        cycle = cycle.filterNot(_ == placement) :+ placement        
