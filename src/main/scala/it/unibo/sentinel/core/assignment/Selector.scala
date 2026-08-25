@@ -67,3 +67,22 @@ object Selector:
         target <- mission.currentDestination
         distance <- navigator.distance(candidate.at, target)
       yield candidate -> distance).minByOption(_._2).map(_._1)
+
+  final case class CycleSelector() extends Selector:
+    private val tracker = new Tracker()
+
+    override protected def selectFromAvailable(
+      mission: Mission,
+      available: Iterable[Placement]
+    ): Option[Placement] =
+      tracker.firstUnused(available)
+
+    private class Tracker:
+      private var cycle = Vector.empty[Placement]
+
+      def firstUnused(candidates: Iterable[Placement]): Option[Placement] =
+        candidates.find(!cycle.contains(_)).map: unused =>
+          cycle = cycle :+ unused
+          unused
+
+        

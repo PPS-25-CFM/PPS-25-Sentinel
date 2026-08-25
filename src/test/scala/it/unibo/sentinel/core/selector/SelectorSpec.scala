@@ -7,6 +7,7 @@ import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.robot.Robot
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.assignment.*
+import it.unibo.sentinel.core.assignment.Selector.* 
 import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.scenario.Placement
 
@@ -53,19 +54,20 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
   val mission =
     Mission(MissionId("M01"), Task.goto(targetPosition), 10)
 
+  val robot1 = Mockito.mock(classOf[Robot])
+  when(robot1.canAccept).thenReturn(true)
+  val placement1 = Placement(robot1, Position(1, 1))
+
+  val robot2 = Mockito.mock(classOf[Robot])
+  when(robot2.canAccept).thenReturn(true)
+  val placement2 = Placement(robot2, Position(2, 2))
+
+  val candidates = Iterable(placement1, placement2)
+
+  val navigator = Mockito.mock(classOf[Navigator])
+  val destination = mission.currentDestination.value
+
   "A Nearest Selector" when:
-    val robot1 = Mockito.mock(classOf[Robot])
-    when(robot1.canAccept).thenReturn(true)
-    val placement1 = Placement(robot1, Position(1, 1))
-
-    val robot2 = Mockito.mock(classOf[Robot])
-    when(robot2.canAccept).thenReturn(true)
-    val placement2 = Placement(robot2, Position(2, 2))
-
-    val placements = Iterable(placement1, placement2)
-
-    val navigator = Mockito.mock(classOf[Navigator])
-    val destination = mission.currentDestination.value
 
     when(navigator.distance(placement1.at, destination)).thenReturn(Some(2))
     when(navigator.distance(placement2.at, destination)).thenReturn(Some(4))
@@ -77,14 +79,14 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
     "evaluating proximity" should:
 
       "return the placement of the nearest available robot to the mission position" in:
-        val result = selector.choose(mission, placements)
+        val result = selector.choose(mission, candidates)
 
         result shouldBe Some(placement1)
 
       "ignore when the mission has no destination" in:
         val completedMission = mission.complete
 
-        selector.choose(completedMission, placements) shouldBe None
+        selector.choose(completedMission, candidates) shouldBe None
 
       "ignore candidates it cannot reach" in:
         val strandedRobot = Mockito.mock(classOf[Robot])
@@ -98,3 +100,18 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
           selector.choose(mission, Iterable(strandedPlacement, placement2))
 
         result shouldBe Some(placement2)
+
+  "A CycleSelector" when:
+
+    behave like commonSelector(CycleSelector())
+
+    "assigning missions sequentially" should:
+
+      "first cycle through unused candidates" in:
+        val cycleSelector = CycleSelector()
+
+        val first = cycleSelector.choose(mission, candidates)
+        first shouldBe Some(placement1)
+
+        val second = cycleSelector.choose(mission, candidates)
+        second shouldBe Some(placement2)
