@@ -127,3 +127,13 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
 
         val fourth = cycleSelector.choose(mission, candidates)
         fourth shouldBe Some(placement2)
+
+      "skip candidates that are unavailable when cycling" in:
+        val cycleSelector = CycleSelector()
+
+        cycleSelector.choose(mission, candidates)
+        cycleSelector.choose(mission, candidates)
+
+        val result = cycleSelector.choose(mission, Iterable(placement2))
+
+        result shouldBe Some(placement2)
