@@ -62,35 +62,28 @@ object Selector:
         mission: Mission,
         available: Iterable[Placement]
     ): Option[Placement] =
-      (for
-        candidate <- available
+      for
         target <- mission.currentDestination
-        distance <- navigator.distance(candidate.at, target)
-      yield candidate -> distance).minByOption(_._2).map(_._1)
+        reachable = available.flatMap: candidate =>
+          navigator.distance(candidate.at, target).map(candidate -> _)
+        (closest, _) <- reachable.minByOption(_._2)
+      yield closest
 
   final case class CycleSelector() extends Selector:
-    private val tracker = new Tracker()
+    private var cycle = Vector.empty[Placement]
 
     override protected def selectFromAvailable(
       mission: Mission,
       available: Iterable[Placement]
     ): Option[Placement] =
-      tracker.firstUnused(available).orElse(tracker.nextInTheCycle(available))
+      val availableSet = available.toSet
+      val selected = available
+        .find(!cycle.contains(_))
+        .orElse(cycle.find(availableSet.contains))
 
-    private class Tracker:
-      private var cycle = Vector.empty[Placement]
+      for
+        p <- selected
+      do
+        cycle = cycle.filterNot(_ == p) :+ p
 
-      def firstUnused(candidates: Iterable[Placement]): Option[Placement] =
-        candidates.find(!cycle.contains(_)).map: unused =>
-          cycle = cycle :+ unused
-          unused
-
-      def nextInTheCycle(candidates: Iterable[Placement]): Option[Placement] =
-        val candidateSet = candidates.toSet
-
-        cycle.find(candidateSet.contains).map: valid =>
-          turnCycle(valid)
-          valid
-
-      private def turnCycle(placement: Placement): Unit =
-        cycle = cycle.filterNot(_ == placement) :+ placement        
+      selected
