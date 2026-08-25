@@ -69,21 +69,29 @@ object Selector:
         (closest, _) <- reachable.minByOption(_._2)
       yield closest
 
+  /** A stateful selection strategy that cycles through available candidate
+    */
   final case class CycleSelector() extends Selector:
     private var cycle = Vector.empty[Placement]
 
+    /** @param mission
+      *   The mission to be assigned.
+      * @param available
+      *   The pre-filtered collection of available candidate placements.
+      * @return
+      *   [[Some]] candidate [[Placement]] selected via LRU cycle, or [[None]]
+      *   if no candidates are available.
+      */
     override protected def selectFromAvailable(
-      mission: Mission,
-      available: Iterable[Placement]
+        mission: Mission,
+        available: Iterable[Placement]
     ): Option[Placement] =
       val availableSet = available.toSet
       val selected = available
         .find(!cycle.contains(_))
         .orElse(cycle.find(availableSet.contains))
 
-      for
-        p <- selected
-      do
-        cycle = cycle.filterNot(_ == p) :+ p
+      for p <- selected
+      do cycle = cycle.filterNot(_ == p) :+ p
 
       selected

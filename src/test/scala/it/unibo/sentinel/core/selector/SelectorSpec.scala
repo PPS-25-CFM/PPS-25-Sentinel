@@ -8,7 +8,7 @@ import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.robot.Robot
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.assignment.*
-import it.unibo.sentinel.core.assignment.Selector.* 
+import it.unibo.sentinel.core.assignment.Selector.*
 import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.scenario.Placement
 
@@ -24,7 +24,8 @@ trait SelectorBehaviors:
         selectorBuilder.choose(mission, Iterable.empty) shouldBe None
 
       "return None if every candidate is busy" in:
-        val busyPlacement = Placement(mockRobot(canAccept = false), Position(0, 0))
+        val busyPlacement =
+          Placement(mockRobot(canAccept = false), Position(0, 0))
         selectorBuilder.choose(mission, Iterable(busyPlacement)) shouldBe None
 
   protected def mockRobot(canAccept: Boolean): Robot =
@@ -32,7 +33,10 @@ trait SelectorBehaviors:
     when(robot.canAccept).thenReturn(canAccept)
     robot
 
-class SelectorSpec extends UnitTest with SelectorBehaviors with OneInstancePerTest:
+class SelectorSpec
+    extends UnitTest
+    with SelectorBehaviors
+    with OneInstancePerTest:
 
   // Grazie a OneInstancePerTest, questi campi vengono ri-creati da zero per OGNI test!
   val targetPosition = Position(0, 0)
@@ -56,7 +60,9 @@ class SelectorSpec extends UnitTest with SelectorBehaviors with OneInstancePerTe
         when(navigator.distance(placement1.at, destination)).thenReturn(Some(2))
         when(navigator.distance(placement2.at, destination)).thenReturn(Some(4))
 
-        Selector.Nearest(navigator).choose(mission, candidates) shouldBe Some(placement1)
+        Selector.Nearest(navigator).choose(mission, candidates) shouldBe Some(
+          placement1
+        )
 
       "return None if all candidates are unreachable" in:
         when(navigator.distance(placement1.at, destination)).thenReturn(None)
@@ -69,10 +75,16 @@ class SelectorSpec extends UnitTest with SelectorBehaviors with OneInstancePerTe
         when(navigator.distance(stranded.at, destination)).thenReturn(None)
         when(navigator.distance(placement2.at, destination)).thenReturn(Some(4))
 
-        Selector.Nearest(navigator).choose(mission, Iterable(stranded, placement2)) shouldBe Some(placement2)
+        Selector
+          .Nearest(navigator)
+          .choose(mission, Iterable(stranded, placement2)) shouldBe Some(
+          placement2
+        )
 
       "ignore when the mission has no destination" in:
-        Selector.Nearest(navigator).choose(mission.complete, candidates) shouldBe None
+        Selector
+          .Nearest(navigator)
+          .choose(mission.complete, candidates) shouldBe None
 
   "A CycleSelector" when:
 
@@ -101,7 +113,9 @@ class SelectorSpec extends UnitTest with SelectorBehaviors with OneInstancePerTe
         cycleSelector.choose(mission, candidates)
         cycleSelector.choose(mission, candidates)
 
-        cycleSelector.choose(mission, Iterable(placement2)) shouldBe Some(placement2)
+        cycleSelector.choose(mission, Iterable(placement2)) shouldBe Some(
+          placement2
+        )
 
       "preserve priority of a candidate when it becomes available again after being busy" in:
         val cycleSelector = CycleSelector()
@@ -111,6 +125,9 @@ class SelectorSpec extends UnitTest with SelectorBehaviors with OneInstancePerTe
         cycleSelector.choose(mission, allCandidates) shouldBe Some(placement1)
         cycleSelector.choose(mission, allCandidates) shouldBe Some(placement2)
 
-        cycleSelector.choose(mission, candidatesWithoutPlacement1) shouldBe Some(placement3)
+        cycleSelector.choose(
+          mission,
+          candidatesWithoutPlacement1
+        ) shouldBe Some(placement3)
 
         cycleSelector.choose(mission, allCandidates) shouldBe Some(placement1)
