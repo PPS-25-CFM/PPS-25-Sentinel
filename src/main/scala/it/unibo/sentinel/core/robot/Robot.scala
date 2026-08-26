@@ -51,7 +51,7 @@ trait Robot:
   /** @return
     *   the [[Path]] that the robot is currently following
     */
-  def path: Option[Path]
+  def path: Option[Seq[Position]]
 
   /** @return
     *   the next [[Position]] in the robot's [[Path]] (if there is one)
@@ -99,7 +99,7 @@ object Robot:
       _mission = None
       _path = None
 
-    override def path: Option[Path] = _path
+    override def path: Option[Seq[Position]] = _path.map(_.map(_._1))
 
     override def follow(path: Path): Unit = _path = Some(path)
 
