@@ -84,12 +84,12 @@ object Robot:
     */
   private class SimpleRobot(val id: RobotId) extends Robot:
 
-    private var _mission: Option[MissionId] = None
-    private var _path: Option[Path] = None
+    private var currentMission: Option[MissionId] = None
+    private var currentPath: Option[Path] = None
 
-    override def mission: Option[MissionId] = _mission
+    override def mission: Option[MissionId] = currentMission
 
-    override def status: RobotStatus = (_mission, _path) match
+    override def status: RobotStatus = (currentMission, currentPath) match
       case (None, None)    => RobotStatus.Idle
       case (Some(_), None) => RobotStatus.Ready
       case (_, Some(_))    => RobotStatus.Moving
@@ -97,22 +97,25 @@ object Robot:
     override def canAccept: Boolean = mission.isEmpty
 
     override def accept(missionId: MissionId): Unit =
-      if canAccept then _mission = Some(missionId)
+      if canAccept then currentMission = Some(missionId)
 
     override def release(): Unit =
-      _mission = None
-      _path = None
+      currentMission = None
+      currentPath = None
 
-    override def path: Option[Path] = _path
+    override def path: Option[Path] = currentPath
 
     override def follow(path: Path): Unit =
-      _path = Some(path)
+      currentPath = Some(path)
 
     override def next: Option[Position] =
-      _path.flatMap(_.positions.headOption)
+      currentPath.flatMap(_.positions.headOption)
 
-    override def step(): Unit = _path = _path.map(_.advanced)
+    override def step(): Unit =
+      currentPath = currentPath.map(_.advanced)
 
-    override def remaining: Tick = _path.map(_.remaining).getOrElse(Tick(0))
+    override def remaining: Tick =
+      currentPath.map(_.remaining).getOrElse(Tick(0))
 
-    override def tick(): Unit = _path = _path.map(_.ticked)
+    override def tick(): Unit =
+      currentPath = currentPath.map(_.ticked)
