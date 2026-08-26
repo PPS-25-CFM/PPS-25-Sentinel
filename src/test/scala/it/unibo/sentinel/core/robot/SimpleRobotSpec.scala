@@ -12,9 +12,9 @@ trait RobotFixture:
   val m1: MissionId = MissionId("M1")
   val m2: MissionId = MissionId("M2")
 
-  val stepCost: Tick = Tick(1)
+  val costs: Seq[Tick] = Seq(Tick(2), Tick(1), Tick(3))
   val steps: Seq[Position] = Seq(Position(1, 0), Position(2, 0), Position(3, 0))
-  val path: Path = steps.map(_ -> stepCost)
+  val path: Path = steps.zip(costs).toSeq
 
 class SimpleRobotSpec extends UnitTest with RobotFixture:
 
@@ -74,7 +74,7 @@ class SimpleRobotSpec extends UnitTest with RobotFixture:
         robot.next shouldBe steps.headOption
 
       "wait the cost of the next position, minus the routing tick" in:
-        robot.remaining shouldBe stepCost.previous
+        robot.remaining shouldBe costs.headOption.value.previous
 
       "have nowhere left to go once the path is over" in:
         steps.foreach(_ => robot.step())

@@ -82,6 +82,7 @@ object Robot:
 
     private var _mission: Option[MissionId] = None
     private var _path: Option[Path] = None
+    private var _tick: Tick = Tick(0)
 
     override def mission: Option[MissionId] = _mission
 
@@ -98,18 +99,29 @@ object Robot:
     override def release(): Unit =
       _mission = None
       _path = None
+      _tick = Tick(0)
 
-    override def path: Option[Seq[Position]] = _path.map(_.map(_._1))
+    override def path: Option[Seq[Position]] =
+      _path.map(_.map(_._1))
 
-    override def follow(path: Path): Unit = _path = Some(path)
+    override def follow(path: Path): Unit =
+      _path = Some(path)
+      _tick = headCost.previous
 
     override def next: Option[Position] = for
       p <- _path
       next <- p.headOption
     yield next._1
 
-    override def step(): Unit = _path = _path match
-      case Some(_ +: rest) => Some(rest)
-      case _               => _path
+    override def step(): Unit =
+      _path = _path match
+        case Some(_ +: rest) => Some(rest)
+        case _               => _path
+      _tick = headCost
 
-    override def remaining: Tick = Tick(0)
+    override def remaining: Tick = _tick
+
+    private def headCost: Tick =
+      _path
+        .flatMap(_.headOption.map(_._2))
+        .getOrElse(Tick(0))
