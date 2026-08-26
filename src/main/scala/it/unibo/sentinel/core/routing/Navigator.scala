@@ -22,11 +22,6 @@ object Metric:
   object Hops extends Metric:
     override def cost(to: Position)(using warehouse: Warehouse): Int = 1
 
-/** A [[Path]] is a type alias for a [[Seq]] of [[Position]], where each
-  * [[Position]] is a step in the [[Path]].
-  */
-type Path = Seq[(Position, Tick)]
-
 /** Represents the component that can compute paths and distances between
   * positions in a [[Warehouse]].
   */
@@ -55,7 +50,7 @@ trait Navigator:
     *   [[Warehouse]].
     */
   def distance(from: Position, to: Position): Option[Int] =
-    path(from, to).map(_.size)
+    path(from, to).map(_.positions.size)
 
 object Navigator:
   /** @param metric
@@ -96,14 +91,14 @@ object Navigator:
           parent: Map[Position, Position]
       )(from: Position, to: Position): Path =
         @tailrec
-        def go(pos: Position, acc: Path): Path =
+        def go(pos: Position, acc: Seq[Leg]): Seq[Leg] =
           if pos == from then acc
           else
             go(
               parent(pos),
-              (
+              Leg(
                 pos,
                 warehouse.traversalCost(pos).getOrElse(Tick(Int.MaxValue))
               ) +: acc
             )
-        go(to, Seq.empty)
+        Path(go(to, Seq.empty)*)

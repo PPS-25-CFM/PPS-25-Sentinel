@@ -51,7 +51,7 @@ trait Robot:
   /** @return
     *   the [[Path]] that the robot is currently following
     */
-  def path: Option[Seq[Position]]
+  def path: Option[Path]
 
   /** @return
     *   the next [[Position]] in the robot's [[Path]] (if there is one)
@@ -86,7 +86,6 @@ object Robot:
 
     private var _mission: Option[MissionId] = None
     private var _path: Option[Path] = None
-    private var _tick: Tick = Tick(0)
 
     override def mission: Option[MissionId] = _mission
 
@@ -103,32 +102,17 @@ object Robot:
     override def release(): Unit =
       _mission = None
       _path = None
-      _tick = Tick(0)
 
-    override def path: Option[Seq[Position]] =
-      _path.map(_.map(_._1))
+    override def path: Option[Path] = _path
 
     override def follow(path: Path): Unit =
       _path = Some(path)
-      _tick = headCost.previous
 
-    override def next: Option[Position] = for
-      p <- _path
-      next <- p.headOption
-    yield next._1
+    override def next: Option[Position] =
+      _path.flatMap(_.positions.headOption)
 
-    override def step(): Unit =
-      _path = _path match
-        case Some(_ +: rest) if _tick == Tick(0) => Some(rest)
-        case _                                   => _path
-      _tick = headCost
+    override def step(): Unit = _path = _path.map(_.advanced)
 
-    override def remaining: Tick = _tick
+    override def remaining: Tick = _path.map(_.remaining).getOrElse(Tick(0))
 
-    override def tick(): Unit =
-      _tick = _tick.previous
-
-    private def headCost: Tick =
-      _path
-        .flatMap(_.headOption.map(_._2))
-        .getOrElse(Tick(0))
+    override def tick(): Unit = _path = _path.map(_.ticked)

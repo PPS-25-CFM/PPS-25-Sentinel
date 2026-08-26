@@ -5,6 +5,7 @@ import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.simulation.Tick
+import it.unibo.sentinel.core.routing.Leg
 
 trait RobotFixture:
 
@@ -14,7 +15,8 @@ trait RobotFixture:
 
   val costs: Seq[Tick] = Seq(Tick(1), Tick(2), Tick(3))
   val steps: Seq[Position] = Seq(Position(1, 0), Position(2, 0), Position(3, 0))
-  val path: Path = steps.zip(costs).toSeq
+  val legs = steps.zip(costs).map((pos, cost) => Leg(pos, cost))
+  val path: Path = Path(legs*)
 
 class SimpleRobotSpec extends UnitTest with RobotFixture:
 
@@ -65,7 +67,7 @@ class SimpleRobotSpec extends UnitTest with RobotFixture:
       robot.follow(path)
 
       "know the path it is following" in:
-        robot.path shouldBe Some(steps)
+        robot.path.value.positions shouldBe steps
 
       "be moving" in:
         robot.status shouldBe RobotStatus.Moving
@@ -73,15 +75,16 @@ class SimpleRobotSpec extends UnitTest with RobotFixture:
       "head to the first position of the path" in:
         robot.next shouldBe steps.headOption
 
-      "wait the cost of the next position, minus the routing tick" in:
+      "wait the cost of the next position" in:
         val stepCost = costs.headOption.value
-        robot.remaining shouldBe stepCost.previous
+        robot.remaining shouldBe stepCost
 
     "stepping along a path" should:
 
       "move to the next position of the path if the remaining time is up" in:
         val robot = Robot(robotId)
         robot.follow(path)
+        robot.tick()
         robot.step()
         robot.next shouldBe steps.drop(1).headOption
 

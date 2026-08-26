@@ -77,6 +77,7 @@ class PhaseSpec
       "advance every one of them by one position" in:
         Phase.assigning(world)
         Phase.routing(world)
+        Phase.expiring(world)
         Phase.moving(world) should contain theSameElementsAs Seq(
           Event.RobotMoved(r1, from = p1, to = p3),
           Event.RobotMoved(r2, from = p2, to = Position(3, 2))
@@ -94,6 +95,7 @@ class PhaseSpec
       "complete the mission" in:
         Phase.assigning(world)
         Phase.routing(world)
+        Phase.expiring(world)
         Phase.moving(world)
 
         Phase.performing(world) should contain theSameElementsAs Seq(
@@ -107,6 +109,7 @@ class PhaseSpec
       "leave it untouched" in:
         Phase.assigning(world)
         Phase.routing(world)
+        Phase.expiring(world)
         Phase.moving(world)
 
         Phase.performing(world) should not contain Event.MissionCompleted(m2)
