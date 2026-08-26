@@ -92,6 +92,14 @@ class EnvironmentSpec
         environment.advance(r1) shouldBe None
         environment.placement(r1).value.at shouldBe p1
 
+      "not report a collision while it is still waiting" in:
+        val collisionPath: Path = Seq(p2 -> Tick(2))
+
+        environment.route(r1, collisionPath)
+        environment.advance(r1) shouldBe None
+        environment.tick()
+        environment.advance(r1) shouldBe Some(Event.RobotBlocked(r1, p1))
+
       "update placement, step the robot and return RobotMoved if target position is free" in:
         val target = Position(1, 2)
         val path: Path = Seq((target, Tick(1)))
