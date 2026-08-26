@@ -118,9 +118,10 @@ object Robot:
     yield next._1
 
     override def step(): Unit =
-      _path = _path match
-        case Some(_ +: rest) => Some(rest)
-        case _               => _path
+      if _tick == Tick(0) then
+        _path = _path match
+          case Some(_ +: rest) => Some(rest)
+          case _               => _path
       _tick = headCost
 
     override def remaining: Tick = _tick

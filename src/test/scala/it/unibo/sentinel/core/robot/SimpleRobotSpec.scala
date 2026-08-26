@@ -12,7 +12,7 @@ trait RobotFixture:
   val m1: MissionId = MissionId("M1")
   val m2: MissionId = MissionId("M2")
 
-  val costs: Seq[Tick] = Seq(Tick(2), Tick(1), Tick(3))
+  val costs: Seq[Tick] = Seq(Tick(1), Tick(2), Tick(3))
   val steps: Seq[Position] = Seq(Position(1, 0), Position(2, 0), Position(3, 0))
   val path: Path = steps.zip(costs).toSeq
 
@@ -74,11 +74,24 @@ class SimpleRobotSpec extends UnitTest with RobotFixture:
         robot.next shouldBe steps.headOption
 
       "wait the cost of the next position, minus the routing tick" in:
-        robot.remaining shouldBe costs.headOption.value.previous
+        val stepCost = costs.headOption.value
+        robot.remaining shouldBe stepCost.previous
 
-      "have nowhere left to go once the path is over" in:
-        steps.foreach(_ => robot.step())
-        robot.next shouldBe None
+    "stepping along a path" should:
+
+      "move to the next position of the path if the remaining time is up" in:
+        val robot = Robot(robotId)
+        robot.follow(path)
+        robot.step()
+        robot.next shouldBe steps.drop(1).headOption
+
+      "not move to the next position of the path if the remaining time is not up" in:
+        val robot = Robot(robotId)
+        robot.follow(path)
+        robot.step()
+        val currentNext = robot.next
+        robot.step()
+        robot.next shouldBe currentNext
 
     "releasing its mission" should:
       val robot = Robot(robotId)
