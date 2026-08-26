@@ -68,6 +68,10 @@ trait Robot:
     */
   def step(): Unit
 
+  /** Advances the robot's internal clock by one tick.
+    */
+  def tick(): Unit
+
 object Robot:
   /** @param id
     *   the robot's identifier
@@ -120,6 +124,9 @@ object Robot:
       _tick = headCost
 
     override def remaining: Tick = _tick
+
+    override def tick(): Unit =
+      _tick = _tick.previous
 
     private def headCost: Tick =
       _path

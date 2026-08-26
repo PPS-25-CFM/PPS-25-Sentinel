@@ -97,3 +97,12 @@ class SimpleRobotSpec extends UnitTest with RobotFixture:
 
       "have nothing to wait for" in:
         robot.remaining shouldBe Tick(0)
+
+    "ticked" should:
+      val robot = Robot(robotId)
+      robot.follow(path)
+
+      "decrease the remaining time to wait" in:
+        val initialRemaining = robot.remaining
+        robot.tick()
+        robot.remaining shouldBe initialRemaining.previous
