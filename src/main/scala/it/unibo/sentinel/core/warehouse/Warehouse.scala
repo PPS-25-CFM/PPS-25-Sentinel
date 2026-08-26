@@ -90,6 +90,12 @@ trait Warehouse:
     */
   def tileAt(position: Position): Option[Tile]
 
+  /** @param position
+    *   the position of the tile to retrieve.
+    * @return
+    *   an [[Option]] containing the traversal cost in [[Tick]] of the tile at
+    *   the given.
+    */
   def traversalCost(position: Position): Option[Tick] =
     tileAt(position) match
       case Some(Tile.Floor(cost)) => Some(cost)
