@@ -11,3 +11,9 @@ class TileSpec extends UnitTest:
       "take 1 tick to be crossed" in:
         val floor = Tile.Floor()
         floor.cost shouldBe Tick(1)
+
+    "created with a specific tick" should:
+
+      "take the given number of ticks to be crossed" in:
+        val floor = Tile.Floor(Tick(5))
+        floor.cost shouldBe Tick(5)
