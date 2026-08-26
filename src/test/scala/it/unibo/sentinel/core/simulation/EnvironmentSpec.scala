@@ -83,6 +83,15 @@ class EnvironmentSpec
 
     "advancing a robot" should:
 
+      "keep the robot in place while it still has to wait" in:
+        val target = Position(1, 2)
+        val cost = Tick(2)
+
+        environment.route(r1, Seq(target -> cost))
+
+        environment.advance(r1) shouldBe None
+        environment.placement(r1).value.at shouldBe p1
+
       "update placement, step the robot and return RobotMoved if target position is free" in:
         val target = Position(1, 2)
         val path: Path = Seq((target, Tick(1)))
@@ -109,15 +118,14 @@ class EnvironmentSpec
       "advance step-by-step through a Path returning RobotMoved events" in:
         val step1 = Position(1, 2)
         val step2 = Position(1, 3)
-        val path: Path = Seq((step1, Tick(1)), (step2, Tick(1)))
+        val path: Path = Seq(step1 -> Tick(1), step2 -> Tick(1))
 
         environment.route(r1, path)
-
         environment.advance(r1) shouldBe Some(
           Event.RobotMoved(r1, p1, step1)
         )
         environment.placement(r1).value.at shouldBe step1
-
+        environment.tick()
         environment.advance(r1) shouldBe Some(
           Event.RobotMoved(r1, step1, step2)
         )

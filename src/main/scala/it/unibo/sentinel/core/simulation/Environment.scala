@@ -124,6 +124,7 @@ private[core] final class Environment private[core] (
       robot = spot.robot
       from = spot.at
       to <- robot.next
+      if robot.remaining == Tick(0)
     yield
       if !fleet.values.exists(_.at == to)
       then
