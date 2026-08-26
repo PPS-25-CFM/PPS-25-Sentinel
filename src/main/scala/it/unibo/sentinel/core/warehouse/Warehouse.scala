@@ -78,7 +78,7 @@ trait Warehouse:
     */
   def isTraversable(position: Position): Boolean =
     tileAt(position) match
-      case Some(Tile.Floor()) => true
+      case Some(Tile.Floor(_)) => true
       case _                  => false
 
   /** @param position

@@ -1,5 +1,7 @@
 package it.unibo.sentinel.core.warehouse
 
+import it.unibo.sentinel.core.simulation.Tick
+
 /** Represents a tile in the warehouse.
   */
 sealed trait Tile
@@ -7,4 +9,4 @@ sealed trait Tile
 object Tile:
   /** Represents a floor tile.
     */
-  case class Floor() extends Tile
+  case class Floor(cost: Tick = Tick(1)) extends Tile
