@@ -63,7 +63,7 @@ class EnvironmentSpec
     "routing a robot" should:
 
       "assign to the robot the path and return RobotRouted if it exists in fleet" in:
-        val path: Path = Seq.empty
+        val path = Seq.empty
         val event = environment.route(r1, path)
         event shouldBe Some(Event.RobotRouted(r1, path))
 
@@ -85,7 +85,7 @@ class EnvironmentSpec
 
       "update placement, step the robot and return RobotMoved if target position is free" in:
         val target = Position(1, 2)
-        val path: Path = Seq(target)
+        val path: Path = Seq((target, Tick(1)))
 
         environment.route(r1, path)
         val event = environment.advance(r1)
@@ -96,7 +96,7 @@ class EnvironmentSpec
         updatedPlacement.at shouldBe target
 
       "prevent movement and return RobotBlocked if target position is occupied by another robot" in:
-        val collisionPath: Path = Seq(p2)
+        val collisionPath: Path = Seq((p2, Tick(1)))
 
         environment.route(r1, collisionPath)
         val event = environment.advance(r1)
@@ -109,7 +109,7 @@ class EnvironmentSpec
       "advance step-by-step through a Path returning RobotMoved events" in:
         val step1 = Position(1, 2)
         val step2 = Position(1, 3)
-        val path: Path = Seq(step1, step2)
+        val path: Path = Seq((step1, Tick(1)), (step2, Tick(1)))
 
         environment.route(r1, path)
 

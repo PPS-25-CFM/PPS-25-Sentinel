@@ -2,6 +2,7 @@ package it.unibo.sentinel.core.routing
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Tile, Area}
+import it.unibo.sentinel.core.simulation.Tick
 
 class NavigatorSpec extends UnitTest:
   "An Hops Navigator" when:
@@ -29,9 +30,11 @@ class NavigatorSpec extends UnitTest:
       val navigator = Navigator(metric = Metric.Hops)
 
       "return such path" in:
-        navigator.path(Position(0, 0), Position(0, 2)).value shouldBe Seq(
-          Position(0, 1),
-          Position(0, 2)
+        navigator
+          .path(from = Position(0, 0), to = Position(0, 2))
+          .value shouldBe Seq(
+          (Position(0, 1), Tick(1)),
+          (Position(0, 2), Tick(1))
         )
 
     "multiple paths connect two positions" should:

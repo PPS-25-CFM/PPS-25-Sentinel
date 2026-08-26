@@ -3,6 +3,7 @@ package it.unibo.sentinel.core.routing
 import it.unibo.sentinel.core.warehouse.{Warehouse, Position}
 import scala.annotation.tailrec
 import it.unibo.sentinel.core.warehouse
+import it.unibo.sentinel.core.simulation.Tick
 
 /** Abstracts the metric that a [[Navigator]] uses in order to compute a path
   * between two positions.
@@ -24,7 +25,7 @@ object Metric:
 /** A [[Path]] is a type alias for a [[Seq]] of [[Position]], where each
   * [[Position]] is a step in the [[Path]].
   */
-type Path = Seq[Position]
+type Path = Seq[(Position, Tick)]
 
 /** Represents the component that can compute paths and distances between
   * positions in a [[Warehouse]].
@@ -96,5 +97,13 @@ object Navigator:
       )(from: Position, to: Position): Path =
         @tailrec
         def go(pos: Position, acc: Path): Path =
-          if pos == from then acc else go(parent(pos), pos +: acc)
+          if pos == from then acc
+          else
+            go(
+              parent(pos),
+              (
+                pos,
+                warehouse.traversalCost(pos).getOrElse(Tick(Int.MaxValue))
+              ) +: acc
+            )
         go(to, Seq.empty)

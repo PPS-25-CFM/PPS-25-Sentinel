@@ -4,13 +4,14 @@ import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.routing.Path
+import it.unibo.sentinel.core.simulation.Tick
 
 trait RobotFixture:
   self: UnitTest =>
   val id: RobotId = RobotId("R1")
   val m1: MissionId = MissionId("M1")
   val m2: MissionId = MissionId("M2")
-  val path: Path = Seq(Position(1, 0), Position(2, 0), Position(3, 0))
+  val path: Path = Seq((Position(1, 0), Tick(1)), (Position(2, 0), Tick(1)), (Position(3, 0), Tick(1)))
 
   def simple: Robot = Robot(id)
 

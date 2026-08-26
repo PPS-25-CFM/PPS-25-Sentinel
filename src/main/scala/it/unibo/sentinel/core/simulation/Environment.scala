@@ -112,7 +112,7 @@ private[core] final class Environment private[core] (
       robot = spot.robot
     yield
       robot.follow(path)
-      Event.RobotRouted(r_id, path)
+      Event.RobotRouted(r_id, path.map(_._1))
 
   /** @param r_id
     * @return

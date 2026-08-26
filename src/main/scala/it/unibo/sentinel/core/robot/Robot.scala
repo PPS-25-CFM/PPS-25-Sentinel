@@ -96,7 +96,10 @@ object Robot:
 
     override def follow(path: Path): Unit = _path = Some(path)
 
-    override def next: Option[Position] = _path.flatMap(_.headOption)
+    override def next: Option[Position] = for
+      p <- _path
+      next <- p.headOption
+    yield next._1
 
     override def step(): Unit = _path = _path match
       case Some(_ +: rest) => Some(rest)
