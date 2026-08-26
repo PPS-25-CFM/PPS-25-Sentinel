@@ -153,12 +153,12 @@ private[core] final class Environment private[core] (
     *   the sequence of generated [[Event]]s (e.g. mission failures)
     */
   def tick(): Seq[Event] =
+    placements.foreach(_.robot.tick())
     val events = for
       mission <- missions
       next = mission.proceed
     yield
       board += (mission.id -> next)
-
       if next.status == MissionStatus.Failed then
         releaseCarrier(mission)
         Some(Event.MissionFailed(mission.id))

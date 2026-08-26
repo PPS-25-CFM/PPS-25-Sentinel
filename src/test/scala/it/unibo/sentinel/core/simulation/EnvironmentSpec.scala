@@ -167,6 +167,14 @@ class EnvironmentSpec
         robot.status shouldBe RobotStatus.Idle
         robot.mission shouldBe None
 
+      "make every routed robot count down its remaining ticks" in:
+        environment.route(r1, Seq(Position(1, 2) -> Tick(3)))
+        environment.robot(r1).value.remaining shouldBe Tick(2)
+        environment.tick()
+        environment.robot(r1).value.remaining shouldBe Tick(1)
+        environment.tick()
+        environment.robot(r1).value.remaining shouldBe Tick(0)
+
     "queried about Standings" should:
 
       "return Placements matching a specific Robot status" in:
