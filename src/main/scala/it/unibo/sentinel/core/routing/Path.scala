@@ -1,0 +1,54 @@
+package it.unibo.sentinel.core.routing
+
+import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.simulation.Tick
+
+/** @param to
+  * @param cost
+  */
+case class Leg(to: Position, cost: Tick)
+
+/** A [[Path]] that a robot follows.
+  */
+opaque type Path = Seq[Leg]
+
+object Path:
+
+  /** @return
+    *   an empty [[Path]]
+    */
+  def empty: Path = Seq.empty
+
+  /** @param legs
+    *   the [[Leg]]s that compose the [[Path]].
+    * @return
+    *   a [[Path]] made of the given [[Leg]]s
+    */
+  def apply(legs: Leg*): Path = legs.toSeq
+
+  extension (path: Path)
+
+    /** @return
+      *   the [[Position]]s contained in the [[Path]]
+      */
+    def positions: Seq[Position] = path.map(_.to)
+
+    /** @return
+      *   the remaining time to cross the next [[Position]] in the [[Path]].
+      */
+    def remaining: Tick = path.headOption.map(_.cost).getOrElse(Tick(0))
+
+    /** @return
+      *   the [[Path]] with the first [[Leg]] decreased by one tick.
+      */
+    def ticked: Path = path match
+      case leg +: rest => leg.copy(cost = leg.cost.previous) +: rest
+      case _           => path
+
+    /** @return
+      *   the [[Path]] with the first [[Leg]] removed if its cost is zero,
+      *   otherwise the same [[Path]].
+      */
+    def advanced: Path = path match
+      case leg +: rest if leg.cost == Tick(0) => rest
+      case _                                  => path
