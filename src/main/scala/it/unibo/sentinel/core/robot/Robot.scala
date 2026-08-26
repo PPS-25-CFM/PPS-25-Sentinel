@@ -3,6 +3,7 @@ package it.unibo.sentinel.core.robot
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.simulation.Tick
 
 /** Abstracts the concept of a robot, which is an entity capable of accepting
   * and executing missions while moving through the [[Warehouse]]
@@ -57,6 +58,12 @@ trait Robot:
     */
   def next: Option[Position]
 
+  /** @return
+    *   the remaining time before the robot can move to the next [[Position]] in
+    *   its [[Path]] (if there is one).
+    */
+  def remaining: Tick
+
   /** Advances its [[Path]]
     */
   def step(): Unit
@@ -104,3 +111,5 @@ object Robot:
     override def step(): Unit = _path = _path match
       case Some(_ +: rest) => Some(rest)
       case _               => _path
+
+    override def remaining: Tick = Tick(0)

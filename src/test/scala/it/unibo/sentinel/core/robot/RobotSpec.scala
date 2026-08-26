@@ -11,7 +11,11 @@ trait RobotFixture:
   val id: RobotId = RobotId("R1")
   val m1: MissionId = MissionId("M1")
   val m2: MissionId = MissionId("M2")
-  val path: Path = Seq((Position(1, 0), Tick(1)), (Position(2, 0), Tick(1)), (Position(3, 0), Tick(1)))
+  val path: Path = Seq(
+    Position(1, 0) -> Tick(1),
+    Position(2, 0) -> Tick(1),
+    Position(3, 0) -> Tick(1)
+  )
 
   def simple: Robot = Robot(id)
 
@@ -39,6 +43,9 @@ class RobotSpec extends UnitTest with RobotFixture:
 
       "be idle" in:
         simple.status shouldBe RobotStatus.Idle
+
+      "not have to wait" in:
+        simple.remaining shouldBe Tick(0)
 
     "does not have a mission" should:
 
