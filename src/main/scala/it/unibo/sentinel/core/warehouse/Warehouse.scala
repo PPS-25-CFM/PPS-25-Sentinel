@@ -1,5 +1,7 @@
 package it.unibo.sentinel.core.warehouse
 
+import it.unibo.sentinel.core.simulation.Tick
+
 /** Defines the strategy for determining adjacent positions.
   */
 trait Adjacency:
@@ -79,7 +81,7 @@ trait Warehouse:
   def isTraversable(position: Position): Boolean =
     tileAt(position) match
       case Some(Tile.Floor(_)) => true
-      case _                  => false
+      case _                   => false
 
   /** @param position
     *   the position of the tile to retrieve.
@@ -87,6 +89,11 @@ trait Warehouse:
     *   an [[Option]] containing the tile at the given position, if any.
     */
   def tileAt(position: Position): Option[Tile]
+
+  def traversalCost(position: Position): Option[Tick] =
+    tileAt(position) match
+      case Some(Tile.Floor(cost)) => Some(cost)
+      case _                      => None
 
   /** @param position
     *   the position of the tile to add.

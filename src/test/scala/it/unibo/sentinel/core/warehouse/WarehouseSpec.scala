@@ -1,6 +1,7 @@
 package it.unibo.sentinel.core.warehouse
 
 import it.unibo.sentinel.UnitTest
+import it.unibo.sentinel.core.simulation.Tick
 
 trait WarehouseFixture:
   self: UnitTest =>
@@ -46,13 +47,20 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
         forAll(outerPositions):
           w0.inBound(_) shouldBe false
 
-    "a tile is added" should:
-      "expose that tile at the given position" in:
+    "a floor is added" should:
+
+      "expose that floor at the given position" in:
         val position = Position(1, 1)
         val w1 = w0.withTile(position)(Tile.Floor())
         w1.tileAt(position) shouldBe Some(Tile.Floor())
 
-    "a tile is removed" should:
+      "expose its traversal cost at the given position" in:
+        val position = Position(1, 1)
+        val w1 = w0.withTile(position)(Tile.Floor(Tick(5)))
+        w1.traversalCost(position) shouldBe Some(Tick(5))
+
+    "a floor is removed" should:
+
       "no longer expose it" in:
         val position = Position(1, 1)
         val w1 = w0.withTile(position)(Tile.Floor())
