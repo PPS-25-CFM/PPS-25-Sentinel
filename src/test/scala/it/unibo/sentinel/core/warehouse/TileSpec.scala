@@ -8,6 +8,6 @@ class TileSpec extends UnitTest:
 
     "created with no parameters" should:
 
-      "have 1 time cost" in:
+      "take 1 tick to be crossed" in:
         val floor = Tile.Floor()
         floor.cost shouldBe Tick(1)
