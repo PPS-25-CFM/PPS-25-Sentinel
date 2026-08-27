@@ -22,8 +22,12 @@ object Metric:
   object Hops extends Metric:
     override def cost(to: Position)(using warehouse: Warehouse): Int = 1
 
-/** Represents the component that can compute paths and distances between
-  * positions in a [[Warehouse]].
+  object Time extends Metric:
+    override def cost(to: Position)(using warehouse: Warehouse): Int =
+      warehouse.traversalCost(to).map(_.value).getOrElse(Int.MaxValue)
+
+/** Represents the component that can compute paths and their navigation costs
+  * between positions in a [[Warehouse]].
   */
 trait Navigator:
   /** @return
