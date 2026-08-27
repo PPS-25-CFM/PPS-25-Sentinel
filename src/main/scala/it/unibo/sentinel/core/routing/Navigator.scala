@@ -2,8 +2,8 @@ package it.unibo.sentinel.core.routing
 
 import it.unibo.sentinel.core.warehouse.{Warehouse, Position}
 import scala.annotation.tailrec
+import scala.math.Ordering.Implicits.infixOrderingOps
 import it.unibo.sentinel.core.warehouse
-import it.unibo.sentinel.core.simulation.Tick
 
 /** Represents the component that can compute paths and their navigation costs
   * between positions in a [[Warehouse]].
@@ -49,39 +49,36 @@ object Navigator:
       override def path(from: Position, to: Position): Option[Path] =
         @tailrec
         def loop(
-            fringe: Map[Position, Int],
+            fringe: Map[Position, Cost],
             visited: Set[Position],
             parent: Map[Position, Position]
         ): Option[Path] =
           fringe.minByOption((_, d) => d) match
             case None            => None
-            case Some((`to`, _)) => Some(fromParent(parent)(from, to))
+            case Some((`to`, _)) => fromParent(parent)(from, to)
             case Some((curr, d)) =>
               val seen = visited + curr
               val relaxed = warehouse
                 .traversableNeighbors(curr)
                 .filterNot(seen)
-                .map(next => next -> (d + metric.cost(next)))
+                .flatMap(next => metric.cost(next).map(c => next -> (d + c)))
                 .filterNot((next, c) => fringe.get(next).exists(_ <= c))
               loop(
                 fringe - curr ++ relaxed,
                 seen,
                 parent ++ relaxed.map((next, _) => next -> curr)
               )
-        loop(Map(from -> 0), Set.empty, Map.empty)
+        loop(Map(from -> Cost.zero), Set.empty, Map.empty)
 
       private def fromParent(
           parent: Map[Position, Position]
-      )(from: Position, to: Position): Path =
+      )(from: Position, to: Position): Option[Path] =
         @tailrec
-        def go(pos: Position, acc: Seq[Leg]): Seq[Leg] =
-          if pos == from then acc
+        def go(pos: Position, acc: Seq[Leg]): Option[Seq[Leg]] =
+          if pos == from then Some(acc)
           else
-            go(
-              parent(pos),
-              Leg(
-                pos,
-                warehouse.traversalCost(pos).getOrElse(Tick(Int.MaxValue))
-              ) +: acc
-            )
-        Path(go(to, Seq.empty)*)
+            (parent.get(pos), warehouse.traversalCost(pos)) match
+              case (Some(previous), Some(cost)) =>
+                go(previous, Leg(pos, cost) +: acc)
+              case _ => None
+        go(to, Seq.empty).map(legs => Path(legs*))
