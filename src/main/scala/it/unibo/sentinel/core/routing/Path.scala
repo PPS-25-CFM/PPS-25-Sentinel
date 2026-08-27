@@ -51,4 +51,4 @@ object Path:
       */
     def advanced: Path = path match
       case leg +: rest if leg.cost == Tick.zero => rest
-      case _                                  => path
+      case _                                    => path

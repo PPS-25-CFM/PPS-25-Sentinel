@@ -21,7 +21,7 @@ object Tick:
 
   /** @return
     *   a [[Tick]] representing the unit of time.
-  */
+    */
   val unit: Tick = Tick(1)
 
   extension (tick: Tick)
