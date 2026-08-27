@@ -5,8 +5,8 @@ import scala.annotation.tailrec
 import scala.math.Ordering.Implicits.infixOrderingOps
 import it.unibo.sentinel.core.warehouse
 
-/** Represents the component that can compute paths and their navigation costs
-  * between positions in a [[Warehouse]].
+/** Represents the component that can compute [[Path]]s between positions in a
+  * [[Warehouse]].
   */
 trait Navigator:
   /** @return
@@ -19,8 +19,8 @@ trait Navigator:
     * @param to
     *   the destination [[Position]].
     * @return
-    *   A [[Path]] between [[from]] and [[to]] if a path exists in the given
-    *   [[Warehouse]].
+    *   An [[Option]] containing a [[Path]] between `from` and `to` if a path
+    *   exists in the given [[Warehouse]].
     */
   def path(from: Position, to: Position): Option[Path]
 
@@ -29,7 +29,7 @@ trait Navigator:
     * @param to
     *   the destination [[Position]].
     * @return
-    *   The distance between [[from]] and [[to]] if a path exists in the given
+    *   The distance between `from` and `to` if a [[Path]] exists in the given
     *   [[Warehouse]].
     */
   def distance(from: Position, to: Position): Option[Int] =
@@ -37,11 +37,11 @@ trait Navigator:
 
 object Navigator:
   /** @param metric
-    *   the metric to be used for computing distances.
+    *   the [[Metric]] to be used for computing distances.
     * @param w
     *   the [[Warehouse]] to navigate.
     * @return
-    *   a [[Navigator]] that minimizes the given [[metric]].
+    *   a [[Navigator]] that minimizes the given `metric`.
     */
   def apply(metric: Metric)(using w: Warehouse): Navigator =
     new Navigator:
@@ -49,7 +49,7 @@ object Navigator:
       override def path(from: Position, to: Position): Option[Path] =
         @tailrec
         def loop(
-            fringe: Map[Position, Cost],
+            fringe: Map[Position, Score],
             visited: Set[Position],
             parent: Map[Position, Position]
         ): Option[Path] =
@@ -68,7 +68,7 @@ object Navigator:
                 seen,
                 parent ++ relaxed.map((next, _) => next -> curr)
               )
-        loop(Map(from -> Cost.zero), Set.empty, Map.empty)
+        loop(Map(from -> Score.zero), Set.empty, Map.empty)
 
       private def fromParent(
           parent: Map[Position, Position]

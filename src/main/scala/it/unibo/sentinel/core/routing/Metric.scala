@@ -7,23 +7,23 @@ import it.unibo.sentinel.core.warehouse.{Warehouse, Position}
   */
 trait Metric:
   /** @param to
-    *   the position to move to.
+    *   the [[Position]] to move to.
     * @return
-    *   the cost for moving in [[to]] based on the given [[Metric]], if [[to]]
-    *   can be traversed.
+    *   an [[Option]] containing the [[Score]] for moving to the given
+    *   [[Position]], if it is traversable.
     */
-  def cost(to: Position)(using warehouse: Warehouse): Option[Cost]
+  def cost(to: Position)(using warehouse: Warehouse): Option[Score]
 
 object Metric:
-  /** Metric that assigns a unit cost to every traversed position.
+  /** Assigns a unit [[Score]] to every traversed position.
     */
   object Hops extends Metric:
-    override def cost(to: Position)(using warehouse: Warehouse): Option[Cost] =
-      Option.when(warehouse.isTraversable(to))(Cost.unit)
+    override def cost(to: Position)(using warehouse: Warehouse): Option[Score] =
+      Option.when(warehouse.isTraversable(to))(Score(1))
 
-  /** Metric that assigns a cost to every traversed position based on the
-    * traversal cost of the position
+  /** Assigns a [[Score]] to every traversed position based on its traversal
+    * cost.
     */
   object Time extends Metric:
-    override def cost(to: Position)(using warehouse: Warehouse): Option[Cost] =
-      for tick <- warehouse.traversalCost(to) yield Cost(tick.value)
+    override def cost(to: Position)(using warehouse: Warehouse): Option[Score] =
+      for tick <- warehouse.traversalCost(to) yield Score(tick.value)
