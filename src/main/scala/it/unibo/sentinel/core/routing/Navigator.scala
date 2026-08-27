@@ -5,27 +5,6 @@ import scala.annotation.tailrec
 import it.unibo.sentinel.core.warehouse
 import it.unibo.sentinel.core.simulation.Tick
 
-/** Abstracts the metric that a [[Navigator]] uses in order to compute a path
-  * between two positions.
-  */
-trait Metric:
-  /** @param to
-    *   the position to move to.
-    * @return
-    *   the cost for moving in [[to]] based on the given [[Metric]].
-    */
-  def cost(to: Position)(using warehouse: Warehouse): Int
-
-object Metric:
-  /** Metric that assigns a unit cost to every traversed position.
-    */
-  object Hops extends Metric:
-    override def cost(to: Position)(using warehouse: Warehouse): Int = 1
-
-  object Time extends Metric:
-    override def cost(to: Position)(using warehouse: Warehouse): Int =
-      warehouse.traversalCost(to).map(_.value).getOrElse(Int.MaxValue)
-
 /** Represents the component that can compute paths and their navigation costs
   * between positions in a [[Warehouse]].
   */
