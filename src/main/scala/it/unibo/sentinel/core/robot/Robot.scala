@@ -115,7 +115,7 @@ object Robot:
       currentPath = currentPath.map(_.advanced)
 
     override def remaining: Tick =
-      currentPath.map(_.remaining).getOrElse(Tick(0))
+      currentPath.map(_.remaining).getOrElse(Tick.zero)
 
     override def tick(): Unit =
       currentPath = currentPath.map(_.ticked)

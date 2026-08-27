@@ -9,4 +9,4 @@ sealed trait Tile
 object Tile:
   /** Represents a floor tile.
     */
-  case class Floor(cost: Tick = Tick(1)) extends Tile
+  case class Floor(cost: Tick = Tick.unit) extends Tile

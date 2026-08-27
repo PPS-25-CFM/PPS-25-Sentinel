@@ -35,7 +35,7 @@ class SimpleRobotSpec extends UnitTest with RobotFixture:
         robot.status shouldBe RobotStatus.Idle
 
       "have nothing to wait for" in:
-        robot.remaining shouldBe Tick(0)
+        robot.remaining shouldBe Tick.zero
 
     "without a mission" should:
       val robot = Robot(robotId)
@@ -112,7 +112,7 @@ class SimpleRobotSpec extends UnitTest with RobotFixture:
         robot.path shouldBe None
 
       "have nothing to wait for" in:
-        robot.remaining shouldBe Tick(0)
+        robot.remaining shouldBe Tick.zero
 
     "ticked" should:
       val robot = Robot(robotId)

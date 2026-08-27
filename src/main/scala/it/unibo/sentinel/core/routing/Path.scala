@@ -36,7 +36,7 @@ object Path:
     /** @return
       *   the remaining time to cross the next [[Position]] in the [[Path]].
       */
-    def remaining: Tick = path.headOption.map(_.cost).getOrElse(Tick(0))
+    def remaining: Tick = path.headOption.map(_.cost).getOrElse(Tick.zero)
 
     /** @return
       *   the [[Path]] with the first [[Leg]] decreased by one tick.
@@ -50,5 +50,5 @@ object Path:
       *   otherwise the same [[Path]].
       */
     def advanced: Path = path match
-      case leg +: rest if leg.cost == Tick(0) => rest
+      case leg +: rest if leg.cost == Tick.zero => rest
       case _                                  => path

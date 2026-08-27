@@ -12,7 +12,7 @@ class SimulationSpec extends UnitTest with TestData with EnvironmentFixture:
       val sim = Simulation.of(emptyScenario)
 
       "start at tick zero" in:
-        sim.time shouldBe Tick(0)
+        sim.time shouldBe Tick.zero
 
     "stepped" should:
 

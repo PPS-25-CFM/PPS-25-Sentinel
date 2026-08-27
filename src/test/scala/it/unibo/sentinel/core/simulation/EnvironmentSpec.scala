@@ -103,7 +103,7 @@ class EnvironmentSpec
 
       "update placement, step the robot and return RobotMoved if target position is free" in:
         val target = Position(1, 2)
-        val path: Path = Path(Leg(target, Tick(0)))
+        val path: Path = Path(Leg(target, Tick.zero))
 
         environment.route(r1, path)
         val event = environment.advance(r1)
@@ -114,7 +114,7 @@ class EnvironmentSpec
         updatedPlacement.at shouldBe target
 
       "prevent movement and return RobotBlocked if target position is occupied by another robot" in:
-        val collisionPath: Path = Path(Leg(p2, Tick(0)))
+        val collisionPath: Path = Path(Leg(p2, Tick.zero))
 
         environment.route(r1, collisionPath)
         val event = environment.advance(r1)
@@ -127,7 +127,7 @@ class EnvironmentSpec
       "advance step-by-step through a Path returning RobotMoved events" in:
         val step1 = Position(1, 2)
         val step2 = Position(1, 3)
-        val path: Path = Path(Leg(step1, Tick(0)), Leg(step2, Tick(1)))
+        val path: Path = Path(Leg(step1, Tick.zero), Leg(step2, Tick.unit))
 
         environment.route(r1, path)
         environment.advance(r1) shouldBe Some(
@@ -189,9 +189,9 @@ class EnvironmentSpec
         environment.tick()
         environment.robot(r1).value.remaining shouldBe Tick(2)
         environment.tick()
-        environment.robot(r1).value.remaining shouldBe Tick(1)
+        environment.robot(r1).value.remaining shouldBe Tick.unit
         environment.tick()
-        environment.robot(r1).value.remaining shouldBe Tick(0)
+        environment.robot(r1).value.remaining shouldBe Tick.zero
 
     "queried about Standings" should:
 

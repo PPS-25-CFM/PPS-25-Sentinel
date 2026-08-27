@@ -17,8 +17,8 @@ class TickSpec extends UnitTest:
     "asked for the previous tick" should:
 
       "return 0 if the current tick is 0" in:
-        val tick = Tick(0)
-        tick.previous shouldBe Tick(0)
+        val tick = Tick.zero
+        tick.previous shouldBe Tick.zero
 
       "return the previous tick otherwise" in:
         val tick = Tick(5)

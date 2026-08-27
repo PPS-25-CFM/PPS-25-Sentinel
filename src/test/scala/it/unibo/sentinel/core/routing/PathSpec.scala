@@ -14,7 +14,7 @@ class PathSpec extends UnitTest:
         emptyPath.positions shouldBe Seq.empty
 
       "have no remaining time to wait" in:
-        emptyPath.remaining shouldBe Tick(0)
+        emptyPath.remaining shouldBe Tick.zero
 
     "made of a single leg" should:
       val destination = Position(1, 0)
@@ -29,7 +29,7 @@ class PathSpec extends UnitTest:
 
     "made of several legs" should:
       val legs = Seq(
-        Leg(Position(1, 0), Tick(1)),
+        Leg(Position(1, 0), Tick.unit),
         Leg(Position(2, 0), Tick(2)),
         Leg(Position(3, 0), Tick(3))
       )
@@ -41,24 +41,24 @@ class PathSpec extends UnitTest:
     "advanced" should:
 
       "be empty if it was the last leg and remaining time is up" in:
-        val path: Path = Path(Leg(Position(1, 0), Tick(0)))
+        val path: Path = Path(Leg(Position(1, 0), Tick.zero))
         path.advanced shouldBe Path.empty
 
       "be the same if the remaining time is not up" in:
-        val path: Path = Path(Leg(Position(1, 0), Tick(1)))
+        val path: Path = Path(Leg(Position(1, 0), Tick.unit))
         path.advanced shouldBe path
 
       "drop the first leg if the remaining time is up" in:
         val path: Path = Path(
-          Leg(Position(1, 0), Tick(0)),
-          Leg(Position(2, 0), Tick(1))
+          Leg(Position(1, 0), Tick.zero),
+          Leg(Position(2, 0), Tick.unit)
         )
         val next = path.advanced
-        next.advanced shouldBe Path(Leg(Position(2, 0), Tick(1)))
-        next.remaining shouldBe Tick(1)
+        next.advanced shouldBe Path(Leg(Position(2, 0), Tick.unit))
+        next.remaining shouldBe Tick.unit
 
     "ticked" should:
 
       "decrease the remaining time of the first leg by one tick" in:
-        val path: Path = Path(Leg(Position(1, 0), Tick(1)))
-        path.ticked.remaining shouldBe Tick(0)
+        val path: Path = Path(Leg(Position(1, 0), Tick.unit))
+        path.ticked.remaining shouldBe Tick.zero
