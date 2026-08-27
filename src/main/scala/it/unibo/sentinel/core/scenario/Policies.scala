@@ -14,11 +14,16 @@ object Policies:
       */
     case Distance
 
+    /** Routes are determined based on time.
+      */
+    case Time
+
     /** @return
       *   the [[Navigator]] for the given [[Routing]] policy.
       */
     def apply()(using Warehouse): Navigator = this match
       case Distance => Navigator(Metric.Hops)
+      case Time     => Navigator(Metric.Time)
 
   /** Assignment policies, i.e. how mission are assigned.
     */
