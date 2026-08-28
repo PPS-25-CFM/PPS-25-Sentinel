@@ -45,6 +45,9 @@ object Simulation:
     val world = scenario.build
     BasicSimulation(world, Phase.all)
 
+  def of(scenario: Scenario, limit: Tick): Simulation =
+    WithLimit(of(scenario))(limit)
+
   private final class BasicSimulation(world: Environment, phases: Seq[Phase])
       extends Simulation:
     private var currentTime: Tick = Tick(0)
@@ -57,3 +60,10 @@ object Simulation:
       StepResult(snapshot = world.snapshot, events = events)
 
     def isOver: Boolean = world.missions.forall(_.isOver)
+
+  private final class WithLimit(inner: Simulation)(max: Tick)
+      extends Simulation:
+    export inner.{isOver as _, *}
+
+    def isOver: Boolean =
+      summon[Ordering[Tick]].gteq(inner.time, max) || inner.isOver
