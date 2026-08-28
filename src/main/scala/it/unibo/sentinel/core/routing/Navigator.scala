@@ -74,11 +74,11 @@ object Navigator:
           parent: Map[Position, Position]
       )(from: Position, to: Position): Option[Path] =
         @tailrec
-        def go(pos: Position, acc: Seq[Leg]): Option[Seq[Leg]] =
+        def go(pos: Position, acc: Seq[Step]): Option[Seq[Step]] =
           if pos == from then Some(acc)
           else
             (parent.get(pos), warehouse.traversalCost(pos)) match
               case (Some(previous), Some(cost)) =>
-                go(previous, Leg(pos, cost) +: acc)
+                go(previous, Step(pos, cost) +: acc)
               case _ => None
         go(to, Seq.empty).map(legs => Path(legs*))

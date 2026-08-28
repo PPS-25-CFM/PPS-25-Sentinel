@@ -19,7 +19,7 @@ class PathSpec extends UnitTest:
     "made of a single leg" should:
       val destination = Position(1, 0)
       val cost = Tick(1)
-      val path: Path = Path(Leg(destination, cost))
+      val path: Path = Path(Step(destination, cost))
 
       "lead to the destination of that leg" in:
         path.positions shouldBe Seq(destination)
@@ -29,9 +29,9 @@ class PathSpec extends UnitTest:
 
     "made of several legs" should:
       val legs = Seq(
-        Leg(Position(1, 0), Tick.unit),
-        Leg(Position(2, 0), Tick(2)),
-        Leg(Position(3, 0), Tick(3))
+        Step(Position(1, 0), Tick.unit),
+        Step(Position(2, 0), Tick(2)),
+        Step(Position(3, 0), Tick(3))
       )
       val path: Path = Path(legs*)
 
@@ -41,24 +41,24 @@ class PathSpec extends UnitTest:
     "advanced" should:
 
       "be empty if it was the last leg and remaining time is up" in:
-        val path: Path = Path(Leg(Position(1, 0), Tick.zero))
+        val path: Path = Path(Step(Position(1, 0), Tick.zero))
         path.advanced shouldBe Path.empty
 
       "be the same if the remaining time is not up" in:
-        val path: Path = Path(Leg(Position(1, 0), Tick.unit))
+        val path: Path = Path(Step(Position(1, 0), Tick.unit))
         path.advanced shouldBe path
 
       "drop the first leg if the remaining time is up" in:
         val path: Path = Path(
-          Leg(Position(1, 0), Tick.zero),
-          Leg(Position(2, 0), Tick.unit)
+          Step(Position(1, 0), Tick.zero),
+          Step(Position(2, 0), Tick.unit)
         )
         val next = path.advanced
-        next.advanced shouldBe Path(Leg(Position(2, 0), Tick.unit))
+        next.advanced shouldBe Path(Step(Position(2, 0), Tick.unit))
         next.remaining shouldBe Tick.unit
 
     "ticked" should:
 
       "decrease the remaining time of the first leg by one tick" in:
-        val path: Path = Path(Leg(Position(1, 0), Tick.unit))
+        val path: Path = Path(Step(Position(1, 0), Tick.unit))
         path.ticked.remaining shouldBe Tick.zero

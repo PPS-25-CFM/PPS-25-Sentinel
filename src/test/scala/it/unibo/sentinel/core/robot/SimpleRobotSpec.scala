@@ -5,7 +5,7 @@ import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.simulation.Tick
-import it.unibo.sentinel.core.routing.Leg
+import it.unibo.sentinel.core.routing.Step
 
 trait RobotFixture:
 
@@ -15,7 +15,7 @@ trait RobotFixture:
 
   val costs: Seq[Tick] = Seq(Tick(1), Tick(2), Tick(3))
   val steps: Seq[Position] = Seq(Position(1, 0), Position(2, 0), Position(3, 0))
-  val legs = steps.zip(costs).map((pos, cost) => Leg(pos, cost))
+  val legs = steps.zip(costs).map((pos, cost) => Step(pos, cost))
   val path: Path = Path(legs*)
 
 class SimpleRobotSpec extends UnitTest with RobotFixture:

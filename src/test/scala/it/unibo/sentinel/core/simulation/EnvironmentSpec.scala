@@ -9,7 +9,7 @@ import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
 import it.unibo.sentinel.core.mission.{Mission, Task}
-import it.unibo.sentinel.core.routing.Leg
+import it.unibo.sentinel.core.routing.Step
 
 /*
  * We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
@@ -87,14 +87,14 @@ class EnvironmentSpec
       "keep the robot in place while it still has to wait" in:
         val target = Position(1, 2)
         val cost = Tick(1)
-        val path: Path = Path(Leg(target, cost))
+        val path: Path = Path(Step(target, cost))
         environment.route(r1, path)
 
         environment.advance(r1) shouldBe None
         environment.placement(r1).value.at shouldBe p1
 
       "not report a collision while it is still waiting" in:
-        val collisionPath: Path = Path(Leg(p2, Tick(1)))
+        val collisionPath: Path = Path(Step(p2, Tick(1)))
 
         environment.route(r1, collisionPath)
         environment.advance(r1) shouldBe None
@@ -103,7 +103,7 @@ class EnvironmentSpec
 
       "update placement, step the robot and return RobotMoved if target position is free" in:
         val target = Position(1, 2)
-        val path: Path = Path(Leg(target, Tick.zero))
+        val path: Path = Path(Step(target, Tick.zero))
 
         environment.route(r1, path)
         val event = environment.advance(r1)
@@ -114,7 +114,7 @@ class EnvironmentSpec
         updatedPlacement.at shouldBe target
 
       "prevent movement and return RobotBlocked if target position is occupied by another robot" in:
-        val collisionPath: Path = Path(Leg(p2, Tick.zero))
+        val collisionPath: Path = Path(Step(p2, Tick.zero))
 
         environment.route(r1, collisionPath)
         val event = environment.advance(r1)
@@ -127,7 +127,7 @@ class EnvironmentSpec
       "advance step-by-step through a Path returning RobotMoved events" in:
         val step1 = Position(1, 2)
         val step2 = Position(1, 3)
-        val path: Path = Path(Leg(step1, Tick.zero), Leg(step2, Tick.unit))
+        val path: Path = Path(Step(step1, Tick.zero), Step(step2, Tick.unit))
 
         environment.route(r1, path)
         environment.advance(r1) shouldBe Some(
@@ -185,7 +185,7 @@ class EnvironmentSpec
         robot.mission shouldBe None
 
       "make every robot count down its remaining ticks" in:
-        environment.route(r1, Path(Leg(Position(1, 2), Tick(3))))
+        environment.route(r1, Path(Step(Position(1, 2), Tick(3))))
         environment.tick()
         environment.robot(r1).value.remaining shouldBe Tick(2)
         environment.tick()

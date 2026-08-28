@@ -6,11 +6,11 @@ import it.unibo.sentinel.core.simulation.Tick
 /** @param to
   * @param cost
   */
-case class Leg(to: Position, cost: Tick)
+case class Step(to: Position, cost: Tick)
 
 /** A [[Path]] that a robot follows.
   */
-opaque type Path = Seq[Leg]
+opaque type Path = Seq[Step]
 
 object Path:
 
@@ -24,7 +24,7 @@ object Path:
     * @return
     *   a [[Path]] made of the given [[Leg]]s
     */
-  def apply(legs: Leg*): Path = legs.toSeq
+  def apply(legs: Step*): Path = legs.toSeq
 
   extension (path: Path)
 
