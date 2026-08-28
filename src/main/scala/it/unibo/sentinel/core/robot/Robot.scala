@@ -3,6 +3,7 @@ package it.unibo.sentinel.core.robot
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.simulation.Tick
 
 /** Abstracts the concept of a robot, which is an entity capable of accepting
   * and executing missions while moving through the [[Warehouse]]
@@ -57,9 +58,27 @@ trait Robot:
     */
   def next: Option[Position]
 
+  /** @return
+    *   the remaining time before the robot can move to the next [[Position]] in
+    *   its [[Path]] (if there is one).
+    */
+  def remaining: Tick
+
   /** Advances its [[Path]]
     */
   def step(): Unit
+
+  /** Pauses the robot's movement
+    */
+  def pause(): Unit
+
+  /** Resumes the robot's movement
+    */
+  def resume(): Unit
+
+  /** Advances the robot's internal clock by one tick.
+    */
+  def tick(): Unit
 
 object Robot:
   /** @param id
@@ -73,31 +92,47 @@ object Robot:
     */
   private class SimpleRobot(val id: RobotId) extends Robot:
 
-    private var _mission: Option[MissionId] = None
-    private var _path: Option[Path] = None
+    private var _waiting: Boolean = false
+    private var currentMission: Option[MissionId] = None
+    private var currentPath: Option[Path] = None
 
-    override def mission: Option[MissionId] = _mission
+    override def mission: Option[MissionId] = currentMission
 
-    override def status: RobotStatus = (_mission, _path) match
-      case (None, None)    => RobotStatus.Idle
-      case (Some(_), None) => RobotStatus.Ready
-      case (_, Some(_))    => RobotStatus.Moving
+    override def status: RobotStatus =
+      if _waiting then RobotStatus.Waiting
+      else
+        (currentMission, currentPath) match
+          case (None, None)    => RobotStatus.Idle
+          case (Some(_), None) => RobotStatus.Ready
+          case (_, Some(_))    => RobotStatus.Moving
 
     override def canAccept: Boolean = mission.isEmpty
 
     override def accept(missionId: MissionId): Unit =
-      if canAccept then _mission = Some(missionId)
+      if canAccept then currentMission = Some(missionId)
 
     override def release(): Unit =
-      _mission = None
-      _path = None
+      currentMission = None
+      currentPath = None
 
-    override def path: Option[Path] = _path
+    override def path: Option[Path] = currentPath
 
-    override def follow(path: Path): Unit = _path = Some(path)
+    override def follow(path: Path): Unit =
+      currentPath = Some(path)
 
-    override def next: Option[Position] = _path.flatMap(_.headOption)
+    override def next: Option[Position] =
+      currentPath.flatMap(_.positions.headOption)
 
-    override def step(): Unit = _path = _path match
-      case Some(_ +: rest) => Some(rest)
-      case _               => _path
+    override def pause(): Unit =
+      if status == RobotStatus.Moving then _waiting = true
+
+    override def resume(): Unit = _waiting = false
+
+    override def step(): Unit =
+      currentPath = currentPath.map(_.advanced)
+
+    override def remaining: Tick =
+      currentPath.map(_.remaining).getOrElse(Tick.zero)
+
+    override def tick(): Unit =
+      currentPath = currentPath.map(_.ticked)

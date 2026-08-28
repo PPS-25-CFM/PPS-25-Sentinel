@@ -14,6 +14,16 @@ object Tick:
     require(value >= 0)
     value
 
+  /** @return
+    *   a [[Tick]] representing the zero.
+    */
+  val zero: Tick = Tick(0)
+
+  /** @return
+    *   a [[Tick]] representing the unit of time.
+    */
+  val unit: Tick = Tick(1)
+
   extension (tick: Tick)
     /** Returns the value of the tick.
       */

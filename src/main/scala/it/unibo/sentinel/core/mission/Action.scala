@@ -4,7 +4,7 @@ import it.unibo.sentinel.core.warehouse.Position
 
 /** A single atomic physical operation required by a mission.
   */
-private[mission] enum Step:
+private[mission] enum Action:
 
   /** @param target
     *   The target [[Position]] to reach.

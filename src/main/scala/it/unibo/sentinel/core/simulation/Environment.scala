@@ -3,9 +3,9 @@ package it.unibo.sentinel.core.simulation
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.core.mission.{Mission, MissionId}
+import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus}
 import it.unibo.sentinel.core.routing.Path
-import it.unibo.sentinel.core.mission.MissionStatus
+import it.unibo.sentinel.core.robot.RobotStatus
 
 /** Provides query operations to inspect the state of the simulation.
   */
@@ -112,7 +112,7 @@ private[core] final class Environment private[core] (
       robot = spot.robot
     yield
       robot.follow(path)
-      Event.RobotRouted(r_id, path)
+      Event.RobotRouted(r_id, path.positions)
 
   /** @param r_id
     * @return
@@ -123,14 +123,26 @@ private[core] final class Environment private[core] (
       spot <- fleet.get(r_id)
       robot = spot.robot
       from = spot.at
-      to <- robot.next
+      intent = spot.intent
+      if robot.remaining == Tick.zero
     yield
-      if !fleet.values.exists(_.at == to)
-      then
+      if canMove(spot) then
         robot.step()
-        fleet += (r_id -> spot.copy(at = to))
-        Event.RobotMoved(r_id, from, to)
-      else Event.RobotBlocked(r_id, from)
+        fleet += (r_id -> spot.copy(at = intent.position))
+        Event.RobotMoved(r_id, from, intent.position)
+      else
+        spot.robot.pause()
+        Event.RobotBlocked(r_id, from)
+
+  private def canMove(placement: Placement): Boolean =
+    placement.robot.status == RobotStatus.Moving
+      && placement.robot.remaining == Tick.zero
+      && fleet.values.forall { other =>
+        val targetPositionOccupied = other.at == placement.intent.position
+        lazy val targetWillNotBeVacated =
+          other.intent.position == placement.at || !canMove(other)
+        !(targetPositionOccupied && targetWillNotBeVacated)
+      }
 
   /** @param r_id
     * @return
@@ -153,12 +165,12 @@ private[core] final class Environment private[core] (
     *   the sequence of generated [[Event]]s (e.g. mission failures)
     */
   def tick(): Seq[Event] =
+    placements.foreach(_.robot.tick())
     val events = for
-      mission <- missions
+      mission <- missions.filterNot(_.isOver)
       next = mission.proceed
     yield
       board += (mission.id -> next)
-
       if next.status == MissionStatus.Failed then
         releaseCarrier(mission)
         Some(Event.MissionFailed(mission.id))

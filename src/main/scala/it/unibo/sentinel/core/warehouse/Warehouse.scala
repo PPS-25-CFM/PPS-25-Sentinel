@@ -1,13 +1,6 @@
 package it.unibo.sentinel.core.warehouse
 
-/** Represents a tile in the warehouse.
-  */
-sealed trait Tile
-
-object Tile:
-  /** Represents a floor tile.
-    */
-  case class Floor() extends Tile
+import it.unibo.sentinel.core.simulation.Tick
 
 /** Defines the strategy for determining adjacent positions.
   */
@@ -87,8 +80,8 @@ trait Warehouse:
     */
   def isTraversable(position: Position): Boolean =
     tileAt(position) match
-      case Some(Tile.Floor()) => true
-      case _                  => false
+      case Some(Tile.Floor(_)) => true
+      case _                   => false
 
   /** @param position
     *   the position of the tile to retrieve.
@@ -96,6 +89,17 @@ trait Warehouse:
     *   an [[Option]] containing the tile at the given position, if any.
     */
   def tileAt(position: Position): Option[Tile]
+
+  /** @param position
+    *   the position of the tile to retrieve.
+    * @return
+    *   an [[Option]] containing the traversal cost in [[Tick]] of the tile at
+    *   the given.
+    */
+  def traversalCost(position: Position): Option[Tick] =
+    tileAt(position) match
+      case Some(Tile.Floor(cost)) => Some(cost)
+      case _                      => None
 
   /** @param position
     *   the position of the tile to add.

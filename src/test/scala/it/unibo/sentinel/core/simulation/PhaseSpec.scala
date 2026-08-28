@@ -10,6 +10,10 @@ import scala.compiletime.uninitialized
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.mission.MissionStatus
 import it.unibo.sentinel.core.robot.RobotStatus
+import it.unibo.sentinel.core.collisions.SelectionPolicy
+import it.unibo.sentinel.core.collisions.CollisionHandler
+import it.unibo.sentinel.core.routing.Path
+import it.unibo.sentinel.core.routing.Step
 
 class PhaseSpec
     extends UnitTest
@@ -19,6 +23,8 @@ class PhaseSpec
   given Warehouse = warehouse
   given navigator: Navigator = scenario.routing()
   given selector: Selector = scenario.assignment()
+  given SelectionPolicy = scenario.collisionSelection()
+  given CollisionHandler = scenario.collisionAvoidance()
 
   /*
    * We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
@@ -70,6 +76,18 @@ class PhaseSpec
       "do nothing" in:
         Phase.routing(world) shouldBe empty
 
+  "The handle collisions phase" when:
+
+    "there are colliding robots" should:
+
+      "pause some robots and let another proceed" in:
+        Phase.assigning(world)
+        world.route(r1, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
+        world.route(r2, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
+        Phase.collisionHandling(world) should matchPattern {
+          case Seq(Event.RobotBlocked(_, _)) =>
+        }
+
   "The moving phase" when:
 
     "robots are routed" should:
@@ -77,6 +95,7 @@ class PhaseSpec
       "advance every one of them by one position" in:
         Phase.assigning(world)
         Phase.routing(world)
+        Phase.expiring(world)
         Phase.moving(world) should contain theSameElementsAs Seq(
           Event.RobotMoved(r1, from = p1, to = p3),
           Event.RobotMoved(r2, from = p2, to = Position(3, 2))
@@ -87,6 +106,25 @@ class PhaseSpec
       "do nothing" in:
         Phase.moving(world) shouldBe empty
 
+    "robots are blocked" should:
+
+      "unblock if they can move" in:
+        Phase.assigning(world)
+        world.route(r1, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
+        world.route(r2, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
+        Phase.collisionHandling(world)
+        Phase.expiring(world)
+        Phase.moving(world) should matchPattern {
+          case Seq(Event.RobotMoved(_, _, _)) =>
+        }
+        Phase.collisionHandling(world) should matchPattern {
+          case Seq(Event.RobotUnblocked(_)) =>
+        }
+        Phase.expiring(world)
+        Phase.moving(world) should matchPattern {
+          case Seq(Event.RobotMoved(_, _, _), Event.RobotMoved(_, _, _)) =>
+        }
+
   "The performing phase" when:
 
     "a robot stands on the destination of its mission" should:
@@ -94,6 +132,7 @@ class PhaseSpec
       "complete the mission" in:
         Phase.assigning(world)
         Phase.routing(world)
+        Phase.expiring(world)
         Phase.moving(world)
 
         Phase.performing(world) should contain theSameElementsAs Seq(
@@ -107,6 +146,7 @@ class PhaseSpec
       "leave it untouched" in:
         Phase.assigning(world)
         Phase.routing(world)
+        Phase.expiring(world)
         Phase.moving(world)
 
         Phase.performing(world) should not contain Event.MissionCompleted(m2)

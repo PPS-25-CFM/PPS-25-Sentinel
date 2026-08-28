@@ -2,7 +2,6 @@ package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.warehouse.Position
 
 /** A simulation event, representing a change in the environment.
@@ -34,7 +33,7 @@ enum Event:
     * @param path
     *   the path that the robot has been routed along.
     */
-  case RobotRouted(robot: RobotId, path: Path)
+  case RobotRouted(robot: RobotId, path: Seq[Position])
 
   /** A robot has moved.
     * @param robot
@@ -53,3 +52,10 @@ enum Event:
     *   the position at which the robot has been blocked.
     */
   case RobotBlocked(robot: RobotId, at: Position)
+
+  /** A robot has been unblocked (resumed its movement).
+    *
+    * @param robot
+    *   the robot that was unblocked.
+    */
+  case RobotUnblocked(robot: RobotId)

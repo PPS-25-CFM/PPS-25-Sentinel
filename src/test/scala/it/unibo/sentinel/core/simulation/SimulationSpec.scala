@@ -12,7 +12,7 @@ class SimulationSpec extends UnitTest with TestData with EnvironmentFixture:
       val sim = Simulation.of(emptyScenario)
 
       "start at tick zero" in:
-        sim.time shouldBe Tick(0)
+        sim.time shouldBe Tick.zero
 
     "stepped" should:
 
@@ -28,20 +28,28 @@ class SimulationSpec extends UnitTest with TestData with EnvironmentFixture:
 
       "collect all the events that happened during the step" in:
         val sim = Simulation.of(scenario)
-        val step = sim.step()
-        step.events should contain(Event.MissionAssigned(r1, m1))
-        step.events should contain(Event.RobotRouted(r1, Seq(p3)))
-        step.events should contain(Event.RobotMoved(r1, p1, p3))
-        step.events should contain(Event.MissionCompleted(m1))
+        val step1 = sim.step()
+        step1.events should contain(Event.MissionAssigned(r1, m1))
+        step1.events should contain(Event.RobotRouted(r1, Seq(p3)))
+        val step2 = sim.step()
+        step2.events should contain(Event.RobotMoved(r1, p1, p3))
+        step2.events should contain(Event.MissionCompleted(m1))
 
       "return a snapshot of the environment after the step" in:
         val sim = Simulation.of(scenario)
-        val step = sim.step()
-        val snapshot = step.snapshot
-        snapshot.robots should contain(RobotSnapshot(r1, RobotStatus.Idle, p3))
-        val completed = snapshot.missions.find(_.id == m1).value
+        val step1 = sim.step()
+        val snapshot1 = step1.snapshot
+        snapshot1.robots should contain(
+          RobotSnapshot(r1, RobotStatus.Moving, p1)
+        )
+        val step2 = sim.step()
+        val snapshot2 = step2.snapshot
+        snapshot2.robots should contain(
+          RobotSnapshot(r1, RobotStatus.Idle, p3)
+        )
+        val completed = snapshot2.missions.find(_.id == m1).value
         completed.status shouldBe MissionStatus.Completed
-        completed.duration shouldBe deadline - 1
+        completed.duration shouldBe deadline - 2
 
     "when all missions are completed" should:
       val sim = Simulation.of(emptyScenario)

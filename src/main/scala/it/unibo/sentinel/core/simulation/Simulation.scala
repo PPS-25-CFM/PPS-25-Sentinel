@@ -4,6 +4,8 @@ import it.unibo.sentinel.core.scenario.Scenario
 import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.assignment.Selector
 import it.unibo.sentinel.core.warehouse.Warehouse
+import it.unibo.sentinel.core.collisions.SelectionPolicy
+import it.unibo.sentinel.core.collisions.CollisionHandler
 
 /** @param snapshot
   *   the snapshot of the simulation after the step.
@@ -42,6 +44,8 @@ object Simulation:
     given Warehouse = scenario.warehouse
     given Navigator = scenario.routing()
     given Selector = scenario.assignment()
+    given SelectionPolicy = scenario.collisionSelection()
+    given CollisionHandler = scenario.collisionAvoidance()
     val world = scenario.build
     BasicSimulation(world, Phase.all)
 
