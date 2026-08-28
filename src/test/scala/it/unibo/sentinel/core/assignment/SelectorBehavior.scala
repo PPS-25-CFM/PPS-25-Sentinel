@@ -20,7 +20,8 @@ trait SelectorBehaviors extends MockitoSugar:
         selectorBuilder.choose(mission, Iterable.empty) shouldBe None
 
       "return None if every candidate is busy" in:
-        val busyPlacement = Placement(mockRobot(canAccept = false), Position(0, 0))
+        val busyPlacement =
+          Placement(mockRobot(canAccept = false), Position(0, 0))
         selectorBuilder.choose(mission, Iterable(busyPlacement)) shouldBe None
 
   protected def mockRobot(canAccept: Boolean): Robot =
