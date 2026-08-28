@@ -239,3 +239,22 @@ class EnvironmentSpec
         place.at shouldBe p1
 
         environment.placement(RobotId("UNKNOWN")) shouldBe None
+
+    "ended" should:
+
+      "fail all missions that are not completed yet" in:
+        val events = environment.end
+        events should contain theSameElementsAs Seq(
+          Event.MissionFailed(m1),
+          Event.MissionFailed(m2)
+        )
+        forAll(environment.missions): mission =>
+          mission.status shouldBe MissionStatus.Failed
+          mission.carrier shouldBe None
+
+      "release all robots" in:
+        val _ = environment.end
+        forAll(environment.placements): spot =>
+          val robot = spot.robot
+          robot.status shouldBe RobotStatus.Idle
+          robot.mission shouldBe None

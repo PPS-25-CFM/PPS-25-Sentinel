@@ -175,6 +175,22 @@ private[core] final class Environment private[core] (
       carrier <- robot(rid)
     do carrier.release()
 
+  /** Automatically fails all [[Mission]]s that are not over yet, releasing the
+    * robots which were carrying them.
+    *
+    * @return
+    *   a [[Seq]] of [[Event.MissionFailed]] for all missions that are not over
+    *   yet.
+    */
+  def end: Seq[Event] =
+    for
+      mission <- missions.filterNot(_.isOver)
+      next = mission.fail
+    yield
+      board += (mission.id -> next)
+      releaseCarrier(mission)
+      Event.MissionFailed(mission.id)
+
   /** @return
     *   a snapshot of the current state of the simulation.
     */
