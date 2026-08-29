@@ -28,28 +28,48 @@ trait Simulation:
 
   /** @return
     *   whether the simulation is over.
-    */
+    */ 
   def isOver: Boolean
 
 object Simulation:
-  /** @param scenario
-    *   the scenario to simulate.
-    * @return
-    *   a simulation of the given scenario that ends when all the missions are
-    *   completed or failed.
-    */
-  def of(scenario: Scenario): Simulation =
+
+  private def withContext(scenario: Scenario)(
+      fromWorld: (Warehouse, Navigator, Selector) ?=> Environment => Simulation
+  ): Simulation =
     given Warehouse = scenario.warehouse
     given Navigator = scenario.routing()
     given Selector = scenario.assignment()
-    val world = scenario.build
-    BasicSimulation(world, Phase.all)
+    fromWorld(scenario.build)
 
+  /** @param scenario
+    *   the [[Scenario]] to simulate.
+    * @return
+    *   a [[Simulation]] of the given [[Scenario]] that ends when all the
+    *   missions are over.
+    */
+  def of(scenario: Scenario): Simulation =
+    withContext(scenario): world =>
+      BasicSimulation(world, Phase.all)
+
+  /** @param scenario
+    *   the [[Scenario]] to simulate.
+    * @param limit
+    *   the limit of the simulation, in [[Tick]]s.
+    * @return
+    *   a [[Simulation]] of the given [[Scenario]] that ends when all the
+    *   [[Mission]]s are or when the limit is reached.
+    */
   def of(scenario: Scenario, limit: Tick): Simulation =
-    WithLimit(of(scenario))(limit)
+    withContext(scenario): world =>
+      new BasicSimulation(world, Phase.all) with TimeLimit(limit)
 
-  private final class BasicSimulation(world: Environment, phases: Seq[Phase])
-      extends Simulation:
+  private abstract class AbstractSimulation extends Simulation:
+    protected def world: Environment
+
+  private class BasicSimulation(
+      val world: Environment,
+      phases: Seq[Phase]
+  ) extends AbstractSimulation:
     private var currentTime: Tick = Tick(0)
 
     def time: Tick = currentTime
@@ -61,9 +81,20 @@ object Simulation:
 
     def isOver: Boolean = world.missions.forall(_.isOver)
 
-  private final class WithLimit(inner: Simulation)(max: Tick)
-      extends Simulation:
-    export inner.{isOver as _, *}
+  private trait TimeLimit(max: Tick) extends AbstractSimulation:
+    private def limitReached: Boolean =
+      summon[Ordering[Tick]].gteq(time, max)
 
-    def isOver: Boolean =
-      summon[Ordering[Tick]].gteq(inner.time, max) || inner.isOver
+    abstract override def step(): StepResult =
+      val stepResult = super.step()
+      if limitReached
+      then
+        val lastEvents = world.end
+        StepResult(
+          snapshot = world.snapshot,
+          events = stepResult.events ++ lastEvents
+        )
+      else stepResult
+
+    abstract override def isOver: Boolean =
+      super.isOver || limitReached
