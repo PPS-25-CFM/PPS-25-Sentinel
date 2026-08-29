@@ -30,13 +30,19 @@ trait Simulation:
 
   /** @return
     *   whether the simulation is over.
-    */ 
+    */
   def isOver: Boolean
 
 object Simulation:
 
   private def withContext(scenario: Scenario)(
-      fromWorld: (Warehouse, Navigator, Selector, SelectionPolicy, CollisionHandler) ?=> Environment => Simulation
+      fromWorld: (
+          Warehouse,
+          Navigator,
+          Selector,
+          SelectionPolicy,
+          CollisionHandler
+      ) ?=> Environment => Simulation
   ): Simulation =
     given Warehouse = scenario.warehouse
     given Navigator = scenario.routing()
