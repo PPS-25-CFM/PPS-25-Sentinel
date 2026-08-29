@@ -1,15 +1,13 @@
 package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.mission.{MissionId, MissionStatus}
+import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus}
 import it.unibo.sentinel.core.robot.{RobotId, RobotStatus}
-import it.unibo.sentinel.core.routing.Path
+import it.unibo.sentinel.core.routing.{Path, Step}
 import it.unibo.sentinel.core.warehouse.Position
 import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
-import it.unibo.sentinel.core.mission.{Mission, Task}
-import it.unibo.sentinel.core.routing.Step
 
 /*
  * We suppressed null warning due to the ScalaTest lifecycle `uninitialized` var usage in beforeEach.
@@ -166,7 +164,11 @@ class EnvironmentSpec
         events shouldBe empty
 
       "return MissionFailed events and release assigned carriers when missions fail" in:
-        val uncopletable = Mission(MissionId("Uncompletable"), Task.goto(p4), 1)
+        val uncopletable = Mission.relocate(
+          id = MissionId("Uncompletable"),
+          destination = p4,
+          duration = Tick(1)
+        )
         val uncScenario = scenario.load(uncopletable).right.value
         environment = uncScenario.build
 

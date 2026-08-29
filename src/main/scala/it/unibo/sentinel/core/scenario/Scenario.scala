@@ -9,6 +9,7 @@ import it.unibo.sentinel.core.simulation.Environment
 import it.unibo.sentinel.core.scenario.Policies.CollisionAvoidance
 import it.unibo.sentinel.core.scenario.Policies.CollisionSelection
 import scala.collection.immutable.ListMap
+import it.unibo.sentinel.core.simulation.Tick
 
 /** Represents the intention of a [[Robot]] to move to a specific [[Position]]
   *
@@ -28,10 +29,13 @@ case class Intent(robotId: RobotId, position: Position)
   */
 final case class Placement(robot: Robot, at: Position):
 
+  /** @returns
+    *   an intent to where the robot wants to move
+    */
   def intent: Intent =
-    robot.next match
-      case Some(pos) => Intent(robot.id, pos)
-      case None      => Intent(robot.id, at)
+    (robot.next, robot.remaining) match
+      case (Some(pos), Tick.zero) => Intent(robot.id, pos)
+      case _                      => Intent(robot.id, at)
 
 /** Represents a description of a [[Robot]] to spawn in a [[Scenario]]. It will
   * be used to create a [[Robot]] in the given [[Position]] when the

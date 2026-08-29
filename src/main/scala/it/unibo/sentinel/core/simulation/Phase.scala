@@ -28,7 +28,7 @@ private[core] object Phase:
           mid <- robot.mission;
           mission <- world.mission(mid)
         yield mission
-      destination <- current.currentDestination
+      destination <- current.currentTarget
       path <- navigator.path(spot.at, destination)
       routed <- world.route(robot.id, path)
     yield routed
@@ -58,7 +58,7 @@ private[core] object Phase:
       robot = spot.robot
       mid <- robot.mission
       mission <- world.mission(mid)
-      target <- mission.currentDestination
+      target <- mission.currentTarget
       if spot.at == target
       performed <- world.perform(robot.id)
     yield performed

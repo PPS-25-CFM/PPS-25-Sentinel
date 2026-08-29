@@ -51,7 +51,7 @@ trait SimulationBehaviours extends TestData with EnvironmentFixture:
         )
         val completed = snapshot2.missions.find(_.id == m1).value
         completed.status shouldBe MissionStatus.Completed
-        completed.duration shouldBe deadline - 2
+        completed.deadline shouldBe deadline - 2
 
     "when all missions are completed" should:
       val sim = build(emptyScenario)

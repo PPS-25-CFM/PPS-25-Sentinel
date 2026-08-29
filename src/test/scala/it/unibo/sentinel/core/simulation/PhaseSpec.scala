@@ -80,10 +80,12 @@ class PhaseSpec
 
     "there are colliding robots" should:
 
-      "pause some robots and let another proceed" in:
+      "pause one robot and let the other proceed" in:
         Phase.assigning(world)
         world.route(r1, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
         world.route(r2, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
+        Phase.expiring(world)
+        Phase.expiring(world)
         Phase.collisionHandling(world) should matchPattern {
           case Seq(Event.RobotBlocked(_, _)) =>
         }
@@ -112,11 +114,13 @@ class PhaseSpec
         Phase.assigning(world)
         world.route(r1, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
         world.route(r2, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
-        Phase.collisionHandling(world)
         Phase.expiring(world)
+        Phase.expiring(world)
+        Phase.collisionHandling(world)
         Phase.moving(world) should matchPattern {
           case Seq(Event.RobotMoved(_, _, _)) =>
         }
+        Phase.expiring(world)
         Phase.collisionHandling(world) should matchPattern {
           case Seq(Event.RobotUnblocked(_)) =>
         }
@@ -160,7 +164,7 @@ class PhaseSpec
         "signal its failure" in:
           val events =
             for
-              _ <- 1 to deadline
+              _ <- 1 to deadline.value
               event <- Phase.expiring(world)
             yield event
 

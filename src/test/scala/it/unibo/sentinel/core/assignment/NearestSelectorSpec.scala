@@ -6,12 +6,17 @@ import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.simulation.Tick
 
 class NearestSelectorSpec extends UnitTest with SelectorBehaviors:
 
   private val targetPosition = Position(0, 0)
-  private val mission = Mission(MissionId("M01"), Task.goto(targetPosition), 10)
-  private val destination = mission.currentDestination.value
+  private val mission = Mission.relocate(
+    MissionId("M01"),
+    targetPosition,
+    Tick(10)
+  )
+  private val destination = mission.currentTarget.value
 
   "A Nearest Selector" when:
     val navigator = mock[Navigator]

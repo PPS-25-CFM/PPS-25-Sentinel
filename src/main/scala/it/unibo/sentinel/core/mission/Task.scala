@@ -2,24 +2,17 @@ package it.unibo.sentinel.core.mission
 
 import it.unibo.sentinel.core.warehouse.Position
 
-/** Represents an operational task to be performed within a mission.
-  */
-sealed trait Task:
-  /** @return
-    *   The target [[Position]] associated with the underlying step or sequence.
-    */
-  def destination: Position
+enum Task:
+  case Single(action: Action)
+  case Done
 
-/** Companion object for [[Task]], providing factory methods for task creation.
-  */
+  def currentAction: Option[Action] = this match
+    case Single(action) => Some(action)
+    case Done           => None
+
+  def advance: Task = this match
+    case Single(_) => Done
+    case Done      => Done
+
 object Task:
-
-  private final case class Single(step: Action) extends Task:
-    override def destination: Position = step.targetPosition
-
-  /** @param destination
-    *   The target [[Position]] to reach.
-    * @return
-    *   A new [[Task]] targeting the given position.
-    */
-  def goto(destination: Position): Task = Single(Action.Move(destination))
+  def move(to: Position): Task = Single(Action.Move(to))

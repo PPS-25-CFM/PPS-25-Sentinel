@@ -7,12 +7,13 @@ import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.robot.Robot
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.simulation.Tick
 
 trait SelectorBehaviors extends MockitoSugar:
   this: UnitTest =>
 
   def commonSelector(selectorBuilder: => Selector): Unit =
-    val mission = Mission(MissionId("M01"), Task.goto(Position(0, 0)), 10)
+    val mission = Mission.relocate(MissionId("M01"), Position(0, 0), Tick(10))
 
     "asked to assign a mission" should:
 

@@ -4,10 +4,12 @@ import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.simulation.Tick
 
 class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
 
-  private val mission = Mission(MissionId("M01"), Task.goto(Position(0, 0)), 10)
+  private val mission =
+    Mission.relocate(MissionId("M01"), Position(0, 0), Tick(10))
 
   private def createCandidates(): (Placement, Placement, Placement) =
     (

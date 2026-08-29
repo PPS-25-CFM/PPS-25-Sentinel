@@ -168,7 +168,7 @@ private[core] final class Environment private[core] (
     placements.foreach(_.robot.tick())
     val events = for
       mission <- missions.filterNot(_.isOver)
-      next = mission.proceed
+      next = mission.tick
     yield
       board += (mission.id -> next)
       if next.status == MissionStatus.Failed then

@@ -39,5 +39,12 @@ object Tick:
       */
     def next: Tick = tick + 1
 
+    /** @param n
+      *   the amount to subtract.
+      * @return
+      *   a new [[Tick]] minus "n", or 0 if the current tick is 0.
+      */
+    def -(n: Int): Tick = Math.max(tick - n, 0)
+
   given Ordering[Tick] = Ordering.Int
   export scala.math.Ordering.Implicits.given

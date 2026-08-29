@@ -63,7 +63,7 @@ object Selector:
         available: Iterable[Placement]
     ): Option[Placement] =
       for
-        target <- mission.currentDestination
+        target <- mission.currentTarget
         reachable = available.flatMap: candidate =>
           navigator.distance(candidate.at, target).map(candidate -> _)
         (closest, _) <- reachable.minByOption(_._2)

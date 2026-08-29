@@ -79,10 +79,10 @@ object FxToolkit extends Toolkit:
       *   a brief description of the given mission
       */
     private def parseMission(mission: Mission): String =
-      val destinationLabel = mission.currentDestination match
+      val destinationLabel = mission.currentTarget match
         case Some(p) => s" - move to $p"
         case _       => ""
-      s"${mission.id}$destinationLabel - ${mission.duration} ticks remaining"
+      s"${mission.id}$destinationLabel - ${mission.deadline} ticks remaining"
 
     /** @param event
       *   the event to extract the description from

@@ -3,7 +3,8 @@ package it.unibo.sentinel.core.scenario
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Area, Tile}
 import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.mission.{Mission, MissionId, Task}
+import it.unibo.sentinel.core.mission.{Mission, MissionId}
+import it.unibo.sentinel.core.simulation.Tick
 import org.mockito.Mockito
 
 class ScenarioSpec extends UnitTest:
@@ -72,19 +73,19 @@ class ScenarioSpec extends UnitTest:
     "load a mission" should:
 
       "return a new scenario with the mission added" in:
-        val mission = Mission(
+        val mission = Mission.relocate(
           id = MissionId("M1"),
-          task = Task.goto(Position(1, 1)),
-          duration = 10
+          destination = Position(1, 1),
+          duration = Tick(10)
         )
         val result = s0.load(mission).value
         result.missions should contain only mission
 
       "signal that the mission id already exists" in:
-        val mission = Mission(
+        val mission = Mission.relocate(
           id = MissionId("M1"),
-          task = Task.goto(Position(1, 1)),
-          duration = 10
+          destination = Position(1, 1),
+          duration = Tick(10)
         )
         val result =
           for
@@ -127,10 +128,10 @@ class ScenarioSpec extends UnitTest:
         val robotId = RobotId("R1")
         val position = Position(1, 1)
         val spawn = Spawn(id = robotId, at = position)
-        val mission = Mission(
+        val mission = Mission.relocate(
           id = MissionId("M1"),
-          task = Task.goto(position),
-          duration = 10
+          destination = position,
+          duration = Tick(10)
         )
 
         val scenario = (for

@@ -40,6 +40,7 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
     "checking collisions" should:
 
       "return a list of groups of robots that collide" in:
+        allRobots.foreach(_.tick())
         val intents = allRobots.map(r => Placement(r, Position(0, 0)).intent)
         CollisionChecker.checkCollisions(
           intents
@@ -47,4 +48,27 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
           group1.map(_.id),
           group2.map(_.id),
           Seq(rFree.id)
+        )
+
+    "two robots want to move to the same position with different ticks" should:
+
+      "not signal any collisions between them" in:
+        val rA = Robot(RobotId("RA"))
+        val rB = Robot(RobotId("RB"))
+
+        val pathA = Path(Step(Position(1, 0), Tick(1)))
+        val pathB = Path(Step(Position(1, 0), Tick(2)))
+
+        rA.follow(pathA)
+        rB.follow(pathB)
+
+        rA.tick()
+        rB.tick()
+
+        val intentA = Placement(rA, Position(0, 0)).intent
+        val intentB = Placement(rB, Position(2, 0)).intent
+        val collisions = CollisionChecker.checkCollisions(Seq(intentA, intentB))
+        collisions should contain theSameElementsAs Seq(
+          Seq(rA.id),
+          Seq(rB.id)
         )

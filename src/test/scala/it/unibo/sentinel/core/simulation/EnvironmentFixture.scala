@@ -2,7 +2,7 @@ package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.TestData
-import it.unibo.sentinel.core.mission.{Mission, MissionId, Task}
+import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.scenario.{Scenario, Spawn}
 import it.unibo.sentinel.core.warehouse.Position
@@ -26,12 +26,12 @@ trait EnvironmentFixture extends TestData:
   val p3: Position = Position(1, 2)
   val p4: Position = Position(3, 3)
 
-  val deadline = 10
+  val deadline = Tick(10)
 
   val scenario: Scenario = (for
     s0 <- Right(emptyScenario)
     s1 <- s0.place(Spawn(r1, p1))
     s2 <- s1.place(Spawn(r2, p2))
-    s3 <- s2.load(Mission(m1, Task.goto(p3), deadline))
-    s4 <- s3.load(Mission(m2, Task.goto(p4), deadline))
+    s3 <- s2.load(Mission.relocate(m1, p3, deadline))
+    s4 <- s3.load(Mission.relocate(m2, p4, deadline))
   yield s4).value
