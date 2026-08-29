@@ -52,3 +52,10 @@ enum Event:
     *   the position at which the robot has been blocked.
     */
   case RobotBlocked(robot: RobotId, at: Position)
+
+  /** A robot has been unblocked (resumed its movement).
+    *
+    * @param robot
+    *   the robot that was unblocked.
+    */
+  case RobotUnblocked(robot: RobotId)

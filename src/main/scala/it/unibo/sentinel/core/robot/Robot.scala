@@ -68,6 +68,14 @@ trait Robot:
     */
   def step(): Unit
 
+  /** Pauses the robot's movement
+    */
+  def pause(): Unit
+
+  /** Resumes the robot's movement
+    */
+  def resume(): Unit
+
   /** Advances the robot's internal clock by one tick.
     */
   def tick(): Unit
@@ -84,15 +92,19 @@ object Robot:
     */
   private class SimpleRobot(val id: RobotId) extends Robot:
 
+    private var _waiting: Boolean = false
     private var currentMission: Option[MissionId] = None
     private var currentPath: Option[Path] = None
 
     override def mission: Option[MissionId] = currentMission
 
-    override def status: RobotStatus = (currentMission, currentPath) match
-      case (None, None)    => RobotStatus.Idle
-      case (Some(_), None) => RobotStatus.Ready
-      case (_, Some(_))    => RobotStatus.Moving
+    override def status: RobotStatus =
+      if _waiting then RobotStatus.Waiting
+      else
+        (currentMission, currentPath) match
+          case (None, None)    => RobotStatus.Idle
+          case (Some(_), None) => RobotStatus.Ready
+          case (_, Some(_))    => RobotStatus.Moving
 
     override def canAccept: Boolean = mission.isEmpty
 
@@ -110,6 +122,11 @@ object Robot:
 
     override def next: Option[Position] =
       currentPath.flatMap(_.positions.headOption)
+
+    override def pause(): Unit =
+      if status == RobotStatus.Moving then _waiting = true
+
+    override def resume(): Unit = _waiting = false
 
     override def step(): Unit =
       currentPath = currentPath.map(_.advanced)

@@ -81,4 +81,4 @@ object Navigator:
               case (Some(previous), Some(cost)) =>
                 go(previous, Step(pos, cost) +: acc)
               case _ => None
-        go(to, Seq.empty).map(legs => Path(legs*))
+        go(to, Seq.empty).map(steps => Path(steps*))

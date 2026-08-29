@@ -107,6 +107,20 @@ class ScenarioSpec extends UnitTest:
         val result = s0.withAssignment(newAssignment)
         result.assignment shouldBe newAssignment
 
+    "change the collision selection policy" should:
+
+      "return a new scenario with the selection policy changed" in:
+        val newSelection = Mockito.mock[Policies.CollisionSelection]()
+        val result = s0.withCollisionSelection(newSelection)
+        result.collisionSelection shouldBe newSelection
+
+    "change the collision avoidance policy" should:
+
+      "return a new scenario with the collision avoidance policy changed" in:
+        val newHandler = Mockito.mock[Policies.CollisionAvoidance]()
+        val result = s0.withCollisionAvoidance(newHandler)
+        result.collisionAvoidance shouldBe newHandler
+
     "build an environment" should:
 
       "produce an Environment containing the warehouse, placed robots, and loaded missions" in:

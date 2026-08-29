@@ -4,6 +4,8 @@ import it.unibo.sentinel.core.scenario.Scenario
 import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.assignment.Selector
 import it.unibo.sentinel.core.warehouse.Warehouse
+import it.unibo.sentinel.core.collisions.SelectionPolicy
+import it.unibo.sentinel.core.collisions.CollisionHandler
 
 /** @param snapshot
   *   the snapshot of the simulation after the step.
@@ -34,11 +36,13 @@ trait Simulation:
 object Simulation:
 
   private def withContext(scenario: Scenario)(
-      fromWorld: (Warehouse, Navigator, Selector) ?=> Environment => Simulation
+      fromWorld: (Warehouse, Navigator, Selector, SelectionPolicy, CollisionHandler) ?=> Environment => Simulation
   ): Simulation =
     given Warehouse = scenario.warehouse
     given Navigator = scenario.routing()
     given Selector = scenario.assignment()
+    given SelectionPolicy = scenario.collisionSelection()
+    given CollisionHandler = scenario.collisionAvoidance()
     fromWorld(scenario.build)
 
   /** @param scenario

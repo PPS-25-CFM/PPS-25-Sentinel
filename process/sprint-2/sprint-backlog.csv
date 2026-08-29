@@ -3,8 +3,8 @@ PB-11,Add `cost` to `Tile.Floor`,Andrea,1,,,,,,
 PB-11,Model obstacles in the warehouse,Andrea,2,,,,,,
 PB-11,Make robots wait for the cost of the tile before moving,Andrea,3,,,,,,
 PB-13,Add time based navigator,Andrea,3,,,,,,
-PB-14,Add cyclical assigment policy,Leonardo,3,,,,,,
-PB-15,Model collision avoidance policy based on casual waiting,Mattia,8,,,,,,
-PB-15,Use the collision component in the simulation,Mattia,5,,,,,,
+PB-14,Add cyclical assigment policy,Leonardo,3,DONE,,,,,
+PB-15,Model collision avoidance policy based on casual waiting,Mattia,8,5,3,1,DONE,-,-
+PB-15,Use the collision component in the simulation,Mattia,5,5,5,DONE,-,-,-
 PB-06,Research about making mission simpler and refactor it ,Leonardo,3,,,,,,
 PB-09,Let the simulation show where the robots want to go (their paths),Leonardo,2,,,,,,

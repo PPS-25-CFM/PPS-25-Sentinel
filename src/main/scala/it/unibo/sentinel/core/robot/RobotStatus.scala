@@ -15,3 +15,7 @@ enum RobotStatus:
   /** The robot is executing a mission
     */
   case Moving
+
+  /** The robot is waiting to resume its mission
+    */
+  case Waiting

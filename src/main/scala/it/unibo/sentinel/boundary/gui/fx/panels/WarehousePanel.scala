@@ -72,7 +72,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
 
     val label = new Label:
       textFill = Color.web(textColor)
-      style = "-fx-font-weight: bold; -fx-font-size: 10px;"
+      style = "-fx-font-weight: bold; -fx-font-size: 12px;"
 
     val pane = new StackPane:
       children = Seq(label)

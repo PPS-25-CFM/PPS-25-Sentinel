@@ -19,12 +19,12 @@ object Path:
     */
   def empty: Path = Seq.empty
 
-  /** @param legs
-    *   the [[Leg]]s that compose the [[Path]].
+  /** @param steps
+    *   the [[Step]]s that compose the [[Path]].
     * @return
-    *   a [[Path]] made of the given [[Leg]]s
+    *   a [[Path]] made of the given [[Step]]s
     */
-  def apply(legs: Step*): Path = legs.toSeq
+  def apply(steps: Step*): Path = steps.toSeq
 
   extension (path: Path)
 
@@ -39,16 +39,16 @@ object Path:
     def remaining: Tick = path.headOption.map(_.cost).getOrElse(Tick.zero)
 
     /** @return
-      *   the [[Path]] with the first [[Leg]] decreased by one tick.
+      *   the [[Path]] with the first [[Step]] decreased by one tick.
       */
     def ticked: Path = path match
-      case leg +: rest => leg.copy(cost = leg.cost.previous) +: rest
-      case _           => path
+      case step +: rest => step.copy(cost = step.cost.previous) +: rest
+      case _            => path
 
     /** @return
-      *   the [[Path]] with the first [[Leg]] removed if its cost is zero,
+      *   the [[Path]] with the first [[Step]] removed if its cost is zero,
       *   otherwise the same [[Path]].
       */
     def advanced: Path = path match
-      case leg +: rest if leg.cost == Tick.zero => rest
-      case _                                    => path
+      case step +: rest if step.cost == Tick.zero => rest
+      case _                                      => path
