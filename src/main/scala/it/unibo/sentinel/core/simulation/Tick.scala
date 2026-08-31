@@ -14,6 +14,13 @@ object Tick:
     require(value >= 0)
     value
 
+  /** @param tick
+    *   the [[Tick]] to destructure.
+    * @return
+    *   an [[Option]] containing the value of the tick.
+    */
+  def unapply(tick: Tick): Option[Int] = Some(tick)
+
   /** @return
     *   a [[Tick]] representing the zero.
     */

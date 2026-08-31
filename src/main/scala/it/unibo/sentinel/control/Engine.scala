@@ -44,14 +44,19 @@ object Engine:
   )(using Scheduler): Engine =
     BasicEngine(simulation, period)
 
-  private[control] abstract class ReactiveEngine(simulation: Simulation)(using Scheduler)
-      extends Engine:
+  private[control] abstract class ReactiveEngine(simulation: Simulation)(using
+      Scheduler
+  ) extends Engine:
     def clock: Observable[Tick]
+
+    private val history: LazyList[StepResult] =
+      LazyList.unfold(()): _ =>
+        Option.unless(simulation.isOver)((simulation.step(), ()))
 
     private lazy val steps =
       clock
-        .takeWhile(_ => !simulation.isOver)
-        .map(_ => simulation.step())
+        .collect:
+          case Tick(time) if history.isDefinedAt(time) => history(time)
         .publish
 
     override def observe(onStep: StepResult => Unit): Stoppable =
@@ -64,8 +69,11 @@ object Engine:
       override def apply(source: Cancelable): Stoppable =
         () => source.cancel()
 
-  private[control] class BasicEngine(simulation: Simulation, period: FiniteDuration)(
-      using Scheduler
+  private[control] class BasicEngine(
+      simulation: Simulation,
+      period: FiniteDuration
+  )(using
+      Scheduler
   ) extends ReactiveEngine(simulation):
     override def clock: Observable[Tick] =
       Observable.interval(period).map(_.toInt).map(Tick(_))
