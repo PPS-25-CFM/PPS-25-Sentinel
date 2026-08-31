@@ -1,18 +1,15 @@
 package it.unibo.sentinel.control
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.simulation.{
-  Simulation,
-  Snapshot,
-  StepResult,
-  Tick
-}
+import it.unibo.sentinel.control.Engine.BasicEngine
+import it.unibo.sentinel.core.simulation.{Simulation, Snapshot, StepResult, Tick}
 import it.unibo.sentinel.core.warehouse.Warehouse
 import monix.execution.Scheduler
 import monix.execution.schedulers.TestScheduler
+
 import scala.concurrent.duration.*
 
-class EngineSpec extends UnitTest:
+class BasicEngineSpec extends UnitTest:
 
   private val result =
     StepResult(
@@ -41,7 +38,7 @@ class EngineSpec extends UnitTest:
         given Scheduler = scheduler
         val period = 1.second
         val simulation = StubSimulation(stepLimit = 1)
-        val engine = Engine(simulation, period)
+        val engine = BasicEngine(simulation, period)
         var observedSteps = 0
         val _ = engine.observe(_ => observedSteps += 1)
         scheduler.tick()
@@ -55,7 +52,7 @@ class EngineSpec extends UnitTest:
         given Scheduler = scheduler
 
         val simulation = StubSimulation(stepLimit = 1)
-        val engine = Engine(simulation, 1.second)
+        val engine = BasicEngine(simulation, 1.second)
         var observedSteps = 0
         val _ = engine.observe(_ => observedSteps += 1)
         val _ = engine.start()
@@ -68,7 +65,7 @@ class EngineSpec extends UnitTest:
         given Scheduler = scheduler
 
         val simulation = StubSimulation(stepLimit = 1)
-        val engine = Engine(simulation, 1.second)
+        val engine = BasicEngine(simulation, 1.second)
         var counter1, counter2 = 0
         val _ = engine.observe(_ => counter1 += 1)
         val _ = engine.observe(_ => counter2 += 1)
@@ -84,7 +81,7 @@ class EngineSpec extends UnitTest:
 
       val period = 1.second
       val simulation = StubSimulation(stepLimit = Int.MaxValue)
-      val engine = Engine(simulation, period)
+      val engine = BasicEngine(simulation, period)
       var counter1, counter2 = 0
       val obs1 = engine.observe(_ => counter1 += 1)
       val _ = engine.observe(_ => counter2 += 1)
@@ -102,7 +99,7 @@ class EngineSpec extends UnitTest:
 
       val period = 1.second
       val sim = StubSimulation(stepLimit = Int.MaxValue)
-      val engine = Engine(sim, period)
+      val engine = BasicEngine(sim, period)
       var counter = 0
       val _ = engine.observe(_ => counter += 1)
       val cancelable = engine.start()
@@ -118,7 +115,7 @@ class EngineSpec extends UnitTest:
 
       val period = 1.second
       val simulation = StubSimulation(stepLimit = 1)
-      val engine = Engine(simulation, period)
+      val engine = BasicEngine(simulation, period)
       var counter = 0
       val _ = engine.observe(_ => counter += 1)
       val _ = engine.start()

@@ -44,7 +44,7 @@ object Engine:
   )(using Scheduler): Engine =
     BasicEngine(simulation, period)
 
-  private abstract class ReactiveEngine(simulation: Simulation)(using Scheduler)
+  private[control] abstract class ReactiveEngine(simulation: Simulation)(using Scheduler)
       extends Engine:
     def clock: Observable[Tick]
 
@@ -64,7 +64,7 @@ object Engine:
       override def apply(source: Cancelable): Stoppable =
         () => source.cancel()
 
-  private class BasicEngine(simulation: Simulation, period: FiniteDuration)(
+  private[control] class BasicEngine(simulation: Simulation, period: FiniteDuration)(
       using Scheduler
   ) extends ReactiveEngine(simulation):
     override def clock: Observable[Tick] =
