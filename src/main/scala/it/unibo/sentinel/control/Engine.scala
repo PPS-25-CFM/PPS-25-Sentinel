@@ -77,7 +77,6 @@ object Engine:
     override def clock: Observable[Tick] =
       Observable
         .interval(period)
-        .delayExecution(period)
         .takeWhile(_ => !simulation.isOver)
         .map(_.toInt)
         .map(Tick(_))
