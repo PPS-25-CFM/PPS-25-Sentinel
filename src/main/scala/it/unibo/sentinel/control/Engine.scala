@@ -3,7 +3,6 @@ package it.unibo.sentinel.control
 import it.unibo.sentinel.core.simulation.{Simulation, StepResult, Tick}
 import monix.execution.{Cancelable, Scheduler}
 import monix.reactive.Observable
-
 import scala.Conversion
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
@@ -76,4 +75,9 @@ object Engine:
       Scheduler
   ) extends ReactiveEngine(simulation):
     override def clock: Observable[Tick] =
-      Observable.interval(period).map(_.toInt).map(Tick(_))
+      Observable
+        .interval(period)
+        .delayExecution(period)
+        .takeWhile(_ => !simulation.isOver)
+        .map(_.toInt)
+        .map(Tick(_))
