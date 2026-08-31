@@ -1,6 +1,6 @@
 package it.unibo.sentinel.control
 
-import it.unibo.sentinel.core.simulation.{Simulation, StepResult}
+import it.unibo.sentinel.core.simulation.{Simulation, StepResult, Tick}
 import monix.execution.{Cancelable, Scheduler}
 import monix.reactive.Observable
 
@@ -44,17 +44,11 @@ object Engine:
   )(using Scheduler): Engine =
     BasicEngine(simulation, period)
 
-  private class BasicEngine(simulation: Simulation, period: FiniteDuration)(
-      using Scheduler
-  ) extends Engine:
+  private abstract class ReactiveEngine(simulation: Simulation)(using Scheduler)
+      extends Engine:
+    def clock: Observable[Tick]
 
-    private given Conversion[Cancelable, Stoppable] with
-      override def apply(source: Cancelable): Stoppable =
-        () => source.cancel()
-
-    protected val clock = Observable.interval(period)
-
-    private val steps =
+    private lazy val steps =
       clock
         .takeWhile(_ => !simulation.isOver)
         .map(_ => simulation.step())
@@ -65,3 +59,13 @@ object Engine:
 
     override def start(): Stoppable =
       steps.connect()
+
+    private given Conversion[Cancelable, Stoppable] with
+      override def apply(source: Cancelable): Stoppable =
+        () => source.cancel()
+
+  private class BasicEngine(simulation: Simulation, period: FiniteDuration)(
+      using Scheduler
+  ) extends ReactiveEngine(simulation):
+    override def clock: Observable[Tick] =
+      Observable.interval(period).map(_.toInt).map(Tick(_))
