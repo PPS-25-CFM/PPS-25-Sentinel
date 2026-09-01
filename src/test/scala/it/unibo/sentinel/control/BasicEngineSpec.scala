@@ -16,19 +16,16 @@ import scala.concurrent.duration.*
 
 class BasicEngineSpec extends UnitTest:
 
-  private val result =
-    StepResult(
-      Snapshot(Warehouse.empty(1, 1), Seq.empty, Seq.empty),
-      Seq.empty
-    )
-
   private final class StubSimulation(stepLimit: Int) extends Simulation:
     private var completedSteps = 0
     override def time: Tick = Tick(completedSteps)
 
     override def step(): StepResult =
       completedSteps += 1
-      result
+      StepResult(
+        Snapshot(Warehouse.empty(completedSteps, 1), Seq.empty, Seq.empty),
+        Seq.empty
+      )
 
     override def isOver: Boolean = completedSteps >= stepLimit
 
@@ -128,18 +125,18 @@ class BasicEngineSpec extends UnitTest:
       simulation.stepCount shouldBe 1
       counter shouldBe 1
 
-  "controlled" should:
+    "controlled" should:
 
-    "not react to commands" in:
-      val scheduler = TestScheduler()
-      given Scheduler = scheduler
-      val period = 1.second
-      val simulation = StubSimulation(stepLimit = 1)
-      val engine = BasicEngine(simulation, period)
-      val _ = engine.start()
-      engine.next()
-      engine.back()
-      engine.resume()
-      engine.pause()
-      scheduler.tick()
-      simulation.stepCount shouldBe 1
+      "not react to commands" in:
+        val scheduler = TestScheduler()
+        given Scheduler = scheduler
+        val period = 1.second
+        val simulation = StubSimulation(stepLimit = 1)
+        val engine = BasicEngine(simulation, period)
+        val _ = engine.start()
+        engine.next()
+        engine.back()
+        engine.resume()
+        engine.pause()
+        scheduler.tick()
+        simulation.stepCount shouldBe 1

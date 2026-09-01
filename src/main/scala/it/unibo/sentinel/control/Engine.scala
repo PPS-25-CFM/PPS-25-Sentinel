@@ -60,8 +60,8 @@ object Engine:
   )(using Scheduler): Engine =
     BasicEngine(simulation, period)
 
-  private[control] abstract class ReactiveEngine(simulation: Simulation)(using
-      Scheduler
+  private[control] abstract class ReactiveEngine(val simulation: Simulation)(
+      using Scheduler
   ) extends Engine:
     def clock: Observable[Tick]
 
@@ -88,15 +88,18 @@ object Engine:
   private[control] class BasicEngine(
       simulation: Simulation,
       period: FiniteDuration
-  )(using
-      Scheduler
-  ) extends ReactiveEngine(simulation):
-    override def clock: Observable[Tick] =
-      Observable
-        .interval(period)
-        .takeWhile(_ => !simulation.isOver)
-        .map(_.toInt)
-        .map(Tick(_))
+  )(using Scheduler)
+      extends ReactiveEngine(simulation)
+      with PeriodicClock(period)
+
+  private[control] trait PeriodicClock(period: FiniteDuration):
+    self: ReactiveEngine =>
+
+    override def clock = Observable
+      .interval(period)
+      .takeWhile(_ => !simulation.isOver)
+      .map(_.toInt)
+      .map(Tick(_))
 
     override def pause(): Unit = ()
 
