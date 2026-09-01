@@ -7,27 +7,21 @@ import monix.execution.schedulers.TestScheduler
 import org.mockito.Mockito.*
 import scala.concurrent.duration.*
 
-trait EngineSpecBehaviour extends UnitTest:
-
-  def createEngine(simulation: Simulation, period: FiniteDuration)(using
-      Scheduler
-  ): Engine
+class EngineSpecBehaviour extends UnitTest:
 
   protected trait EngineFixture:
     val scheduler = TestScheduler()
     given Scheduler = scheduler
     val period = 1.second
     val simulation = mock[Simulation]()
-    val engine = createEngine(simulation, period)
+    val engine = Engine(simulation, period)
 
   "An Engine" when:
 
     "not started" should:
       "leave the simulation idle" in new EngineFixture:
-        var observedSteps = 0
-        engine.observe(_ => observedSteps += 1)
         scheduler.tick()
-        observedSteps shouldBe 0
+        verify(simulation, never()).step()
 
     "started" should:
       "advance the simulation and notify its observers" in new EngineFixture:
@@ -74,8 +68,60 @@ trait EngineSpecBehaviour extends UnitTest:
 
       "stop automatically when the simulation is over" in new EngineFixture:
         when(simulation.isOver).thenReturn(false, false, true)
-        var c = 0
-        engine.observe(_ => c += 1)
         engine.start()
         scheduler.tick(period * 2)
-        c shouldBe 1
+        verify(simulation, times(1)).step()
+
+    "paused" should:
+      "stop advancing the simulation" in new EngineFixture:
+        engine.start()
+        scheduler.tick()
+        engine.pause()
+        scheduler.tick(period)
+        verify(simulation, times(1)).step()
+
+    "resumed" should:
+      "resume advancing the simulation" in new EngineFixture:
+        engine.start()
+        scheduler.tick()
+        engine.pause()
+        scheduler.tick(period)
+        engine.resume()
+        scheduler.tick(period)
+        verify(simulation, times(2)).step()
+
+    "moved one step back" should:
+
+      "move the simulation one step back" in new EngineFixture:
+        engine.start()
+        scheduler.tick()
+        engine.back()
+        scheduler.tick(period)
+        verify(simulation, times(1)).step()
+
+      "pause the simulation" in new EngineFixture:
+        engine.start()
+        scheduler.tick()
+        engine.back()
+        scheduler.tick(period)
+        verify(simulation, times(1)).step()
+        scheduler.tick(period * 2)
+        verify(simulation, times(1)).step()
+
+    "moved one step forward" should:
+
+      "move the simulation one step forward" in new EngineFixture:
+        engine.start()
+        scheduler.tick()
+        engine.next()
+        scheduler.tick(period)
+        verify(simulation, times(2)).step()
+
+      "pause the simulation" in new EngineFixture:
+        engine.start()
+        scheduler.tick()
+        engine.next()
+        scheduler.tick(period)
+        verify(simulation, times(2)).step()
+        scheduler.tick(period * 2)
+        verify(simulation, times(2)).step()

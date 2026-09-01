@@ -6,6 +6,7 @@ import monix.reactive.Observable
 import scala.Conversion
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
+import monix.reactive.subjects.ConcurrentSubject
 
 /** Represents something that can be stopped.
   */
@@ -58,7 +59,7 @@ object Engine:
       simulation: Simulation,
       period: FiniteDuration
   )(using Scheduler): Engine =
-    BasicEngine(simulation, period)
+    new ReactiveEngine(simulation) with ControllableClock(period)
 
   private[control] abstract class ReactiveEngine(val simulation: Simulation)(
       using Scheduler
@@ -85,26 +86,44 @@ object Engine:
       override def apply(source: Cancelable): Stoppable =
         () => source.cancel()
 
-  private[control] class BasicEngine(
-      simulation: Simulation,
-      period: FiniteDuration
-  )(using Scheduler)
-      extends ReactiveEngine(simulation)
-      with PeriodicClock(period)
-
-  private[control] trait PeriodicClock(period: FiniteDuration):
+  private[control] trait ControllableClock(period: FiniteDuration)(using
+      Scheduler
+  ):
     self: ReactiveEngine =>
+    import ControlledClock.*, Command.*, Movement.*
 
-    override def clock = Observable
-      .interval(period)
-      .takeWhile(_ => !simulation.isOver)
-      .map(_.toInt)
-      .map(Tick(_))
+    private val commands = ConcurrentSubject.publish[Command]
 
-    override def pause(): Unit = ()
+    override def clock: Observable[Tick] =
+      commands
+        .startWith(Seq(Resume))
+        .switchMap:
+          case Pause  => Observable.now(Keep)
+          case Back   => Observable.now(Backward)
+          case Next   => Observable.now(Forward)
+          case Resume =>
+            Observable
+              .interval(period)
+              .map(i => if i == 0 then Keep else Forward)
+        .scan(Tick.zero):
+          case (time, Keep)     => time
+          case (time, Backward) => time.previous
+          case (time, Forward)  => time.next
+        .takeWhile(_ => !simulation.isOver)
 
-    override def resume(): Unit = ()
+    override def pause(): Unit = submit(Pause)
 
-    override def back(): Unit = ()
+    override def resume(): Unit = submit(Resume)
 
-    override def next(): Unit = ()
+    override def back(): Unit = submit(Back)
+
+    override def next(): Unit = submit(Next)
+
+    private def submit(command: Command): Unit = commands.onNext(command)
+
+  private[control] object ControlledClock:
+    enum Command:
+      case Pause, Resume, Back, Next
+
+    enum Movement:
+      case Keep, Backward, Forward
