@@ -6,6 +6,8 @@ import monix.execution.Scheduler
 import monix.execution.schedulers.TestScheduler
 import org.mockito.Mockito.*
 import scala.concurrent.duration.*
+import it.unibo.sentinel.control.Engine.ReactiveEngine
+import it.unibo.sentinel.control.Engine.ControllableClock
 
 class EngineSpecBehaviour extends UnitTest:
 
@@ -14,7 +16,7 @@ class EngineSpecBehaviour extends UnitTest:
     given Scheduler = scheduler
     val period = 1.second
     val simulation = mock[Simulation]()
-    val engine = Engine(simulation, period)
+    val engine = new ReactiveEngine(simulation) with ControllableClock(period)
 
   "An Engine" when:
 

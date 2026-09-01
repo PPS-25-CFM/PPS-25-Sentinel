@@ -58,7 +58,8 @@ object Engine:
   def apply(
       simulation: Simulation,
       period: FiniteDuration
-  )(using Scheduler): Engine =
+  ): Engine =
+    given Scheduler = Scheduler.singleThread("engine")
     new ReactiveEngine(simulation) with ControllableClock(period)
 
   private[control] abstract class ReactiveEngine(val simulation: Simulation)(

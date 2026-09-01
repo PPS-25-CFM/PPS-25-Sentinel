@@ -5,7 +5,6 @@ import it.unibo.sentinel.boundary.gui.fx.FxToolkit
 import it.unibo.sentinel.core.simulation.Simulation
 import it.unibo.sentinel.control.Engine
 import scala.concurrent.duration.*
-import monix.execution.Scheduler
 
 /** Application launcher.w
   *
@@ -22,7 +21,6 @@ object Launcher extends Dataset:
     window.show(panel)
     window.open()
     val sim = Simulation.of(scenario)
-    given Scheduler = Scheduler.singleThread("engine")
     val engine: Engine = Engine(sim, 1.second)
     engine.observe(panel.render)
     engine.start()
