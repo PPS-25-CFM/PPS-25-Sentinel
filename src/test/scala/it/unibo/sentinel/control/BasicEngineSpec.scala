@@ -2,7 +2,12 @@ package it.unibo.sentinel.control
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.control.Engine.BasicEngine
-import it.unibo.sentinel.core.simulation.{Simulation, Snapshot, StepResult, Tick}
+import it.unibo.sentinel.core.simulation.{
+  Simulation,
+  Snapshot,
+  StepResult,
+  Tick
+}
 import it.unibo.sentinel.core.warehouse.Warehouse
 import monix.execution.Scheduler
 import monix.execution.schedulers.TestScheduler
@@ -122,3 +127,19 @@ class BasicEngineSpec extends UnitTest:
       scheduler.tick(period * 2)
       simulation.stepCount shouldBe 1
       counter shouldBe 1
+
+  "controlled" should:
+
+    "not react to commands" in:
+      val scheduler = TestScheduler()
+      given Scheduler = scheduler
+      val period = 1.second
+      val simulation = StubSimulation(stepLimit = 1)
+      val engine = BasicEngine(simulation, period)
+      val _ = engine.start()
+      engine.next()
+      engine.back()
+      engine.resume()
+      engine.pause()
+      scheduler.tick()
+      simulation.stepCount shouldBe 1

@@ -14,9 +14,26 @@ trait Stoppable:
     */
   def stop(): Unit
 
+trait Controller:
+  /** Pauses the [[Simulation]].
+    */
+  def pause(): Unit
+
+  /** Resumes the [[Simulation]].
+    */
+  def resume(): Unit
+
+  /** Moves the [[Simulation]] one step back.
+    */
+  def back(): Unit
+
+  /** Moves the [[Simulation]] one step forward.
+    */
+  def next(): Unit
+
 /** Advances a simulation periodically and publishes each result to observers.
   */
-trait Engine:
+trait Engine extends Controller:
 
   /** Registers a callback invoked after every simulation step.
     */
@@ -80,3 +97,11 @@ object Engine:
         .takeWhile(_ => !simulation.isOver)
         .map(_.toInt)
         .map(Tick(_))
+
+    override def pause(): Unit = ()
+
+    override def resume(): Unit = ()
+
+    override def back(): Unit = ()
+
+    override def next(): Unit = ()
