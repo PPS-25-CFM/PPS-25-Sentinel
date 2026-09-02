@@ -44,11 +44,11 @@ object FxToolkit extends Toolkit:
         val s = new Scene(root)
         s.onKeyPressed = (e: KeyEvent) =>
           e.code match
-            case KeyCode.P     => controller.pause()
-            case KeyCode.R     => controller.resume()
-            case KeyCode.A  => controller.back()
+            case KeyCode.P => controller.pause()
+            case KeyCode.R => controller.resume()
+            case KeyCode.A => controller.back()
             case KeyCode.D => controller.next()
-            case _             => ()
+            case _         => ()
         s
 
       override def render(model: StepResult): Unit = onFx:
