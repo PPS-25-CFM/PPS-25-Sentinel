@@ -5,7 +5,7 @@ import scalafx.scene.Scene
 
 /** View based on the fx library
   */
-abstract class FxView[Model] extends View[Model]:
+abstract class FxView extends View:
 
   /** @return
     *   the fx [[Scene]] used to render the view on the [[FxWindow]]

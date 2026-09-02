@@ -16,11 +16,11 @@ object Launcher extends Dataset:
   private val toolkit: Toolkit = FxToolkit
 
   def main(args: Array[String]): Unit =
-    val window = toolkit.window
-    val panel = toolkit.simulation
-    window.show(panel)
-    window.open()
     val sim = Simulation.of(scenario)
     val engine: Engine = Engine(sim, 1.second)
+    val window = toolkit.window
+    val panel = toolkit.simulation(engine)
+    window.show(panel)
+    window.open()
     engine.observe(panel.render)
     engine.start()

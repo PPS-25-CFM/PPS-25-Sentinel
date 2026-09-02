@@ -7,7 +7,7 @@ trait Window:
   /** The type of [[View]] that the window can show. Depends on the technology
     * chosen to program the UI
     */
-  type V[Model] <: View[Model]
+  type V <: View
 
   /** Opens the window on the screen
     */
@@ -22,4 +22,4 @@ trait Window:
     * @param view
     *   the view to display
     */
-  def show[Model](view: V[Model]): Unit
+  def show(view: V): Unit

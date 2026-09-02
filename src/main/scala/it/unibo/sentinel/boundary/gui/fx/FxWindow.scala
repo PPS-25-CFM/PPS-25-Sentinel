@@ -15,11 +15,11 @@ final class FxWindow(
     defaultWidth.foreach(w => width = w)
     defaultHeight.foreach(h => height = h)
 
-  override type V[Model] = FxView[Model]
+  override type V = FxView
 
   override def open(): Unit = onFx(stage.show())
 
   override def close(): Unit = onFx(stage.close())
 
-  override def show[Model](view: V[Model]): Unit = onFx:
+  override def show(view: V): Unit = onFx:
     stage.scene = view.scene
