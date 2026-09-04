@@ -38,6 +38,11 @@ final case class Placement(robot: Robot, at: Position):
       case (Some(pos), Tick.zero) => Intent(robot.id, pos)
       case _                      => Intent(robot.id, at)
 
+enum RobotClass:
+  case Drone
+  case Carrier
+  case HeavyCarrier
+
 /** Represents a description of a [[Robot]] to spawn in a [[Scenario]]. It will
   * be used to create a [[Robot]] in the given [[Position]] when the
   * [[Scenario]] is started.
@@ -47,11 +52,14 @@ final case class Placement(robot: Robot, at: Position):
   * @param at
   *   the [[Position]] where to spawn the [[Robot]].
   */
-final case class Spawn(id: RobotId, at: Position):
+final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
   /** @return
     *   the [[Placement]] of the [[Robot]] to spawn in the [[Warehouse]].
     */
-  def toPlacement: Placement = Placement(Robot.drone(id), at)
+  def toPlacement: Placement = ofClass match
+    case RobotClass.Drone => Placement(Robot.drone(id, 3), at)
+    case RobotClass.Carrier => Placement(Robot.carrier(id, Item.averageWeight, 5), at)
+    case RobotClass.HeavyCarrier => Placement(Robot.carrier(id, Item.highestWeight, 1), at)
 
 /** */
 enum Validation:

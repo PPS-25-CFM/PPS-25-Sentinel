@@ -5,6 +5,7 @@ import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.scenario.Scenario
 import it.unibo.sentinel.core.scenario.Spawn
+import it.unibo.sentinel.core.scenario.RobotClass
 import it.unibo.sentinel.core.simulation.Tick
 
 /** Contains default values for a test simulation
@@ -34,9 +35,9 @@ trait Dataset:
   protected def scenario: Scenario =
     (for
       s0 <- Right(Scenario.in(warehouse))
-      s1 <- s0.place(Spawn(RobotId("R1"), Position(1, 6)))
-      s2 <- s1.place(Spawn(RobotId("R2"), Position(6, 1)))
-      s3 <- s2.place(Spawn(RobotId("R3"), Position(11, 6)))
+      s1 <- s0.place(Spawn(RobotId("R1"), Position(1, 6), RobotClass.Drone))
+      s2 <- s1.place(Spawn(RobotId("R2"), Position(6, 1), RobotClass.Drone))
+      s3 <- s2.place(Spawn(RobotId("R3"), Position(11, 6), RobotClass.Drone))
       s4 <- s3.load(Mission.relocate(MissionId("M1"), Position(6, 6), Tick(10)))
       s5 <- s4.load(Mission.relocate(MissionId("M2"), Position(6, 6), Tick(10)))
       s6 <- s5.load(Mission.relocate(MissionId("M3"), Position(6, 6), Tick(10)))

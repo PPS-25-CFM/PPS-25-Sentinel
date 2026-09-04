@@ -41,33 +41,34 @@ class ScenarioSpec extends UnitTest:
 
       "return a new scenario with the robot placed" in:
         val result =
-          s0.place(Spawn(id = RobotId("R1"), at = Position(1, 1))).value
+          s0.place(Spawn(id = RobotId("R1"), at = Position(1, 1), ofClass = RobotClass.Drone)).value
         result.spawns should contain only Spawn(
           id = RobotId("R1"),
-          at = Position(1, 1)
+          at = Position(1, 1),
+          ofClass = RobotClass.Drone
         )
 
       "signal that the position is occupied" in:
         val position = Position(1, 1)
         val result =
           for
-            s1 <- s0.place(Spawn(id = RobotId("R1"), at = position))
-            s2 <- s1.place(Spawn(id = RobotId("R2"), at = position))
+            s1 <- s0.place(Spawn(id = RobotId("R1"), at = position, ofClass = RobotClass.Drone))
+            s2 <- s1.place(Spawn(id = RobotId("R2"), at = position, ofClass = RobotClass.Drone))
           yield s2
         result.left.value shouldBe PositionOccupied(Position(1, 1))
 
       "signal that the position is not a floor tile" in:
         val position = Position(0, 0)
         val result =
-          s0.place(Spawn(id = RobotId("R1"), at = position))
+          s0.place(Spawn(id = RobotId("R1"), at = position, ofClass = RobotClass.Drone))
         result.left.value shouldBe NotFloorTile(position)
 
       "signal that the id is already used" in:
         val id = RobotId("R1")
         val result =
           for
-            s1 <- s0.place(Spawn(id = id, at = Position(1, 1)))
-            s2 <- s1.place(Spawn(id = id, at = Position(1, 2)))
+            s1 <- s0.place(Spawn(id = id, at = Position(1, 1), ofClass = RobotClass.Drone))
+            s2 <- s1.place(Spawn(id = id, at = Position(1, 2), ofClass = RobotClass.Drone))
           yield s2
         result.left.value shouldBe RobotAlreadyExists(id)
 
@@ -194,7 +195,7 @@ class ScenarioSpec extends UnitTest:
         val wh = warehouse.withTile(Position(1, 1))(Tile.Floor())
         val s = Scenario.in(wh)
         val robotId = RobotId("R1")
-        val spawn = Spawn(id = robotId, at = Position(1, 1))
+        val spawn = Spawn(id = robotId, at = Position(1, 1), ofClass = RobotClass.Drone)
         val mission = Mission.relocate(
           id = MissionId("M1"),
           destination = Position(1, 1),
@@ -211,3 +212,41 @@ class ScenarioSpec extends UnitTest:
         env.warehouse shouldBe wh
         env.missions should contain only mission
         env.placements.map(p => (p.robot.id, p.at)) should contain only (robotId -> Position(1, 1))
+
+    "spawn robot classes" should:
+      val relocate = Mission.relocate(MissionId("MR"), Position(1, 3), Tick(10))
+      val deliver = Mission.deliver(MissionId("MD"), Item.Computer, Position(2, 2), Position(3, 3), Tick(10))
+
+      "create a Drone that rejects delivery" in:
+        val p = Spawn(RobotId("D"), Position(1, 1), RobotClass.Drone).toPlacement
+        p.robot.canAccept(relocate) shouldBe true
+        p.robot.canAccept(deliver) shouldBe false
+        p.robot.pick(Item.Computer) shouldBe false
+
+      "create a Carrier that accepts delivery" in:
+        val p = Spawn(RobotId("C"), Position(1, 1), RobotClass.Carrier).toPlacement
+        p.robot.canAccept(deliver) shouldBe true
+        p.robot.pick(Item.Computer) shouldBe true
+        p.robot.pick(Item.Fridge) shouldBe false
+
+      "create a HeavyCarrier that lifts anything" in:
+        val p = Spawn(RobotId("H"), Position(1, 1), RobotClass.HeavyCarrier).toPlacement
+        p.robot.canAccept(deliver) shouldBe true
+        p.robot.pick(Item.Fridge) shouldBe true
+
+      "respect hardcoded queue capacities" in:
+        def fill(p: Placement, n: Int): Unit =
+          for i <- 0 until n do
+            p.robot.accept(Mission.relocate(MissionId(s"M$i"), Position(1, 3), Tick(10)))
+
+        val d = Spawn(RobotId("D"), Position(1, 1), RobotClass.Drone).toPlacement
+        fill(d, 3)
+        d.robot.canAccept(relocate) shouldBe false
+
+        val c = Spawn(RobotId("C"), Position(1, 2), RobotClass.Carrier).toPlacement
+        fill(c, 5)
+        c.robot.canAccept(relocate) shouldBe false
+
+        val h = Spawn(RobotId("H"), Position(2, 1), RobotClass.HeavyCarrier).toPlacement
+        h.robot.accept(relocate)
+        h.robot.canAccept(relocate) shouldBe false

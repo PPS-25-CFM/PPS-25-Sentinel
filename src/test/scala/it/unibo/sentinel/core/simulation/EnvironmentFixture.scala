@@ -4,7 +4,7 @@ import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.TestData
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.scenario.{Scenario, Spawn}
+import it.unibo.sentinel.core.scenario.{Scenario, Spawn, RobotClass}
 import it.unibo.sentinel.core.warehouse.Position
 
 /** A mix in that contains a scenario with two robots and two missions.
@@ -30,8 +30,8 @@ trait EnvironmentFixture extends TestData:
 
   val scenario: Scenario = (for
     s0 <- Right(emptyScenario)
-    s1 <- s0.place(Spawn(r1, p1))
-    s2 <- s1.place(Spawn(r2, p2))
+    s1 <- s0.place(Spawn(r1, p1, RobotClass.Drone))
+    s2 <- s1.place(Spawn(r2, p2, RobotClass.Drone))
     s3 <- s2.load(Mission.relocate(m1, p3, deadline))
     s4 <- s3.load(Mission.relocate(m2, p4, deadline))
   yield s4).value
