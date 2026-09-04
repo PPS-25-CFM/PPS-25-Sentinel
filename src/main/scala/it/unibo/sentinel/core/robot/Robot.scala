@@ -5,6 +5,9 @@ import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.simulation.Tick
 import scala.collection.immutable.Queue
+import it.unibo.sentinel.core.item.ItemWeight
+import it.unibo.sentinel.core.item.Item
+import it.unibo.sentinel.core.mission.Mission
 
 /** Abstracts the concept of a robot, which is an entity capable of accepting
   * and executing missions while moving through the [[Warehouse]]
@@ -29,14 +32,14 @@ trait Robot:
   /** @return
     *   true if the robot can accept a new mission, false otherwise
     */
-  def canAccept: Boolean
+  def canAccept(mission: Mission): Boolean
 
   /** Accepts a new mission (if possible)
     *
     * @param missionId
     *   the mission's id
     */
-  def accept(missionId: MissionId): Unit
+  def accept(mission: Mission): Unit
 
   /** Interrupts and removes the mission
     */
@@ -81,6 +84,25 @@ trait Robot:
     */
   def tick(): Unit
 
+  /** Picks up an [[Item]] into the robot's bag (if possible)
+    *
+    * @param item
+    *   the [[Item]] to pick up
+    * @return
+    *   true if the item was picked up, false otherwise
+    */
+  def pick(item: Item): Boolean
+
+  /** Drops an [[Item]] from the robot's bag
+    *
+    * @param item
+    *   the [[Item]] to drop
+    * @return
+    *   [[Some]] with the dropped [[Item]] if it was carried, [[None]]
+    *   otherwise
+    */
+  def drop(item: Item): Option[Item]
+
 /** [[Robot]] capable of accepting multiple [[Mission]]s using a queue.
   *
   * @param capacity
@@ -90,11 +112,11 @@ trait Queued(capacity: Int) extends Robot:
 
   private var backlog: Queue[MissionId] = Queue.empty
 
-  abstract override def canAccept: Boolean =
-    backlog.size < capacity && super.canAccept
+  abstract override def canAccept(mission: Mission): Boolean =
+    backlog.size < capacity && super.canAccept(mission)
 
-  override def accept(mission: MissionId): Unit =
-    if canAccept then backlog = backlog :+ mission
+  override def accept(mission: Mission): Unit =
+    if canAccept(mission) then backlog = backlog :+ mission.id
 
   override def mission: Option[MissionId] = backlog.headOption
 
@@ -107,15 +129,29 @@ trait Queued(capacity: Int) extends Robot:
 object Robot:
   /** @param id
     *   the robot's identifier
+    * @param capacity
+    *   max number of missions the robot can queue
     * @return
-    *   a new robot with the given id, no missions and idle status
+    *   a new drone with the given id, no missions and idle status
     */
   def drone(id: RobotId, capacity: Int = 1): Robot = new Drone(id)
     with Queued(capacity)
 
-  /** Implementation of a [[Robot]] that can accept one mission
+  /** @param id
+    *   the robot's identifier
+    * @param maxLoad
+    *   max transportable [[ItemWeight]]
+    * @param capacity
+    *   max number of missions the robot can queue
+    * @return
+    *   a new carrier with the given id, no missions and idle status
     */
-  private abstract class Drone(val id: RobotId) extends Robot:
+  def carrier(id: RobotId, maxLoad: ItemWeight, capacity: Int = 1): Robot =
+    new Carrier(id, maxLoad) with Queued(capacity)
+
+  /** Shared movement logic for all mobile robots.
+    */
+  private abstract class BaseRobot(val id: RobotId) extends Robot:
 
     private var waiting: Boolean = false
     private var currentPath: Option[Path] = None
@@ -127,8 +163,6 @@ object Robot:
           case (None, None)    => RobotStatus.Idle
           case (Some(_), None) => RobotStatus.Ready
           case (_, Some(_))    => RobotStatus.Moving
-
-    override def canAccept: Boolean = true
 
     override def release(): Unit =
       currentPath = None
@@ -153,3 +187,40 @@ object Robot:
 
     override def tick(): Unit =
       currentPath = currentPath.map(_.ticked)
+
+  /** [[Robot]] accepting only relocation missions.
+    */
+  private abstract class Drone(id: RobotId) extends BaseRobot(id):
+    override def canAccept(mission: Mission): Boolean =
+      mission.isMovementOnly
+
+    override def pick(item: Item): Boolean = false
+
+    override def drop(item: Item): Option[Item] = None
+
+  /** [[Robot]] accepting both relocation and delivery missions.
+    *
+    * @param maxLoad
+    *   max transportable [[ItemWeight]]
+    */
+  private abstract class Carrier(id: RobotId, maxLoad: ItemWeight)
+      extends BaseRobot(id):
+    private var bag: Seq[Item] = Seq.empty
+
+    private def currentLoad: ItemWeight =
+      bag.map(_.weight).foldLeft(ItemWeight.Zero)(_ + _)
+
+    override def canAccept(mission: Mission): Boolean =
+      mission.isMovementOnly ||
+        (mission.requiresCarrying && currentLoad.value <= maxLoad.value)
+
+    override def pick(item: Item): Boolean =
+      if (currentLoad + item.weight).value <= maxLoad.value then
+        bag = bag :+ item
+        true
+      else false
+
+    override def drop(item: Item): Option[Item] =
+      bag.find(_ == item).map:
+        found => bag = bag.diff(Seq(found))
+        found

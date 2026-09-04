@@ -1,6 +1,7 @@
 package it.unibo.sentinel.core.assignment
 
 import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.*
@@ -27,5 +28,5 @@ trait SelectorBehaviors extends MockitoSugar:
 
   protected def mockRobot(canAccept: Boolean): Robot =
     val robot = mock[Robot]
-    when(robot.canAccept).thenReturn(canAccept)
+    when(robot.canAccept(any[Mission]())).thenReturn(canAccept)
     robot

@@ -23,6 +23,20 @@ enum Task:
     case Single(a)   => Iterator.single(a)
     case Then(h, t)  => h.actions ++ t.actions
 
+  /** @return
+    *   true if the task requires only movement, without carrying items.
+    */
+  def isMovementOnly: Boolean = actions.forall:
+    case Action.Move(_) => true
+    case _              => false
+
+  /** @return
+    *   true if the task requires picking up or dropping items.
+    */
+  def requiresCarrying: Boolean = actions.exists:
+    case Action.PickUp(_, _) | Action.Drop(_, _) => true
+    case _                                       => false
+
 object Task:
   def move(to: Position): Task = Single(Action.Move(to))
   def pick(item: Item, at: Position): Task = Single(Action.PickUp(item, at))

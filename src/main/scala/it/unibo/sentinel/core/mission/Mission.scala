@@ -26,6 +26,7 @@ final case class Mission private (
     carrier: Option[RobotId]
 ):
   import MissionStatus.*
+  export task.{isMovementOnly, requiresCarrying}
 
   private def unlessOver(f: => Mission): Mission =
     if isOver then this else f

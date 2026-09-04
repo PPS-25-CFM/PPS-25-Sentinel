@@ -20,7 +20,7 @@ trait Selector:
       mission: Mission,
       among: Iterable[Placement]
   ): Option[Placement] =
-    val available = among.filter(_.robot.canAccept)
+    val available = among.filter((_.robot.canAccept(mission)))
     if available.isEmpty then None
     else selectFromAvailable(mission, available)
 

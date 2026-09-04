@@ -9,11 +9,11 @@ class SimpleRobotSpec extends UnitTest with RobotFixture with RobotBehavior:
 
     "already on a mission" should:
       val robot = Robot.drone(robotId)
-      robot.accept(m1)
+      robot.accept(mission1)
 
       "not be able to accept another one" in:
-        robot.canAccept shouldBe false
+        robot.canAccept(mission2) shouldBe false
 
       "keep its current mission when offered another" in:
-        robot.accept(m2)
+        robot.accept(mission2)
         robot.mission shouldBe Some(m1)

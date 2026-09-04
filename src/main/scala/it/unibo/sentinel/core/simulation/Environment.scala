@@ -99,7 +99,7 @@ private[core] final class Environment private[core] (
       robot = spot.robot
       mission <- board.get(m_id)
     yield
-      robot.accept(m_id)
+      robot.accept(mission)
       board = board + (m_id -> mission.assignTo(r_id))
       Event.MissionAssigned(r_id, m_id)
 
