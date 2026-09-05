@@ -8,11 +8,19 @@ import it.unibo.sentinel.core.item.Item
 sealed trait Tile
 
 object Tile:
+  /** Validation error generated when creating a [[Tile]].
+    */
+  enum Validation:
+    /** The cost of the tile is negative.
+      */
+    case NegativeCost(cost: Int)
+
   trait Walkable extends Tile:
     def cost: Tick
 
   trait Interactable extends Tile:
     def interactiveOffset(using Adjacency): Seq[Position]
+
 
   /** Represents a floor tile.
     */

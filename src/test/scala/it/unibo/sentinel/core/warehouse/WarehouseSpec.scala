@@ -6,9 +6,10 @@ import it.unibo.sentinel.core.simulation.Tick
 
 trait WarehouseFixture:
   self: UnitTest =>
+  val id = WarehouseId("W1")
   val width = 5
   val height = 5
-  val w0 = Warehouse.empty(width, height)
+  val w0 = Warehouse.empty(id, width, height)
   val gridPositions = for
     x <- 0 until width
     y <- 0 until height
@@ -27,7 +28,14 @@ class WarehouseSpec extends UnitTest with WarehouseFixture:
     "created" should:
 
       "throw an IllegalArgumentException if created with wrong dimension" in:
-        an[IllegalArgumentException] should be thrownBy Warehouse.empty(0, 0)
+        an[IllegalArgumentException] should be thrownBy Warehouse.empty(
+          id,
+          0,
+          0
+        )
+
+      "have the correct ID" in:
+        w0.id shouldBe id
 
       "keep the requested dimensions" in:
         w0.width shouldBe width

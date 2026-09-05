@@ -1,7 +1,13 @@
 package it.unibo.sentinel.core.routing
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Tile, Area}
+import it.unibo.sentinel.core.warehouse.{
+  Warehouse,
+  Position,
+  Tile,
+  Area,
+  WarehouseId
+}
 
 trait NavigatorBehaviours:
   self: UnitTest =>
@@ -9,7 +15,7 @@ trait NavigatorBehaviours:
   def commonNavigator(build: Warehouse => Navigator): Unit =
 
     "the destination is unreachable" should:
-      val warehouse = Warehouse.empty(5, 5)
+      val warehouse = Warehouse.empty(WarehouseId("W"), 5, 5)
       val navigator = build(warehouse)
 
       "return no path" in:
@@ -17,7 +23,7 @@ trait NavigatorBehaviours:
 
     "origin and destination coincide" should:
       val warehouse = Warehouse
-        .empty(5, 5)
+        .empty(WarehouseId("W"), 5, 5)
         .withTile(Position(0, 0))(Tile.Floor())
       val navigator = build(warehouse)
 
@@ -28,7 +34,7 @@ trait NavigatorBehaviours:
 
     "only one path exists" should:
       val warehouse = Warehouse
-        .empty(5, 5)
+        .empty(WarehouseId("W"), 5, 5)
         .withArea(Area(Position(0, 0), Position(0, 2)))(Tile.Floor())
       val navigator = build(warehouse)
 

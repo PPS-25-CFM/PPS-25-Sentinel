@@ -106,9 +106,32 @@ enum Validation:
     */
   case ItemMismatch(position: Position, expected: Item, found: Item)
 
+opaque type ScenarioId = String
+
+object ScenarioId:
+  def apply(id: String): ScenarioId = id
+
+extension (id: ScenarioId)
+  /** @return
+    *   the identifier as a String
+    */
+  def value: String = id
+
 /** Represents the dynamic context of the environment to simulate.
   */
 trait Scenario:
+  /** @return
+    *   the scenario's identifier.
+    */
+  def id: ScenarioId
+
+  /** @param id
+    *   the new identifier for the scenario.
+    * @return
+    *   a new [[Scenario]] with the given identifier.
+    */
+  def withId(id: ScenarioId): Scenario
+
   /** @return
     *   the [[Warehouse]] the [[Scenario]] refers to.
     */
@@ -212,24 +235,22 @@ object Scenario:
     */
   def in(warehouse: Warehouse): Scenario =
     Blueprint(
-      warehouse,
-      Seq.empty,
-      Seq.empty,
-      Routing.Distance,
-      Assignment.Nearest,
-      CollisionSelection.Random,
-      CollisionAvoidance.Wait
+      ScenarioId(java.util.UUID.randomUUID().toString),
+      warehouse
     )
 
   private final case class Blueprint(
+      id: ScenarioId,
       warehouse: Warehouse,
-      spawns: Seq[Spawn],
-      missions: Seq[Mission],
-      routing: Policies.Routing,
-      assignment: Policies.Assignment,
-      collisionSelection: Policies.CollisionSelection,
-      collisionAvoidance: Policies.CollisionAvoidance
+      spawns: Seq[Spawn] = Seq.empty,
+      missions: Seq[Mission] = Seq.empty,
+      routing: Routing = Routing.Distance,
+      assignment: Assignment = Assignment.Nearest,
+      collisionSelection: CollisionSelection = CollisionSelection.Random,
+      collisionAvoidance: CollisionAvoidance = CollisionAvoidance.Wait
   ) extends Scenario:
+
+    override def withId(id: ScenarioId): Scenario = copy(id = id)
 
     override def build: Environment =
       Environment(

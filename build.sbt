@@ -63,7 +63,7 @@ lazy val generateReport =
 lazy val root = (project in file("."))
   .settings(
     name := "Sentinel",
-    libraryDependencies ++= Dependencies.gui ++ Dependencies.reactive,
+    libraryDependencies ++= Dependencies.gui ++ Dependencies.reactive ++ Dependencies.serialization,
     Compile / run / fork := true,
     Compile / run / javaOptions += "--enable-native-access=ALL-UNNAMED",
     // Assembly configuration...

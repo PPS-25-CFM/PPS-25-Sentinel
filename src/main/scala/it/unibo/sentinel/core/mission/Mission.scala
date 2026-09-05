@@ -123,6 +123,17 @@ final case class Mission private (
 
 object Mission:
 
+  /** Errors generated when creating a mission.
+    */
+  enum Validation:
+    /** The mission has a negative duration.
+      */
+    case NegativeDuration(id: MissionId, duration: Int)
+
+    /** The mission is already completed when created.
+      */
+    case AlreadyCompleted(id: MissionId)
+
   /** @param id
     *   The unique identifier for the mission.
     * @param task
@@ -134,7 +145,7 @@ object Mission:
     *   A new [[Mission]] initialized in the unassigned
     *   [[MissionStatus.Pending]] state.
     */
-  private def apply(
+  def apply(
       id: MissionId,
       task: Task,
       deadline: Tick

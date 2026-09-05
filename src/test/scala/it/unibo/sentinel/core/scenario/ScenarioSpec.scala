@@ -1,7 +1,13 @@
 package it.unibo.sentinel.core.scenario
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.warehouse.{Warehouse, Position, Area, Tile}
+import it.unibo.sentinel.core.warehouse.{
+  Warehouse,
+  Position,
+  Area,
+  Tile,
+  WarehouseId
+}
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.item.Item
@@ -16,7 +22,7 @@ class ScenarioSpec extends UnitTest:
     val topCorner = Position(1, 1)
     val bottomCorner = Position(width - 2, height - 2)
     val warehouse = Warehouse
-      .empty(width, height)
+      .empty(WarehouseId("W"), width, height)
       .withArea(Area(topCorner, bottomCorner))(Tile.Floor())
     val s0 = Scenario.in(warehouse)
 
@@ -36,6 +42,13 @@ class ScenarioSpec extends UnitTest:
 
       "have a default assignment policy" in:
         s0.assignment shouldBe Policies.Assignment.Nearest
+
+    "changing the id" should:
+
+      "return a new scenario with the given id" in:
+        val newId = ScenarioId("new-id")
+        val result = s0.withId(newId)
+        result.id shouldBe newId
 
     "place a robot" should:
 
