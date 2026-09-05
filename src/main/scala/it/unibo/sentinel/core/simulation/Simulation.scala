@@ -19,11 +19,34 @@ final case class StepResult(snapshot: Snapshot, events: Seq[Event])
   */
 type History = Vector[(Event, Tick)]
 
+/** The identifier of a [[Simulation]].
+  */
+opaque type SimulationId = String
+
+object SimulationId:
+  /** @param id
+    *   a [[String]] representing the identifier of a [[Simulation]].
+    * @return
+    *   a [[SimulationId]].
+    */
+  def apply(id: String): SimulationId = id
+  
+  extension (id: SimulationId)
+    /** @return
+      *   the identifier as a [[String]].
+      */
+    def value: String = id
+
 /** Represents the discrete-time simulation of a scenario. It is responsible for
   * keeping track of the current time and for executing the actions of the
   * scenario at each tick.
   */
 trait Simulation:
+  /** @return
+    *   the ID of the simulation.
+    */
+  def id: SimulationId
+
   /** @return
     *   the current time of the simulation
     */
@@ -62,9 +85,9 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   missions are over.
     */
-  def of(scenario: Scenario): Simulation =
+  def of(id: SimulationId, scenario: Scenario): Simulation =
     withContext(scenario): world =>
-      BasicSimulation(world, Phase.all)
+      new BasicSimulation(id, world, Phase.all)
 
   /** @param scenario
     *   the [[Scenario]] to simulate.
@@ -74,9 +97,9 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   [[Mission]]s are or when the limit is reached.
     */
-  def of(scenario: Scenario, limit: Tick): Simulation =
+  def of(id: SimulationId, scenario: Scenario, limit: Tick): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(world, Phase.all) with TimeLimit(limit)
+      new BasicSimulation(id, world, Phase.all) with TimeLimit(limit)
 
   private abstract class AbstractSimulation extends Simulation:
     def world: Environment
@@ -88,8 +111,11 @@ object Simulation:
     protected final def recordEvents(events: Seq[Event], tick: Tick): Unit =
       recorded = recorded ++ (for event <- events yield (event, tick))
 
-  private class BasicSimulation(val world: Environment, phases: Seq[Phase])
-      extends AbstractSimulation:
+  private class BasicSimulation(
+      val id: SimulationId,
+      val world: Environment,
+      phases: Seq[Phase]
+  ) extends AbstractSimulation:
     private var currentTime: Tick = Tick(0)
 
     def time: Tick = currentTime

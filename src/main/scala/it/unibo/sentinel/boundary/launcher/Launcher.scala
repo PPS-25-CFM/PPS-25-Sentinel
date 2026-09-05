@@ -10,6 +10,7 @@ import it.unibo.sentinel.core.scenario.Scenario
 import it.unibo.sentinel.control.serialization.Repository
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.core.simulation.SimulationId
 
 /** Application launcher.w
   *
@@ -23,7 +24,8 @@ object Launcher:
   def main(args: Array[String]): Unit =
     for loaded <- loadScenario()
     yield
-      val sim = Simulation.of(loaded)
+      val id = SimulationId("sim-1")
+      val sim = Simulation.of(id, loaded)
       val engine: Engine = Engine(sim, 1.second)
       val window = toolkit.window
       val panel = toolkit.simulation(engine)
