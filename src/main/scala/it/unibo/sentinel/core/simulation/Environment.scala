@@ -124,25 +124,11 @@ private[core] final class Environment private[core] (
       robot = spot.robot
       from = spot.at
       intent = spot.intent
-      if robot.remaining == Tick.zero
+      if robot.status == RobotStatus.Moving && robot.remaining == Tick.zero
     yield
-      if canMove(spot) then
-        robot.step()
-        fleet += (r_id -> spot.copy(at = intent.position))
-        Event.RobotMoved(r_id, from, intent.position)
-      else
-        spot.robot.pause()
-        Event.RobotBlocked(r_id, from)
-
-  private def canMove(placement: Placement): Boolean =
-    placement.robot.status == RobotStatus.Moving
-      && placement.robot.remaining == Tick.zero
-      && fleet.values.forall { other =>
-        val targetPositionOccupied = other.at == placement.intent.position
-        lazy val targetWillNotBeVacated =
-          other.intent.position == placement.at || !canMove(other)
-        !(targetPositionOccupied && targetWillNotBeVacated)
-      }
+      robot.step()
+      fleet += (r_id -> spot.copy(at = intent.position))
+      Event.RobotMoved(r_id, from, intent.position)
 
   /** @param r_id
     * @return

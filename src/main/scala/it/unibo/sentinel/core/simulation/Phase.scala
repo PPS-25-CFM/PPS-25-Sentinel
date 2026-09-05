@@ -4,7 +4,6 @@ import it.unibo.sentinel.core.assignment.Selector
 import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.robot.RobotStatus.*
 import it.unibo.sentinel.core.collisions.CollisionHandler
-import it.unibo.sentinel.core.collisions.CollisionChecker
 import it.unibo.sentinel.core.collisions.SelectionPolicy
 
 private[core] type Phase = Environment => Seq[Event]
@@ -37,13 +36,7 @@ private[core] object Phase:
       handler: CollisionHandler,
       selector: SelectionPolicy
   ): Phase = world =>
-    val intents = world.placements.map(_.intent)
-    val collisions = CollisionChecker.checkCollisions(intents)
-    val events = for
-      group <- collisions
-      colliding = world.placements.filter(r => group.contains(r.robot.id))
-    yield handler.resolveCollisions(colliding)
-    events.flatMap(identity)
+    handler.resolveCollisions(world.placements)
 
   def moving: Phase = world =>
     for

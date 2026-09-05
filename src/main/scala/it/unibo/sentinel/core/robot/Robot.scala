@@ -131,6 +131,7 @@ object Robot:
     override def canAccept: Boolean = true
 
     override def release(): Unit =
+      waiting = false
       currentPath = None
 
     override def path: Option[Path] = currentPath
