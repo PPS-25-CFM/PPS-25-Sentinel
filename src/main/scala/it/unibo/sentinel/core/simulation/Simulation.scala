@@ -30,7 +30,7 @@ object SimulationId:
     *   a [[SimulationId]].
     */
   def apply(id: String): SimulationId = id
-  
+
   extension (id: SimulationId)
     /** @return
       *   the identifier as a [[String]].
@@ -60,6 +60,11 @@ trait Simulation:
     *   whether the simulation is over.
     */
   def isOver: Boolean
+
+  /** @return
+    *   the [[History]] of the [[Simulation]] so far.
+    */
+  def history: History
 
 object Simulation:
 
@@ -102,14 +107,15 @@ object Simulation:
       new BasicSimulation(id, world, Phase.all) with TimeLimit(limit)
 
   private abstract class AbstractSimulation extends Simulation:
-    def world: Environment
-
-    def history: History = recorded
 
     private var recorded: History = Vector.empty
 
     protected final def recordEvents(events: Seq[Event], tick: Tick): Unit =
       recorded = recorded ++ (for event <- events yield (event, tick))
+
+    def history: History = recorded
+
+    def world: Environment
 
   private class BasicSimulation(
       val id: SimulationId,
