@@ -12,6 +12,7 @@ import it.unibo.sentinel.core.scenario.Policies.*
 import it.unibo.sentinel.core.scenario.Scenario
 import it.unibo.sentinel.core.scenario.value
 import it.unibo.sentinel.control.serialization.converters.ScenarioConverter.given
+import it.unibo.sentinel.core.scenario.RobotClass
 
 object JsonSerialization:
 
@@ -34,12 +35,26 @@ object JsonSerialization:
         Validation.Syntax(e.getMessage())
 
   given ReadWriter[PositionSchema] = macroRW
+  given ReadWriter[ItemSchema.Computer] = macroRW
+  given ReadWriter[ItemSchema.Table] = macroRW
+  given ReadWriter[ItemSchema.Fridge] = macroRW
+  given ReadWriter[ItemSchema.Dishwasher] = macroRW
+  given ReadWriter[ItemSchema] = macroRW
+  given ReadWriter[TileSchema.Shelf] = macroRW
+  given ReadWriter[TileSchema.LoadingBay] = macroRW
   given ReadWriter[TileSchema.Floor] = macroRW
   given ReadWriter[TileSchema] = macroRW
   given ReadWriter[WarehouseSchema] = macroRW
   given ReadWriter[SpawnSchema] = macroRW
+  given ReadWriter[RobotClass.Drone.type] = macroRW
+  given ReadWriter[RobotClass.Carrier.type] = macroRW
+  given ReadWriter[RobotClass.HeavyCarrier.type] = macroRW
+  given ReadWriter[RobotClass] = macroRW
+  given ReadWriter[ActionSchema.PickUp] = macroRW
+  given ReadWriter[ActionSchema.Drop] = macroRW
   given ReadWriter[ActionSchema.Move] = macroRW
   given ReadWriter[ActionSchema] = macroRW
+  given ReadWriter[TaskSchema.Then] = macroRW
   given ReadWriter[TaskSchema.Single] = macroRW
   given ReadWriter[TaskSchema.Done.type] = macroRW
   given ReadWriter[TaskSchema] = macroRW

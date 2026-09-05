@@ -1,12 +1,16 @@
 package it.unibo.sentinel.core.item
 
 enum Item(val weight: ItemWeight):
-  case Computer   extends Item(ItemWeight(1))
-  case Table      extends Item(ItemWeight(10))
-  case Fridge     extends Item(ItemWeight(50))
-  case Dishwasher extends Item(ItemWeight(50))
+  case Computer   extends Item(ItemWeight(1.0))
+  case Table      extends Item(ItemWeight(10.0))
+  case Fridge     extends Item(ItemWeight(50.0))
+  case Dishwasher extends Item(ItemWeight(50.0))
 
 object Item:
+
+  enum Validation:
+    case NegativeWeight(weight: Double)
+
   def highestWeight: ItemWeight =
     Item.values.foldLeft(ItemWeight.Zero): (acc, item) =>
       if item.weight.value > acc.value then item.weight else acc

@@ -8,16 +8,34 @@ import it.unibo.sentinel.core.mission.MissionId
 enum ActionSchema extends Schema:
 
   case Move(to: PositionSchema)
+  case PickUp(target: ItemSchema, at: PositionSchema)
+  case Drop(target: ItemSchema, at: PositionSchema)
 
   override def validated: Either[Validation, Schema] = this match
     case Move(to) => to.validated.map(_ => this)
+    case PickUp(target, at) =>
+      for
+        _ <- target.validated
+        _ <- at.validated
+      yield this
+    case Drop(target, at) =>
+      for
+        _ <- target.validated
+        _ <- at.validated
+      yield this
 
 enum TaskSchema extends Schema:
 
+  case Then(head: TaskSchema, tail: TaskSchema)
   case Single(action: ActionSchema)
   case Done
 
   override def validated: Either[Validation, Schema] = this match
+    case Then(head, tail) =>
+      for
+        _ <- head.validated
+        _ <- tail.validated
+      yield this
     case Single(action) => action.validated.map(_ => this)
     case Done           => Right(this)
 

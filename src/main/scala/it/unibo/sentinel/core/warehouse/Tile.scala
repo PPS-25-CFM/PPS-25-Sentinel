@@ -15,10 +15,10 @@ object Tile:
       */
     case NegativeCost(cost: Int)
 
-  trait Walkable extends Tile:
+  sealed trait Walkable extends Tile:
     def cost: Tick
 
-  trait Interactable extends Tile:
+  sealed trait Interactable extends Tile:
     def interactiveOffset(using Adjacency): Seq[Position]
 
 

@@ -12,6 +12,8 @@ object ItemWeight:
     */
   def apply(weight: Double): ItemWeight = Math.max(weight, Zero.value)
 
+  def unapply(weight: ItemWeight): Option[Double] = Some(weight)
+
   /** Explicit extension methods for ItemWeight operations
     */
   extension (weight: ItemWeight)
