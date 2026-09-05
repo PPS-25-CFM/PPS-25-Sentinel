@@ -16,13 +16,24 @@ trait Navigator:
 
   /** @param from
     *   the starting [[Position]].
+    * @param destinations
+    *   a [[Seq]] of possible destionations.
+    * @return
+    *   An [[Option]] containing a [[Path]] between `from` and the closest
+    *   destination in `destinations`, if a path exists in the given
+    *   [[Warehouse]].
+    */
+  def path(from: Position, destinations: Set[Position]): Option[Path]
+
+  /** @param from
+    *   the starting [[Position]].
     * @param to
     *   the destination [[Position]].
     * @return
     *   An [[Option]] containing a [[Path]] between `from` and `to` if a path
     *   exists in the given [[Warehouse]].
     */
-  def path(from: Position, to: Position): Option[Path]
+  def path(from: Position, to: Position): Option[Path] = path(from, Set(to))
 
   /** @param from
     *   the starting [[Position]].
@@ -46,7 +57,10 @@ object Navigator:
   def apply(metric: Metric)(using w: Warehouse): Navigator =
     new Navigator:
       given warehouse: Warehouse = w
-      override def path(from: Position, to: Position): Option[Path] =
+      override def path(
+          from: Position,
+          destinations: Set[Position]
+      ): Option[Path] =
         @tailrec
         def loop(
             fringe: Map[Position, Score],
@@ -54,8 +68,9 @@ object Navigator:
             parent: Map[Position, Position]
         ): Option[Path] =
           fringe.minByOption((_, d) => d) match
-            case None            => None
-            case Some((`to`, _)) => fromParent(parent)(from, to)
+            case None                                       => None
+            case Some((to, _)) if destinations.contains(to) =>
+              fromParent(parent)(from, to)
             case Some((curr, d)) =>
               val seen = visited + curr
               val relaxed = warehouse
