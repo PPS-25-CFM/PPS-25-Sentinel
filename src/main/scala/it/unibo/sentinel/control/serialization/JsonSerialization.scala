@@ -50,6 +50,7 @@ object JsonSerialization:
   given ReadWriter[Assignment.Nearest.type] = macroRW
   given ReadWriter[Assignment] = macroRW
   given ReadWriter[CollisionSelection.Random.type] = macroRW
+  given ReadWriter[CollisionSelection.Deadline.type] = macroRW
   given ReadWriter[CollisionSelection] = macroRW
   given ReadWriter[CollisionAvoidance.Wait.type] = macroRW
   given ReadWriter[CollisionAvoidance] = macroRW

@@ -3,26 +3,37 @@ package it.unibo.sentinel.core.collisions
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.simulation.Event
 import it.unibo.sentinel.core.robot.RobotStatus
+import it.unibo.sentinel.core.scenario.Intent
+import it.unibo.sentinel.core.collisions.CollisionChecker.canMove
 
 private[collisions] final class PauseCollisionHandler extends BasicHandler:
 
   override def resolveCollisions(placements: Seq[Placement])(using
       selection: SelectionPolicy
   ): Seq[Event] =
-    val directCollisions = CollisionChecker.colliding(placements)
-    val directEvents = blockMoving(directCollisions.flatMap((p1, p2) => Seq(p1, p2)))
-    val unmovable =
-      placements.filterNot(CollisionChecker.canMove(_, placements))
-    val unmovableEvents = blockMoving(unmovable)
-    val movable = placements.filterNot(unmovable.toSet)
+    // Block robots that collide face-to-face
+    val directCollisions =
+      CollisionChecker.colliding(placements).flatMap((p1, p2) => Seq(p1, p2))
+    val directEvents = blockMoving(directCollisions)
+
+    val blockedIntents = directCollisions.map(p => Intent(p.robot.id, p.at))
+    val others = placements.diff(directCollisions)
     val groupEvents = CollisionChecker
-      .checkCollisions(movable.map(_.intent))
+      .checkCollisions(blockedIntents ++ others.map(_.intent))
       .flatMap { group =>
-        val colliding = movable.filter(p => group.contains(p.robot.id))
-        val (selected, notSelected) = partition(colliding)
-        blockMoving(notSelected) ++ resumeWaiting(selected)
+        val events = for
+          robots = placements.filter(p => group.contains(p.robot.id))
+          ex <- robots.headOption
+          target = ex.intent
+        yield
+          if robots.exists(p => p.at == target.position) then blockMoving(robots)
+          else
+            val moveable = robots.filter(p => canMove(p, placements))
+            val (selected, notSelected) = partition(moveable)
+            blockMoving(notSelected) ++ resumeWaiting(selected)
+        events.getOrElse(Seq())
       }
-    directEvents ++ unmovableEvents ++ groupEvents
+    directEvents ++ groupEvents
 
   private def resumeWaiting(placements: Seq[Placement]): Seq[Event] =
     transitionRobot(

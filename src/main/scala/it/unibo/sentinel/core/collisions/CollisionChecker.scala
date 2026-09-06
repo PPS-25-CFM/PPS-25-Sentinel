@@ -3,7 +3,6 @@ package it.unibo.sentinel.core.collisions
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.scenario.Intent
 import it.unibo.sentinel.core.scenario.Placement
-import it.unibo.sentinel.core.robot.RobotStatus
 import it.unibo.sentinel.core.simulation.Tick
 
 /** Used to check for collisions between [[Robot]]s
@@ -44,14 +43,13 @@ object CollisionChecker extends CollisionChecker:
       .toSeq
 
   override def canMove(placement: Placement, fleet: Seq[Placement]): Boolean =
-    placement.robot.status == RobotStatus.Moving &&
+    placement.intent.position != placement.at &&
       fleet.filterNot(_ == placement).forall { other =>
         val targetOccupied = other.at == placement.intent.position
         lazy val targetBlocked =
-          other.robot.remaining == Tick.zero ||
-            other.intent.position == placement.at ||
+          other.intent.position == placement.at ||
             !canMove(other, fleet)
-        !(targetOccupied && targetBlocked)
+        !(targetOccupied && (other.robot.remaining != Tick.zero || targetBlocked))
       }
 
   override def colliding(

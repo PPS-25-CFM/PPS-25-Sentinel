@@ -9,7 +9,13 @@ trait CollisionHandlerFixture extends CollisionCheckerFixture:
   self: UnitTest =>
 
   given SelectionPolicy = SelectionPolicy.random()
-  val handler: CollisionHandler = CollisionHandler.pausing()
+  val pausing: CollisionHandler = CollisionHandler.pausing()
+  val placements: Seq[Placement] = Seq(
+    Placement(r1, Position(0, 1)),
+    Placement(r2, Position(1, 0)),
+    Placement(r3, Position(2, 1))
+  )
+  placements.foreach(_.robot.tick())
 
 class CollisionHandlerSpec extends UnitTest with CollisionHandlerFixture:
 
@@ -18,8 +24,7 @@ class CollisionHandlerSpec extends UnitTest with CollisionHandlerFixture:
     "handling collisions" should:
 
       "pause all but one random robot" in:
-        val placements = group1.map(r => Placement(r, Position(0, 0)))
-        handler.resolveCollisions(placements)
+        pausing.resolveCollisions(placements)
         forExactly(1, group1) { robot =>
           robot.status should not be RobotStatus.Waiting
         }

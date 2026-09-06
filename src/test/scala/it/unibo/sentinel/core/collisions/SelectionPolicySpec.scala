@@ -29,8 +29,7 @@ trait SelectionPolicyFixture:
     i <- 0 until 5
     robot = robots(i)
     mission = missions(i)
-  do
-    robot.accept(mission.id)
+  do robot.accept(mission.id)
 
 class SelectionPolicySpec extends UnitTest with SelectionPolicyFixture:
 
@@ -43,7 +42,7 @@ class SelectionPolicySpec extends UnitTest with SelectionPolicyFixture:
       "select random robots from a given list" in:
         val selection: Iterable[RobotId] = policy.select(robots)
         selection.size shouldBe selections
-    
+
     "selecting based on mission deadline" should:
       given Seq[Mission] = missions
       val policy = SelectionPolicy.closestDeadline()

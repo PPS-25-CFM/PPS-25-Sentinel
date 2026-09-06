@@ -35,8 +35,7 @@ private[core] object Phase:
   def collisionHandling(using
       handler: CollisionHandler,
       selector: SelectionPolicy
-  ): Phase = world =>
-    handler.resolveCollisions(world.placements)
+  ): Phase = world => handler.resolveCollisions(world.placements)
 
   def moving: Phase = world =>
     for

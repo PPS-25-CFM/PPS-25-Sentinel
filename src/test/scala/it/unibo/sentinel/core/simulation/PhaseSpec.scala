@@ -23,7 +23,7 @@ class PhaseSpec
   given Warehouse = warehouse
   given navigator: Navigator = scenario.routing()
   given selector: Selector = scenario.assignment()
-  given SelectionPolicy = scenario.collisionSelection()
+  given SelectionPolicy = scenario.collisionSelection()(using scenario.missions)
   given CollisionHandler = scenario.collisionAvoidance()
 
   /*
@@ -112,11 +112,18 @@ class PhaseSpec
 
       "unblock if they can move" in:
         Phase.assigning(world)
-        world.route(r1, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
-        world.route(r2, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
+        world.route(
+          r1,
+          Path(Step(Position(2, 1), Tick.unit), Step(Position(2, 2), Tick.unit))
+        )
+        world.route(
+          r2,
+          Path(Step(Position(2, 1), Tick.unit), Step(Position(2, 2), Tick.unit))
+        )
         Phase.expiring(world)
-        Phase.expiring(world)
-        Phase.collisionHandling(world)
+        Phase.collisionHandling(world) should matchPattern {
+          case Seq(Event.RobotBlocked(_, _)) =>
+        }
         Phase.moving(world) should matchPattern {
           case Seq(Event.RobotMoved(_, _, _)) =>
         }
@@ -124,6 +131,7 @@ class PhaseSpec
         Phase.collisionHandling(world) should matchPattern {
           case Seq(Event.RobotUnblocked(_)) =>
         }
+        Phase.moving(world)
         Phase.expiring(world)
         Phase.moving(world) should matchPattern {
           case Seq(Event.RobotMoved(_, _, _), Event.RobotMoved(_, _, _)) =>

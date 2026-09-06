@@ -40,7 +40,7 @@ private abstract class BasicHandler extends CollisionHandler:
         (Seq(standing), placements.filterNot(_ == standing))
       case None =>
         placements.partition(p => selectedIds.contains(p.robot.id))
-  
+
   protected def transitionRobot(
       placements: Seq[Placement],
       status: RobotStatus,

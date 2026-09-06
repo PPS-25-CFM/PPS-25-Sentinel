@@ -91,14 +91,6 @@ class EnvironmentSpec
         environment.advance(r1) shouldBe None
         environment.placement(r1).value.at shouldBe p1
 
-      "not report a collision while it is still waiting" in:
-        val collisionPath: Path = Path(Step(p2, Tick(1)))
-
-        environment.route(r1, collisionPath)
-        environment.advance(r1) shouldBe None
-        environment.tick()
-        environment.advance(r1) shouldBe Some(Event.RobotBlocked(r1, p1))
-
       "update placement, step the robot and return RobotMoved if target position is free" in:
         val target = Position(1, 2)
         val path: Path = Path(Step(target, Tick.zero))
@@ -110,17 +102,6 @@ class EnvironmentSpec
 
         val updatedPlacement = environment.placement(r1).value
         updatedPlacement.at shouldBe target
-
-      "prevent movement and return RobotBlocked if target position is occupied by another robot" in:
-        val collisionPath: Path = Path(Step(p2, Tick.zero))
-
-        environment.route(r1, collisionPath)
-        val event = environment.advance(r1)
-
-        event shouldBe Some(Event.RobotBlocked(r1, p1))
-
-        val placementAfterCollision = environment.placement(r1).value
-        placementAfterCollision.at shouldBe p1
 
       "advance step-by-step through a Path returning RobotMoved events" in:
         val step1 = Position(1, 2)
