@@ -2,6 +2,7 @@ package it.unibo.sentinel.core.collisions
 
 import it.unibo.sentinel.core.simulation.Event
 import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.robot.RobotStatus
 
 /** Defines how to handle collisions between [[Robot]]s
   */
@@ -39,6 +40,19 @@ private abstract class BasicHandler extends CollisionHandler:
         (Seq(standing), placements.filterNot(_ == standing))
       case None =>
         placements.partition(p => selectedIds.contains(p.robot.id))
+  
+  protected def transitionRobot(
+      placements: Seq[Placement],
+      status: RobotStatus,
+      action: Placement => Unit,
+      toEvent: Placement => Event
+  ): Seq[Event] =
+    placements
+      .filter(_.robot.status == status)
+      .map { p =>
+        action(p)
+        toEvent(p)
+      }
 
 object CollisionHandler:
 

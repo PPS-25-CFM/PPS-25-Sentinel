@@ -27,6 +27,14 @@ trait CollisionChecker:
     */
   def canMove(placement: Placement, placements: Seq[Placement]): Boolean
 
+  /** @param placements
+    *   the placements of robots to check for direct collisions.
+    * @return
+    *   a list of placements that are colliding between each other in pairs (one
+    *   against the other).
+    */
+  def colliding(placements: Seq[Placement]): Seq[(Placement, Placement)]
+
 object CollisionChecker extends CollisionChecker:
 
   override def checkCollisions(intents: Seq[Intent]): Seq[Seq[RobotId]] =
@@ -45,3 +53,16 @@ object CollisionChecker extends CollisionChecker:
             !canMove(other, fleet)
         !(targetOccupied && targetBlocked)
       }
+
+  override def colliding(
+      placements: Seq[Placement]
+  ): Seq[(Placement, Placement)] =
+    for
+      (placement, index) <- placements.zipWithIndex
+      collider <- placements
+        .drop(index + 1)
+        .find: other =>
+          other.robot.id != placement.robot.id &&
+            other.at == placement.intent.position &&
+            other.intent.position == placement.at
+    yield (placement, collider)
