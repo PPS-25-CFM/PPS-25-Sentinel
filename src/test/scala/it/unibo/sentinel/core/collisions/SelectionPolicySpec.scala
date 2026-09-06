@@ -7,6 +7,8 @@ import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.simulation.Tick
+import it.unibo.sentinel.core.scenario.Policies.CollisionSelection
+import it.unibo.sentinel.core.mission.Priority
 
 trait SelectionPolicyFixture:
   self: UnitTest =>
@@ -19,11 +21,11 @@ trait SelectionPolicyFixture:
     Robot.drone(RobotId("R5"))
   )
   val missions: Seq[Mission] = Seq(
-    Mission.relocate(MissionId("M1"), Position(1, 1), Tick(1)),
-    Mission.relocate(MissionId("M2"), Position(2, 2), Tick(2)),
-    Mission.relocate(MissionId("M3"), Position(3, 3), Tick(3)),
-    Mission.relocate(MissionId("M4"), Position(4, 4), Tick(4)),
-    Mission.relocate(MissionId("M5"), Position(5, 5), Tick(5))
+    Mission.relocate(MissionId("M1"), Position(1, 1), Tick(1), Priority(1)),
+    Mission.relocate(MissionId("M2"), Position(2, 2), Tick(2), Priority(2)),
+    Mission.relocate(MissionId("M3"), Position(3, 3), Tick(3), Priority(3)),
+    Mission.relocate(MissionId("M4"), Position(4, 4), Tick(4), Priority(4)),
+    Mission.relocate(MissionId("M5"), Position(5, 5), Tick(5), Priority(5))
   )
   for
     i <- 0 until 5
@@ -35,6 +37,7 @@ class SelectionPolicySpec extends UnitTest with SelectionPolicyFixture:
 
   "A selection policy" when:
     val selections = 1
+    given Seq[Mission] = missions
 
     "selecting randomly" should:
       val policy = SelectionPolicy.random(selections)
@@ -44,8 +47,13 @@ class SelectionPolicySpec extends UnitTest with SelectionPolicyFixture:
         selection.size shouldBe selections
 
     "selecting based on mission deadline" should:
-      given Seq[Mission] = missions
       val policy = SelectionPolicy.closestDeadline()
 
       "select the robot with the mission closest to failing" in:
         policy.select(robots) shouldBe Seq(robots(0).id)
+
+    "selecting based on mission priority" should:
+      val policy = SelectionPolicy.highestPriority()
+
+      "select the robot with the highest priority mission" in:
+        policy.select(robots) shouldBe Seq(robots.last.id)

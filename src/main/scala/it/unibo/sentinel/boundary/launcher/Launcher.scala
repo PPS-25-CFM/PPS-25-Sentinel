@@ -5,7 +5,6 @@ import it.unibo.sentinel.boundary.gui.fx.FxToolkit
 import it.unibo.sentinel.core.simulation.Simulation
 import it.unibo.sentinel.control.Engine
 import scala.concurrent.duration.*
-import it.unibo.sentinel.control.serialization.FileRepository
 import it.unibo.sentinel.core.scenario.Scenario
 import it.unibo.sentinel.control.serialization.Repository
 import it.unibo.sentinel.core.warehouse.Warehouse
@@ -34,7 +33,9 @@ object Launcher:
 
   def loadScenario(): Either[Validation, Scenario] =
     import it.unibo.sentinel.control.serialization.JsonSerialization.given
-
+    import it.unibo.sentinel.control.serialization.FileRepository
+    os.remove.all(FileRepository.folderPath)
+    os.makeDir.all(FileRepository.folderPath)
     given warehouseRepo: FileRepository[Warehouse] =
       new FileRepository[Warehouse]
     val scenarioRepo: Repository[String, Scenario] =

@@ -45,12 +45,14 @@ object Policies:
 
     case Random
     case Deadline
+    case Priority
 
     def apply(selections: Int = 1)(using
         missionSupplier: => Seq[Mission]
     ): SelectionPolicy = this match
       case Random   => SelectionPolicy.random(selections)
       case Deadline => SelectionPolicy.closestDeadline(selections)
+      case Priority => SelectionPolicy.highestPriority(selections)
 
   enum CollisionAvoidance:
 

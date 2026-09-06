@@ -36,16 +36,28 @@ object SelectionPolicy:
     * @param missions
     *   list of [[Mission]]s to extract the deadline from.
     */
-  def closestDeadline(
+  def closestDeadline(selections: Int = 1)(using
+      missions: => Seq[Mission]
+  ): SelectionPolicy =
+    selectByMissionProperty(selections, _.deadline)
+
+  def highestPriority(
       selections: Int = 1
+  )(using missions: => Seq[Mission]): SelectionPolicy =
+    selectByMissionProperty(selections, _.priority, false)
+
+  private def selectByMissionProperty[A: Ordering](
+      selections: Int,
+      extractProperty: Mission => A,
+      ascending: Boolean = true
   )(using missions: => Seq[Mission]): SelectionPolicy = robots =>
-    robots
-      .flatMap { r =>
-        for
-          missionId <- r.mission
-          mission <- missions.find(_.id == missionId)
-        yield (r.id, mission.deadline)
-      }
-      .sortBy(_._2)
-      .map(_._1)
-      .take(selections)
+    val result = robots.flatMap { r =>
+      for
+        missionId <- r.mission
+        mission <- missions.find(_.id == missionId)
+      yield (r.id, extractProperty(mission))
+    }
+    val sorted =
+      if ascending then result.sortBy(_._2)
+      else result.sortBy(_._2)(using Ordering[A].reverse)
+    sorted.map(_._1).take(selections)

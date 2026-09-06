@@ -4,6 +4,36 @@ import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.simulation.Tick
 
+/** */
+opaque type Priority = Int
+
+object Priority:
+  private val min: Int = 1
+  private val max: Int = 10
+
+  /** */
+  val lowest: Priority = min
+
+  /** */
+  val normal: Priority = Priority(5)
+
+  /** */
+  val highest: Priority = max
+
+  /** */
+  def apply(value: Int): Priority =
+    require(
+      min <= value && value <= max,
+      s"priority must be within $min and $max!"
+    )
+    value
+
+  given Ordering[Priority] = Ordering.Int
+
+  extension (priority: Priority)
+    /** */
+    def value: Int = priority
+
 /** Domain context entity representing a mission within the Sentinel system.
   *
   * @param id
@@ -22,7 +52,8 @@ final case class Mission private (
     task: Task,
     deadline: Tick,
     status: MissionStatus,
-    carrier: Option[RobotId]
+    carrier: Option[RobotId],
+    priority: Priority
 ):
   import MissionStatus.*
 
@@ -146,13 +177,15 @@ object Mission:
   def apply(
       id: MissionId,
       task: Task,
-      deadline: Tick
+      deadline: Tick,
+      priority: Priority
   ): Mission = new Mission(
     id,
     task,
     deadline,
     MissionStatus.Pending,
-    None
+    None,
+    priority
   )
 
   /** @param id
@@ -166,5 +199,10 @@ object Mission:
     *   A new relocation [[Mission]] initialized in the unassigned
     *   [[MissionStatus.Pending]] state.
     */
-  def relocate(id: MissionId, destination: Position, duration: Tick): Mission =
-    Mission(id, Task.move(destination), duration)
+  def relocate(
+      id: MissionId,
+      destination: Position,
+      duration: Tick,
+      priority: Priority
+  ): Mission =
+    Mission(id, Task.move(destination), duration, priority)
