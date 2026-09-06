@@ -8,13 +8,14 @@ import scalafx.scene.layout.BorderPane
 import scalafx.application.Platform
 import scalafx.Includes.{eventClosureWrapperWithParam, jfxKeyEvent2sfx}
 import scalafx.scene.input.{KeyCode, KeyEvent}
-import it.unibo.sentinel.core.mission.{Mission, MissionStatus}
+import it.unibo.sentinel.core.mission.{Action, Mission, MissionStatus}
 import it.unibo.sentinel.boundary.gui.fx.panels.{
   SideData,
   SidePanel,
   WarehousePanel
 }
-import it.unibo.sentinel.core.simulation.{StepResult, Event}
+import it.unibo.sentinel.core.simulation.{Snapshot, StepResult, Event}
+import it.unibo.sentinel.core.warehouse.Tile
 import it.unibo.sentinel.boundary.gui.toolkit.SimulationView
 import it.unibo.sentinel.control.Controller
 
@@ -71,11 +72,21 @@ object FxToolkit extends Toolkit:
         val robotsData = SideData(
           "Robots",
           model.snapshot.robots.map(r =>
-            s"${r.id} at ${r.position} - ${r.status}"
+            val assignment = model.snapshot.missions
+              .find(_.carrier.contains(r.id))
+              .map(m => s" - on ${m.id}")
+              .getOrElse(" - free")
+            s"${r.id} at ${r.position} - ${r.status}$assignment"
           )
         )
+        val warehouseData = SideData(
+          "Warehouse",
+          describeWarehouse(model.snapshot)
+        )
         val eventsData = SideData("Events", model.events.map(parseEvent(_)))
-        rightSidePanel.updateData(Iterable(robotsData, eventsData))
+        rightSidePanel.updateData(
+          Iterable(robotsData, warehouseData, eventsData)
+        )
 
       /** @param status
         *   used to filter the missions
@@ -94,10 +105,28 @@ object FxToolkit extends Toolkit:
         *   a brief description of the given mission
         */
       private def parseMission(mission: Mission): String =
-        val destinationLabel = mission.currentTarget match
-          case Some(p) => s" - move to $p"
+        val actions = mission.task.actions.toSeq
+        val taskLabel =
+          if actions.isEmpty then "done"
+          else actions.map(parseAction).mkString(" -> ")
+        val currentLabel = mission.currentTarget match
+          case Some(p) => s" - next $p"
           case _       => ""
-        s"${mission.id}$destinationLabel - ${mission.deadline} ticks remaining"
+        s"${mission.id}: $taskLabel$currentLabel - ${mission.deadline} ticks remaining"
+
+      private def parseAction(action: Action): String = action match
+        case Action.Move(to)         => s"move to $to"
+        case Action.PickUp(item, at) => s"pick $item @ $at"
+        case Action.Drop(item, at)   => s"drop $item @ $at"
+
+      private def describeWarehouse(snapshot: Snapshot): Iterable[String] =
+        val shelves = snapshot.warehouse.tiles.collect:
+          case (pos, Tile.Shelf(item)) => s"Shelf $item at $pos"
+        val bays = snapshot.warehouse.tiles.collect:
+          case (pos, _: Tile.LoadingBay) => s"Bay at $pos"
+        (shelves.sorted ++ bays.sorted) match
+          case Seq() => Seq("no shelves/bays")
+          case other => other
 
       /** @param event
         *   the event to extract the description from
