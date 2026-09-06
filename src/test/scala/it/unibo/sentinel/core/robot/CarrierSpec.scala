@@ -5,6 +5,7 @@ import it.unibo.sentinel.core.item.{Item, ItemWeight}
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.robot.RobotStatus
 
 class CarrierSpec extends UnitTest with RobotFixture with RobotBehavior:
 
@@ -86,3 +87,14 @@ class CarrierSpec extends UnitTest with RobotFixture with RobotBehavior:
         robot.drop(Item.Computer) shouldBe Some(Item.Computer)
         robot.drop(Item.Computer) shouldBe Some(Item.Computer)
         robot.drop(Item.Computer) shouldBe None
+
+    "clearing its route" should:
+      "forget the path but keep the mission" in:
+        val robot = Robot.carrier(robotId, maxLoad)
+        robot.accept(mission1)
+        robot.follow(path)
+        robot.status shouldBe RobotStatus.Moving
+        robot.clearRoute()
+        robot.path shouldBe None
+        robot.mission shouldBe Some(m1)
+        robot.status shouldBe RobotStatus.Ready

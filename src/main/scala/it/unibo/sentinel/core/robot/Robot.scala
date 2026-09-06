@@ -45,6 +45,12 @@ trait Robot:
     */
   def release(): Unit
 
+  /** Clears the current path without removing the mission.
+    * Used for the intermediate pick -> drop step: the robot must return to
+    * Ready (Some, None) to be re-routed, without losing the mission.
+    */
+  def clearRoute(): Unit
+
   /** Sets a [[Path]] to follow
     *
     * @param path
@@ -165,6 +171,9 @@ object Robot:
           case (_, Some(_))    => RobotStatus.Moving
 
     override def release(): Unit =
+      currentPath = None
+
+    override def clearRoute(): Unit =
       currentPath = None
 
     override def path: Option[Path] = currentPath

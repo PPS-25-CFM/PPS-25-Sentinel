@@ -3,7 +3,7 @@ package it.unibo.sentinel.core.simulation
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus}
+import it.unibo.sentinel.core.mission.{Action, Mission, MissionId, MissionStatus}
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.robot.RobotStatus
 
@@ -148,7 +148,9 @@ private[core] final class Environment private[core] (
 
   /** @param r_id
     * @return
-    *   [[Event.MissionCompleted]] if the mission was active, [[None]] otherwise
+    *   [[Event.MissionCompleted]] if the mission reached [[Task.Done]],
+    *   [[Event.ItemPicked]] / [[Event.ItemDropped]] for intermediate deposit
+    *   steps, [[Event.MissionFailed]] if pick/drop failed, [[None]] otherwise
     */
   def perform(r_id: RobotId): Option[Event] =
     for
@@ -156,10 +158,35 @@ private[core] final class Environment private[core] (
       robot = spot.robot
       m_id <- robot.mission
       mission <- board.get(m_id)
-    yield
-      robot.release()
-      board += (m_id -> mission.complete)
-      Event.MissionCompleted(m_id)
+      action <- mission.currentAction
+    yield action match
+      case Action.Move(_) =>
+        robot.release()
+        board += (m_id -> mission.complete)
+        Event.MissionCompleted(m_id)
+
+      case Action.PickUp(item, at) =>
+        if robot.pick(item) then
+          robot.clearRoute()
+          board += (m_id -> mission.completeCurrentAction)
+          Event.ItemPicked(r_id, m_id, item, at)
+        else
+          board += (m_id -> mission.fail)
+          releaseCarrier(mission)
+          Event.MissionFailed(m_id)
+
+      case Action.Drop(item, at) =>
+        robot.drop(item) match
+          case Some(dropped) =>
+            val next = mission.completeCurrentAction
+            board += (m_id -> next)
+            if next.isOver then robot.release() else robot.clearRoute()
+            if next.isOver then Event.MissionCompleted(m_id)
+            else Event.ItemDropped(r_id, m_id, dropped, at)
+          case None =>
+            board += (m_id -> mission.fail)
+            releaseCarrier(mission)
+            Event.MissionFailed(m_id)
 
   /** Advances all missions in the environment by one step.
     *

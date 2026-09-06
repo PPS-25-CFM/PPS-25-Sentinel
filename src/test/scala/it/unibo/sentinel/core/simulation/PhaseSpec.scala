@@ -7,9 +7,11 @@ import it.unibo.sentinel.core.warehouse.Warehouse
 import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
-import it.unibo.sentinel.core.warehouse.Position
-import it.unibo.sentinel.core.mission.MissionStatus
+import it.unibo.sentinel.core.warehouse.{Position, Tile}
+import it.unibo.sentinel.core.item.Item
+import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus}
 import it.unibo.sentinel.core.robot.RobotStatus
+import it.unibo.sentinel.core.scenario.{RobotClass, Scenario, Spawn}
 import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
 import it.unibo.sentinel.core.routing.Path
@@ -157,7 +159,68 @@ class PhaseSpec
         world.mission(m2).value.status shouldBe MissionStatus.Assigned
         world.robot(r2).value.status shouldBe RobotStatus.Moving
 
-    "The expiring phase" when:
+  "The routing phase with deposit" when:
+
+    "a carrier has a pick mission" should:
+
+      "route to an interactionPoint of the shelf, not onto the shelf" in:
+        val depId = MissionId("D1")
+        val shelf = Position(2, 2)
+        val bay = Position(3, 3)
+        val wh = warehouse
+          .withTile(shelf)(Tile.Shelf(Item.Computer))
+          .withTile(bay)(Tile.LoadingBay())
+        val depScenario = (for
+          s0 <- Right(Scenario.in(wh))
+          s1 <- s0.place(Spawn(r1, p1, RobotClass.Carrier))
+          s2 <- s1.load(Mission.deliver(depId, Item.Computer, shelf, bay, deadline))
+        yield s2).value
+        world = depScenario.build
+        val depNav = depScenario.routing()(using wh)
+        val depSel = depScenario.assignment()(using depNav)
+
+        Phase.assigning(using depSel)(world)
+        val routed = Phase.routing(using depNav)(world)
+        assert(routed.nonEmpty, "expected at least one RobotRouted event")
+        val paths = routed.collect { case Event.RobotRouted(_, path) => path }
+        assert(paths.nonEmpty, "expected at least one path")
+        for path <- paths do
+          assert(path.nonEmpty, "expected non-empty path")
+          assert(path.lastOption.value != shelf, "path should not end onto the shelf")
+          assert(
+            wh.interactionPoints(shelf).contains(path.lastOption.value),
+            "path should end on a shelf interaction point"
+          )
+
+  "The performing phase with deposit" when:
+
+    "a carrier stands on the shelf interaction point" should:
+
+      "emit ItemPicked and stay Assigned" in:
+        val depId = MissionId("D1")
+        val shelf = Position(2, 2)
+        val bay = Position(3, 3)
+        val wh = warehouse
+          .withTile(shelf)(Tile.Shelf(Item.Computer))
+          .withTile(bay)(Tile.LoadingBay())
+        val spot = wh.interactionPoints(shelf).headOption.value
+        val depScenario = (for
+          s0 <- Right(Scenario.in(wh))
+          s1 <- s0.place(Spawn(r1, spot, RobotClass.Carrier))
+          s2 <- s1.load(Mission.deliver(depId, Item.Computer, shelf, bay, deadline))
+        yield s2).value
+        world = depScenario.build
+        val depNav = depScenario.routing()(using wh)
+        val depSel = depScenario.assignment()(using depNav)
+
+        Phase.assigning(using depSel)(world)
+        Phase.performing(world) should contain(
+          Event.ItemPicked(r1, depId, Item.Computer, shelf)
+        )
+        world.mission(depId).value.status shouldBe MissionStatus.Assigned
+        world.robot(r1).value.status shouldBe RobotStatus.Ready
+
+  "The expiring phase" when:
 
       "the duration of a mission is exhausted" should:
 

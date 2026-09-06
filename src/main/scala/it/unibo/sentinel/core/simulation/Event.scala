@@ -3,6 +3,7 @@ package it.unibo.sentinel.core.simulation
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.item.Item
 
 /** A simulation event, representing a change in the environment.
   */
@@ -59,3 +60,29 @@ enum Event:
     *   the robot that was unblocked.
     */
   case RobotUnblocked(robot: RobotId)
+
+  /** An item has been picked up from a shelf.
+    *
+    * @param robot
+    *   the robot that picked up the item.
+    * @param mission
+    *   the mission the pick belongs to.
+    * @param item
+    *   the picked [[Item]].
+    * @param at
+    *   the [[Position]] of the shelf.
+    */
+  case ItemPicked(robot: RobotId, mission: MissionId, item: Item, at: Position)
+
+  /** An item has been dropped at a loading bay (intermediate step).
+    *
+    * @param robot
+    *   the robot that dropped the item.
+    * @param mission
+    *   the mission the drop belongs to.
+    * @param item
+    *   the dropped [[Item]].
+    * @param at
+    *   the [[Position]] of the loading bay.
+    */
+  case ItemDropped(robot: RobotId, mission: MissionId, item: Item, at: Position)

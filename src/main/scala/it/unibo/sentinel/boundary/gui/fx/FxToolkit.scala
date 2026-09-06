@@ -117,3 +117,7 @@ object FxToolkit extends Toolkit:
             s"$robotId moved from $from to $to"
           case Event.RobotBlocked(robotId, at) => s"$robotId blocked at $at"
           case Event.RobotUnblocked(robotId)   => s"$robotId unblocked"
+          case Event.ItemPicked(robotId, missionId, item, at) =>
+            s"$robotId picked $item for $missionId at $at"
+          case Event.ItemDropped(robotId, missionId, item, at) =>
+            s"$robotId dropped $item for $missionId at $at"
