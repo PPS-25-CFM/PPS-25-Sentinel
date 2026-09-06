@@ -173,7 +173,9 @@ class PhaseSpec
         val depScenario = (for
           s0 <- Right(Scenario.in(wh))
           s1 <- s0.place(Spawn(r1, p1, RobotClass.Carrier))
-          s2 <- s1.load(Mission.deliver(depId, Item.Computer, shelf, bay, deadline))
+          s2 <- s1.load(
+            Mission.deliver(depId, Item.Computer, shelf, bay, deadline)
+          )
         yield s2).value
         world = depScenario.build
         val depNav = depScenario.routing()(using wh)
@@ -186,7 +188,10 @@ class PhaseSpec
         assert(paths.nonEmpty, "expected at least one path")
         for path <- paths do
           assert(path.nonEmpty, "expected non-empty path")
-          assert(path.lastOption.value != shelf, "path should not end onto the shelf")
+          assert(
+            path.lastOption.value != shelf,
+            "path should not end onto the shelf"
+          )
           assert(
             wh.interactionPoints(shelf).contains(path.lastOption.value),
             "path should end on a shelf interaction point"
@@ -207,7 +212,9 @@ class PhaseSpec
         val depScenario = (for
           s0 <- Right(Scenario.in(wh))
           s1 <- s0.place(Spawn(r1, spot, RobotClass.Carrier))
-          s2 <- s1.load(Mission.deliver(depId, Item.Computer, shelf, bay, deadline))
+          s2 <- s1.load(
+            Mission.deliver(depId, Item.Computer, shelf, bay, deadline)
+          )
         yield s2).value
         world = depScenario.build
         val depNav = depScenario.routing()(using wh)
@@ -222,16 +229,16 @@ class PhaseSpec
 
   "The expiring phase" when:
 
-      "the duration of a mission is exhausted" should:
+    "the duration of a mission is exhausted" should:
 
-        "signal its failure" in:
-          val events =
-            for
-              _ <- 1 to deadline.value
-              event <- Phase.expiring(world)
-            yield event
+      "signal its failure" in:
+        val events =
+          for
+            _ <- 1 to deadline.value
+            event <- Phase.expiring(world)
+          yield event
 
-          events should contain theSameElementsAs Seq(
-            Event.MissionFailed(m1),
-            Event.MissionFailed(m2)
-          )
+        events should contain theSameElementsAs Seq(
+          Event.MissionFailed(m1),
+          Event.MissionFailed(m2)
+        )

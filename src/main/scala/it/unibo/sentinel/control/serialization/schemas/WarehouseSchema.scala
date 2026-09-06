@@ -16,7 +16,7 @@ enum TileSchema extends Schema:
   case Floor(cost: Int)
 
   override def validated: Either[Validation, TileSchema] = this match
-    case Shelf(item) => item.validated.map(_ => this)
+    case Shelf(item)                  => item.validated.map(_ => this)
     case LoadingBay(cost) if cost < 0 =>
       Left(Validation.TileValidation(Tile.Validation.NegativeCost(cost)))
     case Floor(cost) if cost < 0 =>

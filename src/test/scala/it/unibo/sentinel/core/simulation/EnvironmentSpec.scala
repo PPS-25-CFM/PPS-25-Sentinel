@@ -2,7 +2,12 @@ package it.unibo.sentinel.core.simulation
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.item.Item
-import it.unibo.sentinel.core.mission.{Action, Mission, MissionId, MissionStatus}
+import it.unibo.sentinel.core.mission.{
+  Action,
+  Mission,
+  MissionId,
+  MissionStatus
+}
 import it.unibo.sentinel.core.robot.{RobotId, RobotStatus}
 import it.unibo.sentinel.core.routing.{Path, Step}
 import it.unibo.sentinel.core.scenario.{RobotClass, Scenario, Spawn}
@@ -172,7 +177,9 @@ class EnvironmentSpec
         val sc = (for
           s0 <- Right(Scenario.in(wh))
           s1 <- s0.place(Spawn(carrier, p1, RobotClass.Carrier))
-          s2 <- s1.load(Mission.deliver(depId, Item.Computer, shelf, bay, Tick(10)))
+          s2 <- s1.load(
+            Mission.deliver(depId, Item.Computer, shelf, bay, Tick(10))
+          )
         yield s2).value
         environment = sc.build
 
@@ -186,7 +193,9 @@ class EnvironmentSpec
         environment.robot(carrier).value.mission shouldBe Some(depId)
         environment.robot(carrier).value.status shouldBe RobotStatus.Ready
 
-        environment.perform(carrier) shouldBe Some(Event.MissionCompleted(depId))
+        environment.perform(carrier) shouldBe Some(
+          Event.MissionCompleted(depId)
+        )
         environment.mission(depId).value.status shouldBe MissionStatus.Completed
         environment.robot(carrier).value.mission shouldBe None
 
@@ -201,7 +210,9 @@ class EnvironmentSpec
         val sc = (for
           s0 <- Right(Scenario.in(wh))
           s1 <- s0.place(Spawn(carrier, p1, RobotClass.Carrier))
-          s2 <- s1.load(Mission.deliver(depId, Item.Fridge, shelf, bay, Tick(10)))
+          s2 <- s1.load(
+            Mission.deliver(depId, Item.Fridge, shelf, bay, Tick(10))
+          )
         yield s2).value
         environment = sc.build
 

@@ -45,9 +45,9 @@ trait Robot:
     */
   def release(): Unit
 
-  /** Clears the current path without removing the mission.
-    * Used for the intermediate pick -> drop step: the robot must return to
-    * Ready (Some, None) to be re-routed, without losing the mission.
+  /** Clears the current path without removing the mission. Used for the
+    * intermediate pick -> drop step: the robot must return to Ready (Some,
+    * None) to be re-routed, without losing the mission.
     */
   def clearRoute(): Unit
 
@@ -104,8 +104,7 @@ trait Robot:
     * @param item
     *   the [[Item]] to drop
     * @return
-    *   [[Some]] with the dropped [[Item]] if it was carried, [[None]]
-    *   otherwise
+    *   [[Some]] with the dropped [[Item]] if it was carried, [[None]] otherwise
     */
   def drop(item: Item): Option[Item]
 
@@ -230,6 +229,8 @@ object Robot:
       else false
 
     override def drop(item: Item): Option[Item] =
-      bag.find(_ == item).map:
-        found => bag = bag.diff(Seq(found))
-        found
+      bag
+        .find(_ == item)
+        .map: found =>
+          bag = bag.diff(Seq(found))
+          found

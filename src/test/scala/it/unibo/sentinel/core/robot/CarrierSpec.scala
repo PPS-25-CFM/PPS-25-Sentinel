@@ -12,7 +12,13 @@ class CarrierSpec extends UnitTest with RobotFixture with RobotBehavior:
   private val maxLoad = ItemWeight(10)
   private val deliverId = MissionId("D1")
   private val deliver: Mission =
-    Mission.deliver(deliverId, Item.Computer, Position(9, 9), Position(8, 8), Tick(10))
+    Mission.deliver(
+      deliverId,
+      Item.Computer,
+      Position(9, 9),
+      Position(8, 8),
+      Tick(10)
+    )
 
   "A Carrier" when:
     behave like baseRobot(Robot.carrier(robotId, maxLoad))

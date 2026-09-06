@@ -162,7 +162,9 @@ class MissionSpec extends UnitTest:
           Action.PickUp(Item.Computer, from),
           Action.Drop(Item.Computer, bay)
         )
-        pendingDeliver.currentAction shouldBe Some(Action.PickUp(Item.Computer, from))
+        pendingDeliver.currentAction shouldBe Some(
+          Action.PickUp(Item.Computer, from)
+        )
         pendingDeliver.currentTarget shouldBe Some(from)
         pendingDeliver.isPending shouldBe true
 

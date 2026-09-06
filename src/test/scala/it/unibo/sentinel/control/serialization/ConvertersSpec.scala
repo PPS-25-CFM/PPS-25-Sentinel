@@ -30,8 +30,11 @@ class ConvertersSpec extends UnitTest:
     )
 
     "convert all item kinds preserving identity" in:
-      Seq(Item.Computer, Item.Table, Item.Fridge, Item.Dishwasher).foreach: item =>
-        ItemConverter.toDomain(ItemConverter.toSchema(item)).shouldBe(Right(item))
+      Seq(Item.Computer, Item.Table, Item.Fridge, Item.Dishwasher).foreach:
+        item =>
+          ItemConverter
+            .toDomain(ItemConverter.toSchema(item))
+            .shouldBe(Right(item))
 
   "A WarehouseConverter" when:
     val model: Warehouse = Warehouse
@@ -93,32 +96,51 @@ class ConvertersSpec extends UnitTest:
     )
 
     "encode and decode a PickUp mission" in:
-      val pickModel = Mission(MissionId("M2"), Task.pick(Item.Computer, Position(1, 1)), Tick(5))
+      val pickModel = Mission(
+        MissionId("M2"),
+        Task.pick(Item.Computer, Position(1, 1)),
+        Tick(5)
+      )
       val pickSchema = MissionSchema(
         "M2",
-        TaskSchema.Single(ActionSchema.PickUp(ItemSchema.Computer(1.0), PositionSchema(1, 1))),
+        TaskSchema.Single(
+          ActionSchema.PickUp(ItemSchema.Computer(1.0), PositionSchema(1, 1))
+        ),
         5
       )
       MissionConverter.toSchema(pickModel).shouldBe(pickSchema)
       MissionConverter.toDomain(pickSchema).shouldBe(Right(pickModel))
 
     "encode and decode a Drop mission" in:
-      val dropModel = Mission(MissionId("M3"), Task.drop(Item.Table, Position(2, 2)), Tick(5))
+      val dropModel =
+        Mission(MissionId("M3"), Task.drop(Item.Table, Position(2, 2)), Tick(5))
       val dropSchema = MissionSchema(
         "M3",
-        TaskSchema.Single(ActionSchema.Drop(ItemSchema.Table(10.0), PositionSchema(2, 2))),
+        TaskSchema.Single(
+          ActionSchema.Drop(ItemSchema.Table(10.0), PositionSchema(2, 2))
+        ),
         5
       )
       MissionConverter.toSchema(dropModel).shouldBe(dropSchema)
       MissionConverter.toDomain(dropSchema).shouldBe(Right(dropModel))
 
     "encode and decode a Then (pickAndDrop) mission" in:
-      val thenModel = Mission.deliver(MissionId("M4"), Item.Computer, Position(1, 1), Position(2, 2), Tick(10))
+      val thenModel = Mission.deliver(
+        MissionId("M4"),
+        Item.Computer,
+        Position(1, 1),
+        Position(2, 2),
+        Tick(10)
+      )
       val thenSchema = MissionSchema(
         "M4",
         TaskSchema.Then(
-          TaskSchema.Single(ActionSchema.PickUp(ItemSchema.Computer(1.0), PositionSchema(1, 1))),
-          TaskSchema.Single(ActionSchema.Drop(ItemSchema.Computer(1.0), PositionSchema(2, 2)))
+          TaskSchema.Single(
+            ActionSchema.PickUp(ItemSchema.Computer(1.0), PositionSchema(1, 1))
+          ),
+          TaskSchema.Single(
+            ActionSchema.Drop(ItemSchema.Computer(1.0), PositionSchema(2, 2))
+          )
         ),
         10
       )
@@ -126,14 +148,21 @@ class ConvertersSpec extends UnitTest:
       MissionConverter.toDomain(thenSchema).shouldBe(Right(thenModel))
 
     "reject TaskSchema.Done as AlreadyCompleted" in:
-      MissionConverter.toDomain(MissionSchema("M9", TaskSchema.Done, 10)).shouldBe(
-        Left(Validation.MissionValidation(Mission.Validation.AlreadyCompleted(MissionId("M9"))))
-      )
+      MissionConverter
+        .toDomain(MissionSchema("M9", TaskSchema.Done, 10))
+        .shouldBe(
+          Left(
+            Validation.MissionValidation(
+              Mission.Validation.AlreadyCompleted(MissionId("M9"))
+            )
+          )
+        )
 
   "A Spawn conversion" when:
     "preserve RobotClass and position in SpawnSchema" in:
       val spawn = Spawn(RobotId("R1"), Position(1, 1), RobotClass.HeavyCarrier)
-      val schema = SpawnSchema("R1", PositionSchema(1, 1), RobotClass.HeavyCarrier)
+      val schema =
+        SpawnSchema("R1", PositionSchema(1, 1), RobotClass.HeavyCarrier)
       schema.id.shouldBe(spawn.id.value)
       schema.position.shouldBe(PositionConverter.toSchema(spawn.at))
       schema.ofClass.shouldBe(spawn.ofClass)

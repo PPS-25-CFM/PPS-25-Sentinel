@@ -59,7 +59,13 @@ class ScenarioJsonCodecSpec extends UnitTest:
 
     "encode and decode a Scenario with a Deliver mission" in:
       persistWarehouse()
-      val deliver = Mission.deliver(MissionId("M2"), Item.Computer, pickPos, bayPos, Tick(10))
+      val deliver = Mission.deliver(
+        MissionId("M2"),
+        Item.Computer,
+        pickPos,
+        bayPos,
+        Tick(10)
+      )
       val rich = scenario.load(deliver).value
       codec.decode(codec.encode(rich)).shouldBe(Right(rich))
 

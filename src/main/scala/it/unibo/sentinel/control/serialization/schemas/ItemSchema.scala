@@ -11,5 +11,6 @@ enum ItemSchema(weight: Double) extends Schema:
   case Dishwasher(weight: Double) extends ItemSchema(weight)
 
   def validated: Either[Validation, Schema] =
-    if weight <= 0 then Left(Validation.ItemValidation(Item.Validation.NegativeWeight(weight)))
+    if weight <= 0 then
+      Left(Validation.ItemValidation(Item.Validation.NegativeWeight(weight)))
     else Right(this)

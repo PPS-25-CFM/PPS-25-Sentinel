@@ -17,17 +17,22 @@ object ItemWeight:
   /** Explicit extension methods for ItemWeight operations
     */
   extension (weight: ItemWeight)
-    /** @return the [[ItemWeight]] as a raw Double
+    /** @return
+      *   the [[ItemWeight]] as a raw Double
       */
     def value: Double = weight
 
     /** Adds another [[ItemWeight]].
       */
-    def +(other: ItemWeight): ItemWeight = ItemWeight(weight.value + other.value)
+    def +(other: ItemWeight): ItemWeight = ItemWeight(
+      weight.value + other.value
+    )
 
     /** Subtracts another [[ItemWeight]], capped at 0.
       */
-    def -(other: ItemWeight): ItemWeight = ItemWeight(weight.value - other.value)
+    def -(other: ItemWeight): ItemWeight = ItemWeight(
+      weight.value - other.value
+    )
 
   // Enables standard comparisons and sorting
   given Ordering[ItemWeight] = Ordering.by(_.value)

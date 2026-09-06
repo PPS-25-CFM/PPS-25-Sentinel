@@ -35,7 +35,7 @@ object Position:
       */
     def y: Int = p._2
 
-    def +(other: Position): Position = 
+    def +(other: Position): Position =
       Position(p.x + other.x, p.y + other.y)
 
   /** The ordering of positions is defined by the ordering of their coordinates.

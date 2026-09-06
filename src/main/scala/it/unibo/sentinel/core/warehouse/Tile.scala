@@ -21,7 +21,6 @@ object Tile:
   sealed trait Interactable extends Tile:
     def interactiveOffset(using Adjacency): Seq[Position]
 
-
   /** Represents a floor tile.
     */
   case class Floor(cost: Tick = Tick.unit) extends Tile with Walkable

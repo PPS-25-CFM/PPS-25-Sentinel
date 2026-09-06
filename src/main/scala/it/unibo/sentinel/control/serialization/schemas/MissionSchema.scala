@@ -12,7 +12,7 @@ enum ActionSchema extends Schema:
   case Drop(target: ItemSchema, at: PositionSchema)
 
   override def validated: Either[Validation, Schema] = this match
-    case Move(to) => to.validated.map(_ => this)
+    case Move(to)           => to.validated.map(_ => this)
     case PickUp(target, at) =>
       for
         _ <- target.validated

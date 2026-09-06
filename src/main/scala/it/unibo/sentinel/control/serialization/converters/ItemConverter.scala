@@ -13,7 +13,6 @@ object ItemConverter extends Converter[Item, ItemSchema]:
       case Item.Table      => ItemSchema.Table(model.weight.value)
       case Item.Fridge     => ItemSchema.Fridge(model.weight.value)
       case Item.Dishwasher => ItemSchema.Dishwasher(model.weight.value)
-    
 
   override def toDomain(schema: ItemSchema): Either[Validation, Item] =
     schema match
@@ -21,4 +20,3 @@ object ItemConverter extends Converter[Item, ItemSchema]:
       case ItemSchema.Table(_)      => Right(Item.Table)
       case ItemSchema.Fridge(_)     => Right(Item.Fridge)
       case ItemSchema.Dishwasher(_) => Right(Item.Dishwasher)
-    

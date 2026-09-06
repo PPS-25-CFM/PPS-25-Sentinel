@@ -135,12 +135,13 @@ trait Warehouse:
   def interactionPoints(position: Position): Seq[Position] =
     tileAt(position) match
       case Some(tile: Tile.Interactable) =>
-        tile
-        .interactiveOffset
-        .map(offset => position + offset)
-        .filter(interactionPoint => isTraversable(interactionPoint) && inBound(interactionPoint))
-      case _                             => Seq.empty
-      
+        tile.interactiveOffset
+          .map(offset => position + offset)
+          .filter(interactionPoint =>
+            isTraversable(interactionPoint) && inBound(interactionPoint)
+          )
+      case _ => Seq.empty
+
   /** @param position
     *   the position of the tile to add.
     * @param tile

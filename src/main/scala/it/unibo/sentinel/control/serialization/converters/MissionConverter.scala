@@ -17,9 +17,15 @@ object MissionConverter extends Converter[Mission, MissionSchema]:
         case Action.Move(to) =>
           ActionSchema.Move(PositionConverter.toSchema(to))
         case Action.PickUp(target, at) =>
-          ActionSchema.PickUp(ItemConverter.toSchema(target), PositionConverter.toSchema(at))
+          ActionSchema.PickUp(
+            ItemConverter.toSchema(target),
+            PositionConverter.toSchema(at)
+          )
         case Action.Drop(target, at) =>
-          ActionSchema.Drop(ItemConverter.toSchema(target), PositionConverter.toSchema(at))
+          ActionSchema.Drop(
+            ItemConverter.toSchema(target),
+            PositionConverter.toSchema(at)
+          )
 
       override def toDomain(schema: ActionSchema): Either[Validation, Action] =
         schema match
@@ -27,12 +33,12 @@ object MissionConverter extends Converter[Mission, MissionSchema]:
             for pos <- PositionConverter.toDomain(to)
             yield Action.Move(pos)
           case ActionSchema.PickUp(target, at) =>
-            for 
+            for
               item <- ItemConverter.toDomain(target)
               pos <- PositionConverter.toDomain(at)
             yield Action.PickUp(item, pos)
           case ActionSchema.Drop(target, at) =>
-            for 
+            for
               item <- ItemConverter.toDomain(target)
               pos <- PositionConverter.toDomain(at)
             yield Action.Drop(item, pos)
@@ -72,7 +78,11 @@ object MissionConverter extends Converter[Mission, MissionSchema]:
       domainTask <- taskConverter.toDomain(schema.task)
       mission <- domainTask match
         case Task.Done =>
-          Left(Validation.MissionValidation(Mission.Validation.AlreadyCompleted(MissionId(schema.id))))
+          Left(
+            Validation.MissionValidation(
+              Mission.Validation.AlreadyCompleted(MissionId(schema.id))
+            )
+          )
         case validTask =>
           Right(Mission(MissionId(schema.id), validTask, Tick(schema.duration)))
     yield mission

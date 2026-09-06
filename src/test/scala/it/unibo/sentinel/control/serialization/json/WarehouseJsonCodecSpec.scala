@@ -112,9 +112,11 @@ class WarehouseJsonCodecSpec extends UnitTest:
           |    [{"x": 0, "y": 0}, {"$$type": "LoadingBay", "cost": -1}]
           |  ]
           |}""".stripMargin
-      codec.decode(json).shouldBe(
-        Left(Validation.TileValidation(Tile.Validation.NegativeCost(-1)))
-      )
+      codec
+        .decode(json)
+        .shouldBe(
+          Left(Validation.TileValidation(Tile.Validation.NegativeCost(-1)))
+        )
 
     "return ItemValidation(NegativeWeight) for Shelf with invalid item weight" in:
       val json =
@@ -126,6 +128,8 @@ class WarehouseJsonCodecSpec extends UnitTest:
           |    [{"x": 0, "y": 0}, {"$$type": "Shelf", "item": {"$$type": "Computer", "weight": -1.0}}]
           |  ]
           |}""".stripMargin
-      codec.decode(json).shouldBe(
-        Left(Validation.ItemValidation(Item.Validation.NegativeWeight(-1.0)))
-      )
+      codec
+        .decode(json)
+        .shouldBe(
+          Left(Validation.ItemValidation(Item.Validation.NegativeWeight(-1.0)))
+        )

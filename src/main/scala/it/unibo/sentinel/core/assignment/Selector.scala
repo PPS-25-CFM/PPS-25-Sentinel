@@ -64,8 +64,8 @@ object Selector:
         available: Iterable[Placement]
     ): Option[Placement] =
       mission.currentAction.flatMap:
-        case Action.Move(to)    => nearestTo(to, available)
-        case Action.Drop(_, at) => nearestTo(at, available)
+        case Action.Move(to)      => nearestTo(to, available)
+        case Action.Drop(_, at)   => nearestTo(at, available)
         case Action.PickUp(_, at) =>
           val points = Option(navigator.warehouse)
             .map(_.interactionPoints(at))

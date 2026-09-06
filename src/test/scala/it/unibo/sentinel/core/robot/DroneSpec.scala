@@ -10,7 +10,13 @@ class DroneSpec extends UnitTest with RobotFixture with RobotBehavior:
 
   private val deliverId = MissionId("D1")
   private val deliver: Mission =
-    Mission.deliver(deliverId, Item.Computer, Position(9, 9), Position(8, 8), Tick(10))
+    Mission.deliver(
+      deliverId,
+      Item.Computer,
+      Position(9, 9),
+      Position(8, 8),
+      Tick(10)
+    )
 
   "A Drone" when:
     behave like baseRobot(Robot.drone(robotId))

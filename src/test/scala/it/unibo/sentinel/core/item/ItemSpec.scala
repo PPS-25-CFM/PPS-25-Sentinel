@@ -52,6 +52,10 @@ class ItemSpec extends UnitTest:
     "ordered" should:
 
       "support sorting" in:
-        Seq(Item.Table.weight, Item.Computer.weight, Item.Fridge.weight).sorted.headOption.value.shouldBe(
+        Seq(
+          Item.Table.weight,
+          Item.Computer.weight,
+          Item.Fridge.weight
+        ).sorted.headOption.value.shouldBe(
           Item.Computer.weight
         )

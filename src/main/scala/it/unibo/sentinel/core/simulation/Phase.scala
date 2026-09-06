@@ -32,8 +32,8 @@ private[core] object Phase:
         yield mission
       action <- current.currentAction
       destinations = action match
-        case Action.Move(to)    => Set(to)
-        case Action.Drop(_, at) => Set(at)
+        case Action.Move(to)      => Set(to)
+        case Action.Drop(_, at)   => Set(at)
         case Action.PickUp(_, at) =>
           world.warehouse.interactionPoints(at).toSet
       if destinations.nonEmpty
@@ -76,8 +76,8 @@ private[core] object Phase:
       at: Position,
       action: Action
   ): Boolean = action match
-    case Action.Move(to)       => at == to
-    case Action.Drop(_, bay)   => at == bay
+    case Action.Move(to)         => at == to
+    case Action.Drop(_, bay)     => at == bay
     case Action.PickUp(_, shelf) =>
       warehouse.interactionPoints(shelf).contains(at)
 

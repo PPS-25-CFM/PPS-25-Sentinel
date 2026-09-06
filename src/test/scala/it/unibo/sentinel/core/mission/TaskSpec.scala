@@ -34,14 +34,19 @@ class TaskSpec extends UnitTest:
     "it is Then" should:
 
       "delegate currentAction to the head" in:
-        Task.Then(Task.Single(pick), Task.Single(drop)).currentAction shouldBe Some(pick)
+        Task
+          .Then(Task.Single(pick), Task.Single(drop))
+          .currentAction shouldBe Some(pick)
 
       "concatenate actions in order" in:
         val task = Task.Then(Task.Single(pick), Task.Single(drop))
         task.actions.toSeq should contain inOrderOnly (pick, drop)
 
       "expose nested sequences in order" in:
-        val task = Task.Then(Task.Then(Task.Single(pick), Task.Single(drop)), Task.Single(move))
+        val task = Task.Then(
+          Task.Then(Task.Single(pick), Task.Single(drop)),
+          Task.Single(move)
+        )
         task.actions.toSeq should contain inOrderOnly (pick, drop, move)
 
       "advance to the tail" in:
@@ -54,8 +59,12 @@ class TaskSpec extends UnitTest:
         Task.move(to) shouldBe Task.Single(Action.Move(to))
 
       "build pick and drop tasks" in:
-        Task.pick(Item.Computer, at) shouldBe Task.Single(Action.PickUp(Item.Computer, at))
-        Task.drop(Item.Computer, to) shouldBe Task.Single(Action.Drop(Item.Computer, to))
+        Task.pick(Item.Computer, at) shouldBe Task.Single(
+          Action.PickUp(Item.Computer, at)
+        )
+        Task.drop(Item.Computer, to) shouldBe Task.Single(
+          Action.Drop(Item.Computer, to)
+        )
 
       "build a pickAndDrop task emitting pick then drop" in:
         val task = Task.pickAndDrop(Item.Computer, at, to)

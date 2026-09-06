@@ -23,7 +23,11 @@ object ScenarioConverter:
     new Converter[Spawn, SpawnSchema]:
 
       override def toSchema(model: Spawn): SpawnSchema =
-        SpawnSchema(model.id.value, PositionConverter.toSchema(model.at), model.ofClass)
+        SpawnSchema(
+          model.id.value,
+          PositionConverter.toSchema(model.at),
+          model.ofClass
+        )
 
       override def toDomain(schema: SpawnSchema): Either[Validation, Spawn] =
         for pos <- PositionConverter.toDomain(schema.position)

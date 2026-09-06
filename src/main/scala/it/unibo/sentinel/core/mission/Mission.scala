@@ -171,5 +171,11 @@ object Mission:
   def relocate(id: MissionId, destination: Position, duration: Tick): Mission =
     Mission(id, Task.move(destination), duration)
 
-  def deliver(id: MissionId, item: Item, from: Position, to: Position, duration: Tick): Mission =
+  def deliver(
+      id: MissionId,
+      item: Item,
+      from: Position,
+      to: Position,
+      duration: Tick
+  ): Mission =
     Mission(id, Task.pickAndDrop(item, from, to), duration)

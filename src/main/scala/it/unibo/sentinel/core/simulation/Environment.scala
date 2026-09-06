@@ -3,7 +3,12 @@ package it.unibo.sentinel.core.simulation
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.core.mission.{Action, Mission, MissionId, MissionStatus}
+import it.unibo.sentinel.core.mission.{
+  Action,
+  Mission,
+  MissionId,
+  MissionStatus
+}
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.robot.RobotStatus
 

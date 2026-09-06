@@ -57,9 +57,11 @@ final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
     *   the [[Placement]] of the [[Robot]] to spawn in the [[Warehouse]].
     */
   def toPlacement: Placement = ofClass match
-    case RobotClass.Drone => Placement(Robot.drone(id, 3), at)
-    case RobotClass.Carrier => Placement(Robot.carrier(id, Item.averageWeight, 5), at)
-    case RobotClass.HeavyCarrier => Placement(Robot.carrier(id, Item.highestWeight, 1), at)
+    case RobotClass.Drone   => Placement(Robot.drone(id, 3), at)
+    case RobotClass.Carrier =>
+      Placement(Robot.carrier(id, Item.averageWeight, 5), at)
+    case RobotClass.HeavyCarrier =>
+      Placement(Robot.carrier(id, Item.highestWeight, 1), at)
 
 /** */
 enum Validation:
@@ -84,16 +86,15 @@ enum Validation:
   case MissionAlreadyExists(id: MissionId)
 
   /** @param position
-    *   the [[Position]] that is not a shelf tile.
-    *   Returned when a mission containing a pick operation targets a tile
-    *   that is not a [[Shelf]].
+    *   the [[Position]] that is not a shelf tile. Returned when a mission
+    *   containing a pick operation targets a tile that is not a [[Shelf]].
     */
   case NotShelfTile(position: Position)
 
   /** @param position
-    *   the [[Position]] that is not a loading zone tile.
-    *   Returned when a mission containing a drop operation targets a tile
-    *   that is not a [[LoadingBay]].
+    *   the [[Position]] that is not a loading zone tile. Returned when a
+    *   mission containing a drop operation targets a tile that is not a
+    *   [[LoadingBay]].
     */
   case NotLoadingBay(position: Position)
 
@@ -294,8 +295,8 @@ object Scenario:
       case Action.PickUp(target, at) =>
         warehouse.tileAt(at).collect { case Tile.Shelf(stored) => stored } match
           case Some(stored) if stored == target => None
-          case Some(stored)                     => Some(ItemMismatch(at, target, stored))
-          case None                             => Some(NotShelfTile(at))
+          case Some(stored) => Some(ItemMismatch(at, target, stored))
+          case None         => Some(NotShelfTile(at))
       case Action.Drop(_, at) if !warehouse.isLoadingBay(at) =>
         Some(NotLoadingBay(at))
       case _ =>
