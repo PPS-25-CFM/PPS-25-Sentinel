@@ -28,8 +28,14 @@ object FxToolkit extends Toolkit:
   override type W = FxWindow
   override type V = FxView
 
+  /** @return the application window. */
   override val window: W = new FxWindow(Some(defaultWidth), Some(defaultHeight))
 
+  /** @param c
+    *   the simulation controller.
+    * @return
+    *   the simulation view bound to `c`.
+    */
   override def simulation(c: Controller): V & SimulationView =
     new FxView with SimulationView:
       val controller: Controller = c
@@ -41,6 +47,7 @@ object FxToolkit extends Toolkit:
       root.left = leftSidePanel
       root.right = rightSidePanel
 
+      /** @return the JavaFX scene with key bindings. */
       override def scene: Scene =
         val s = new Scene(root)
         s.onKeyPressed = (e: KeyEvent) =>
@@ -52,6 +59,9 @@ object FxToolkit extends Toolkit:
             case _         => ()
         s
 
+      /** Renders the current simulation [[StepResult]] onto the warehouse and
+        * side panels.
+        */
       override def render(model: StepResult): Unit = onFx:
         val panel = warehousePanel.getOrElse {
           val p = new WarehousePanel(model.snapshot.warehouse)
@@ -114,11 +124,22 @@ object FxToolkit extends Toolkit:
           case _       => ""
         s"${mission.id}: $taskLabel$currentLabel - ${mission.deadline} ticks remaining"
 
+      /** @param action
+        *   the action to describe.
+        * @return
+        *   a short textual description.
+        */
       private def parseAction(action: Action): String = action match
         case Action.Move(to)         => s"move to $to"
         case Action.PickUp(item, at) => s"pick $item @ $at"
         case Action.Drop(item, at)   => s"drop $item @ $at"
 
+      /** @param snapshot
+        *   the current simulation snapshot.
+        * @return
+        *   a sorted list of shelf and loading bay descriptions, or a
+        *   placeholder if none exist.
+        */
       private def describeWarehouse(snapshot: Snapshot): Iterable[String] =
         val shelves = snapshot.warehouse.tiles.collect:
           case (pos, Tile.Shelf(item)) => s"Shelf $item at $pos"

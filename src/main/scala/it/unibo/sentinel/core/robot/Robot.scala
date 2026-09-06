@@ -117,14 +117,21 @@ trait Queued(capacity: Int) extends Robot:
 
   private var backlog: Queue[MissionId] = Queue.empty
 
+  /** @return
+    *   whether there is queue capacity and the underlying robot can accept
+    *   `mission`.
+    */
   abstract override def canAccept(mission: Mission): Boolean =
     backlog.size < capacity && super.canAccept(mission)
 
+  /** Enqueues `mission` if [[canAccept]] holds. */
   override def accept(mission: Mission): Unit =
     if canAccept(mission) then backlog = backlog :+ mission.id
 
+  /** @return the head of the mission queue, if any. */
   override def mission: Option[MissionId] = backlog.headOption
 
+  /** Dequeues the current mission and its queue to the underlying robot. */
   abstract override def release(): Unit =
     backlog = backlog match
       case _ +: tail => tail

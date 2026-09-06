@@ -47,6 +47,9 @@ object Dataset:
       .withTile(Position(10, 12))(Tile.LoadingBay())
       .withTile(Position(14, 14))(Tile.LoadingBay())
 
+  /** @return
+    *   a demo [[Scenario]].
+    */
   def scenario: Scenario =
     (for
       s0 <- Right(Scenario.in(warehouse))

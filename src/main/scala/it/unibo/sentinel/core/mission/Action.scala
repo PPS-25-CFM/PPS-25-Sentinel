@@ -12,10 +12,27 @@ enum Action:
     */
   case Move(to: Position)
 
+  /** Picks an [[Item]] from a [[Shelf]].
+    *
+    * @param target
+    *   the expected [[Item]] to pick.
+    * @param at
+    *   the shelf [[Position]] to pick from.
+    */
   case PickUp(target: Item, at: Position)
 
+  /** Drops an [[Item]] onto a [[LoadingBay]].
+    *
+    * @param target
+    *   the [[Item]] to drop.
+    * @param at
+    *   the loading bay [[Position]] to drop onto.
+    */
   case Drop(target: Item, at: Position)
 
+  /** @return
+    *   the position associated with this action.
+    */
   def position: Position = this match
     case Move(to)      => to
     case PickUp(_, at) => at

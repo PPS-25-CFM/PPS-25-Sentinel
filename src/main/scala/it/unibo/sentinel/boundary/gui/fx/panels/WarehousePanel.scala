@@ -108,6 +108,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
       percentHeight = 100.0 / rows
   }
 
+  /** @return a stable distinct color for the given robot id. */
   private def colorForRobot(robotId: String): Color =
     robotColors.getOrElseUpdate(
       robotId, {
@@ -150,6 +151,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
         dirtyCells += robot.position
       }
 
+  /** Renders the given path with the specified color. */
   private def showPath(path: Path, color: Color): Unit =
     for pos <- path.positions do
       cells.get(pos).foreach { (pane, _) =>
@@ -160,6 +162,9 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
         )
       }
 
+  /** @return
+    *   the base background for the tile at `pos`.
+    */
   private def baseBackground(pos: Position): Background =
     warehouse.tileAt(pos) match
       case Some(_: Tile.Shelf)      => shelfBg
@@ -167,6 +172,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
       case Some(_: Tile.Walkable)   => traversableBg
       case _                        => obstacleBg
 
+  /** @return the base border for the tile at `pos`. */
   private def baseBorder(pos: Position): Border =
     warehouse.tileAt(pos) match
       case Some(_: Tile.Shelf)      => obstacleBorder
@@ -174,6 +180,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
       case Some(_: Tile.Walkable)   => traversableBorder
       case _                        => obstacleBorder
 
+  /** @return an optional text and color for tiles. */
   private def tileMarker(pos: Position): Option[(String, String)] =
     warehouse.tileAt(pos) match
       case Some(Tile.Shelf(item)) =>
@@ -182,10 +189,12 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
       case Some(_: Tile.LoadingBay) => Some(("LB", "#14532D"))
       case _                        => None
 
+  /** Resets the cell at `pos` to its base background and border. */
   private def resetCell(pane: StackPane, pos: Position): Unit =
     pane.background = baseBackground(pos)
     pane.border = baseBorder(pos)
 
+  /** @return the grid cell node and its robot label for `pos`. */
   private def createCellNode(pos: Position): (StackPane, Label) =
     val traversable = warehouse.isTraversable(pos)
     val textColor = warehouse.tileAt(pos) match
@@ -225,6 +234,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
     resetCell(pane, pos)
     (pane, robotLabel)
 
+  /** Applies background and border styling to a cell pane. */
   private def applyStyle(
       pane: StackPane,
       traversable: Boolean,

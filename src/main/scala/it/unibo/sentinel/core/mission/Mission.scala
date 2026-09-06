@@ -121,6 +121,7 @@ final case class Mission private (
       if deadline.value <= 1 then copy(deadline = deadline.previous).fail
       else copy(deadline = deadline.previous)
 
+/** Companion for [[Mission]] with validation and factories. */
 object Mission:
 
   /** Errors generated when creating a mission.
@@ -171,6 +172,19 @@ object Mission:
   def relocate(id: MissionId, destination: Position, duration: Tick): Mission =
     Mission(id, Task.move(destination), duration)
 
+  /** @param id
+    *   the unique identifier for the mission.
+    * @param item
+    *   the [[Item]] to transport.
+    * @param from
+    *   shelf [[Position]] to pick the item from.
+    * @param to
+    *   loading bay [[Position]] to drop the item onto.
+    * @param duration
+    *   time window in [[Tick]] units.
+    * @return
+    *   a new pick-and-drop [[Mission]].
+    */
   def deliver(
       id: MissionId,
       item: Item,

@@ -63,7 +63,6 @@ final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
     case RobotClass.HeavyCarrier =>
       Placement(Robot.carrier(id, Item.highestWeight, 1), at)
 
-/** */
 enum Validation:
   /** @param position
     *   the [[Position]] that is already occupied by another [[Robot]].
@@ -110,6 +109,11 @@ enum Validation:
 opaque type ScenarioId = String
 
 object ScenarioId:
+  /** @param id
+    *   raw string identifier.
+    * @return
+    *   a [[ScenarioId]] wrapping `id`.
+    */
   def apply(id: String): ScenarioId = id
 
 extension (id: ScenarioId)

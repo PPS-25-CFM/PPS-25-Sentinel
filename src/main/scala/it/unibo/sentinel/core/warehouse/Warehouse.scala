@@ -51,6 +51,11 @@ case class Area(corner: Position, opposite: Position):
 opaque type WarehouseId = String
 
 object WarehouseId:
+  /** @param id
+    *   raw string identifier.
+    * @return
+    *   a [[WarehouseId]] wrapping `id`.
+    */
   def apply(id: String): WarehouseId = id
 
 extension (id: WarehouseId)
@@ -99,16 +104,31 @@ trait Warehouse:
       case Some(_: Tile.Walkable) => true
       case _                      => false
 
+  /** @param position
+    *   the position to check.
+    * @return
+    *   whether the tile at `position` is interactable.
+    */
   def isInteractable(position: Position): Boolean =
     tileAt(position) match
       case Some(_: Tile.Interactable) => true
       case _                          => false
 
+  /** @param position
+    *   the position to check.
+    * @return
+    *   whether the tile at `position` is a [[Tile.Shelf]].
+    */
   def isShelf(position: Position): Boolean =
     tileAt(position) match
       case Some(Tile.Shelf(_)) => true
       case _                   => false
 
+  /** @param position
+    *   the position to check.
+    * @return
+    *   whether the tile at `position` is a [[Tile.LoadingBay]].
+    */
   def isLoadingBay(position: Position): Boolean =
     tileAt(position) match
       case Some(Tile.LoadingBay(_)) => true
@@ -132,6 +152,12 @@ trait Warehouse:
       case Some(tile: Tile.Walkable) => Some(tile.cost)
       case _                         => None
 
+  /** @param position
+    *   the position of the interactable tile.
+    * @return
+    *   traversable, in-bounds positions from which `position` can be interacted
+    *   with.
+    */
   def interactionPoints(position: Position): Seq[Position] =
     tileAt(position) match
       case Some(tile: Tile.Interactable) =>
@@ -185,6 +211,11 @@ trait Warehouse:
   def neighbors(position: Position)(using strategy: Adjacency): Seq[Position] =
     strategy.around(position).filter(inBound)
 
+  /** @param position
+    *   the position whose traversable neighbours are to be retrieved.
+    * @return
+    *   in-bounds, traversable neighbours of `position`.
+    */
   def traversableNeighbors(position: Position)(using
       strategy: Adjacency
   ): Seq[Position] =

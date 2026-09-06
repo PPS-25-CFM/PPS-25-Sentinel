@@ -35,6 +35,11 @@ object Position:
       */
     def y: Int = p._2
 
+    /** @param other
+      *   the position to add.
+      * @return
+      *   the component-wise sum of the two positions.
+      */
     def +(other: Position): Position =
       Position(p.x + other.x, p.y + other.y)
 

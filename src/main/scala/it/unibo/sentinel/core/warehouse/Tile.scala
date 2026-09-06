@@ -15,10 +15,20 @@ object Tile:
       */
     case NegativeCost(cost: Int)
 
+  /** A tile that can be traversed by a robot.
+    */
   sealed trait Walkable extends Tile:
+    /** @return the traversal cost in [[Tick]] for this tile. */
     def cost: Tick
 
+  /** A tile that can be interacted with from specific offsets.
+    */
   sealed trait Interactable extends Tile:
+    /** @param strategy
+      *   adjacency strategy to compute offsets.
+      * @return
+      *   relative [[Position]]s from which this tile can be interacted with.
+      */
     def interactiveOffset(using Adjacency): Seq[Position]
 
   /** Represents a floor tile.
@@ -39,5 +49,6 @@ object Tile:
       extends Tile
       with Walkable
       with Interactable:
+
     override def interactiveOffset(using strategy: Adjacency): Seq[Position] =
       Seq(Position(0, 0))
