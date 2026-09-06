@@ -3,6 +3,10 @@ package it.unibo.sentinel.core.collisions
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.robot.Robot
+import it.unibo.sentinel.core.mission.Mission
+import it.unibo.sentinel.core.mission.MissionId
+import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.simulation.Tick
 
 trait SelectionPolicyFixture:
   self: UnitTest =>
@@ -14,15 +18,35 @@ trait SelectionPolicyFixture:
     Robot.drone(RobotId("R4")),
     Robot.drone(RobotId("R5"))
   )
+  val missions: Seq[Mission] = Seq(
+    Mission.relocate(MissionId("M1"), Position(1, 1), Tick(1)),
+    Mission.relocate(MissionId("M2"), Position(2, 2), Tick(2)),
+    Mission.relocate(MissionId("M3"), Position(3, 3), Tick(3)),
+    Mission.relocate(MissionId("M4"), Position(4, 4), Tick(4)),
+    Mission.relocate(MissionId("M5"), Position(5, 5), Tick(5))
+  )
+  for
+    i <- 0 until 5
+    robot = robots(i)
+    mission = missions(i)
+  do
+    robot.accept(mission.id)
 
 class SelectionPolicySpec extends UnitTest with SelectionPolicyFixture:
 
   "A selection policy" when:
+    val selections = 1
 
     "selecting randomly" should:
-      val selections = 1
       val policy = SelectionPolicy.random(selections)
 
       "select random robots from a given list" in:
         val selection: Iterable[RobotId] = policy.select(robots)
         selection.size shouldBe selections
+    
+    "selecting based on mission deadline" should:
+      given Seq[Mission] = missions
+      val policy = SelectionPolicy.closestDeadline()
+
+      "select the robot with the mission closest to failing" in:
+        policy.select(robots) shouldBe Seq(robots(0).id)
