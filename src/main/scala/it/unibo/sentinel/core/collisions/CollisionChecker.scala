@@ -4,6 +4,7 @@ import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.scenario.Intent
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.simulation.Tick
+import it.unibo.sentinel.core.warehouse.Position
 
 /** Used to check for collisions between [[Robot]]s
   */
@@ -15,7 +16,7 @@ trait CollisionChecker:
     *   a list of groups of [[RobotId]]s, where each group represents the robots
     *   that will collide (intend to move to the same position)
     */
-  def checkCollisions(intents: Seq[Intent]): Seq[Seq[RobotId]]
+  def checkCollisions(intents: Seq[Intent]): Map[Position, Seq[RobotId]]
 
   /** @param placement
     *   the placement of the robot to check
@@ -36,11 +37,12 @@ trait CollisionChecker:
 
 object CollisionChecker extends CollisionChecker:
 
-  override def checkCollisions(intents: Seq[Intent]): Seq[Seq[RobotId]] =
+  override def checkCollisions(
+      intents: Seq[Intent]
+  ): Map[Position, Seq[RobotId]] =
     intents
       .groupBy(_.position)
-      .map(_._2.map(_.robotId))
-      .toSeq
+      .map(x => (x._1, x._2.map(_.robotId)))
 
   override def canMove(placement: Placement, fleet: Seq[Placement]): Boolean =
     placement.intent.position != placement.at &&

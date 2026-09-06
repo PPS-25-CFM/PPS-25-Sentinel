@@ -5,36 +5,37 @@ import it.unibo.sentinel.core.simulation.Event
 import it.unibo.sentinel.core.robot.RobotStatus
 import it.unibo.sentinel.core.scenario.Intent
 import it.unibo.sentinel.core.collisions.CollisionChecker.canMove
+import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.robot.RobotId
 
 private[collisions] final class PauseCollisionHandler extends BasicHandler:
 
   override def resolveCollisions(placements: Seq[Placement])(using
       selection: SelectionPolicy
   ): Seq[Event] =
-    // Block robots that collide face-to-face
-    val directCollisions =
+    val faceToFace =
       CollisionChecker.colliding(placements).flatMap((p1, p2) => Seq(p1, p2))
-    val directEvents = blockMoving(directCollisions)
-
-    val blockedIntents = directCollisions.map(p => Intent(p.robot.id, p.at))
-    val others = placements.diff(directCollisions)
+    val faceToFaceEvents = blockMoving(faceToFace)
+    val faceToFaceIntents = faceToFace.map(p => Intent(p.robot.id, p.at))
+    val remaining = placements.diff(faceToFace)
     val groupEvents = CollisionChecker
-      .checkCollisions(blockedIntents ++ others.map(_.intent))
-      .flatMap { group =>
-        val events = for
-          robots = placements.filter(p => group.contains(p.robot.id))
-          ex <- robots.headOption
-          target = ex.intent.position
-        yield
-          if robots.exists(p => p.at == target) then
-            blockMoving(robots.filterNot(p => p.intent.position == p.at))
-          else
-            val moveable = robots.filter(p => canMove(p, placements))
-            val (selected, notSelected) = partition(moveable)
-            blockMoving(notSelected) ++ resumeWaiting(selected)
-        events.getOrElse(Seq())
-      }
-    directEvents ++ groupEvents
+      .checkCollisions(faceToFaceIntents ++ remaining.map(_.intent))
+      .flatMap: (target, group) =>
+        resolveIndirectCollisions(placements, target, group)
+    faceToFaceEvents ++ groupEvents
+
+  private def resolveIndirectCollisions(
+      placements: Seq[Placement],
+      target: Position,
+      group: Seq[RobotId]
+  )(using selection: SelectionPolicy): Seq[Event] =
+    val robots = placements.filter(p => group.contains(p.robot.id))
+    if robots.exists(p => p.at == target) then
+      blockMoving(robots.filterNot(p => p.intent.position == p.at))
+    else
+      val moveable = robots.filter(p => canMove(p, placements))
+      val (selected, notSelected) = partition(moveable)
+      blockMoving(notSelected) ++ resumeWaiting(selected)
 
   private def resumeWaiting(placements: Seq[Placement]): Seq[Event] =
     transitionRobot(
