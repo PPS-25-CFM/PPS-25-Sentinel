@@ -24,9 +24,10 @@ private[collisions] final class PauseCollisionHandler extends BasicHandler:
         val events = for
           robots = placements.filter(p => group.contains(p.robot.id))
           ex <- robots.headOption
-          target = ex.intent
+          target = ex.intent.position
         yield
-          if robots.exists(p => p.at == target.position) then blockMoving(robots)
+          if robots.exists(p => p.at == target) then
+            blockMoving(robots.filterNot(p => p.intent.position == p.at))
           else
             val moveable = robots.filter(p => canMove(p, placements))
             val (selected, notSelected) = partition(moveable)
