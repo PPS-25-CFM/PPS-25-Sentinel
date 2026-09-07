@@ -39,8 +39,12 @@ enum TaskSchema extends Schema:
     case Single(action) => action.validated.map(_ => this)
     case Done           => Right(this)
 
-final case class MissionSchema(id: String, task: TaskSchema, duration: Int)
-    extends Schema:
+final case class MissionSchema(
+    id: String,
+    task: TaskSchema,
+    duration: Int,
+    priority: Int = 0
+) extends Schema:
 
   override def validated: Either[Validation, Schema] =
     for

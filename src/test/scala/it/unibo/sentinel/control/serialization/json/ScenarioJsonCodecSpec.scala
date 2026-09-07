@@ -64,10 +64,17 @@ class ScenarioJsonCodecSpec extends UnitTest:
         Item.Computer,
         pickPos,
         bayPos,
-        Tick(10)
+        Tick(10),
+        4
       )
       val rich = scenario.load(deliver).value
-      codec.decode(codec.encode(rich)).shouldBe(Right(rich))
+      val json = codec.encode(rich)
+      json.should(include("\"priority\":4"))
+      val decoded = codec.decode(json)
+      decoded.shouldBe(Right(rich))
+      decoded.map(
+        _.missions.find(_.id == MissionId("M2")).value.priority
+      ) shouldBe Right(4)
 
     "correctly encode and decode a valid Scenario domain object" in:
       codec.encode(scenario) shouldBe

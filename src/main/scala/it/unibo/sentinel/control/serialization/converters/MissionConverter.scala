@@ -70,7 +70,8 @@ object MissionConverter extends Converter[Mission, MissionSchema]:
     MissionSchema(
       model.id.value,
       taskConverter.toSchema(model.task),
-      model.deadline.value
+      model.deadline.value,
+      model.priority
     )
 
   override def toDomain(schema: MissionSchema): Either[Validation, Mission] =
@@ -84,5 +85,12 @@ object MissionConverter extends Converter[Mission, MissionSchema]:
             )
           )
         case validTask =>
-          Right(Mission(MissionId(schema.id), validTask, Tick(schema.duration)))
+          Right(
+            Mission(
+              MissionId(schema.id),
+              validTask,
+              Tick(schema.duration),
+              schema.priority
+            )
+          )
     yield mission

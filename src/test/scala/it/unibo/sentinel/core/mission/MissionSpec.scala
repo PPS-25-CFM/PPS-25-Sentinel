@@ -41,6 +41,22 @@ class MissionSpec extends UnitTest:
       "have the initial Duration" in:
         pendingMission.deadline shouldBe duration
 
+      "have default priority 0" in:
+        pendingMission.priority shouldBe 0
+
+      "preserve an explicit priority" in:
+        Mission.relocate(missionID, target, duration, 5).priority shouldBe 5
+        Mission
+          .deliver(
+            missionID,
+            Item.Computer,
+            target,
+            Position(3, 3),
+            duration,
+            5
+          )
+          .priority shouldBe 5
+
       "expose the current Action and Target" in:
         pendingMission.currentAction shouldBe Some(Action.Move(target))
         pendingMission.currentTarget shouldBe Some(target)
@@ -149,6 +165,31 @@ class MissionSpec extends UnitTest:
       "not decrease duration or change action if already Over" in:
         completedMission.tick shouldBe completedMission
         failedMission.tick shouldBe failedMission
+
+    "managing priority" should:
+
+      "preserve it across carrier and status transitions" in:
+        val prioritized = Mission.relocate(missionID, target, duration, 5)
+        prioritized.assignTo(robotID).priority shouldBe 5
+        prioritized.assignTo(robotID).unassign.priority shouldBe 5
+        prioritized.assignTo(robotID).complete.priority shouldBe 5
+        prioritized.assignTo(robotID).fail.priority shouldBe 5
+        prioritized.fail.priority shouldBe 5
+
+      "preserve it when advancing actions and ticking time" in:
+        val prioritized = Mission
+          .deliver(
+            missionID,
+            Item.Computer,
+            target,
+            Position(3, 3),
+            duration,
+            5
+          )
+          .assignTo(robotID)
+        prioritized.completeCurrentAction.priority shouldBe 5
+        prioritized.tick.priority shouldBe 5
+        prioritized.completeCurrentAction.completeCurrentAction.priority shouldBe 5
 
     "a deliver mission" should:
       val from: Position = Position(2, 2)
