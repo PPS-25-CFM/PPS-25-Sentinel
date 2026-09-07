@@ -73,8 +73,10 @@ object Engine:
     def clock: Observable[Tick]
 
     private val history: LazyList[StepResult] =
-      LazyList.unfold(()): _ =>
-        Option.unless(simulation.isOver)((simulation.step(), ()))
+      val initial = StepResult(simulation.snapshot, Seq.empty)
+      LazyList
+        .iterate(initial)(_ => simulation.step())
+        .takeWhile(_ => !simulation.isOver)
 
     private lazy val steps =
       clock
