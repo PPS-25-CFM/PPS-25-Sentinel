@@ -147,17 +147,11 @@ object Robot:
   def drone(id: RobotId, capacity: Int = 1): Robot = new Drone(id)
     with Queued(capacity)
 
-  /** @param id
-    *   the robot's identifier
-    * @param maxLoad
-    *   max transportable [[ItemWeight]]
-    * @param capacity
-    *   max number of missions the robot can queue
-    * @return
-    *   a new carrier with the given id, no missions and idle status
-    */
-  def carrier(id: RobotId, maxLoad: Weight, capacity: Int = 1): Robot =
-    new Carrier(id, maxLoad) with Queued(capacity)
+  def lightCarrier(id: RobotId, capacity: Int = 1): Robot =
+    new Carrier(id, Weight.average) with Queued(capacity)
+
+  def heavyCarrier(id: RobotId, capacity: Int = 1): Robot =
+    new Carrier(id, Weight.max) with Queued(capacity)
 
   /** Shared movement logic for all mobile robots.
     */

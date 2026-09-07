@@ -1,6 +1,6 @@
 package it.unibo.sentinel.core.scenario
 
-import it.unibo.sentinel.core.item.{Item, Weight}
+import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.mission.{Action, Mission, MissionId}
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.warehouse.{Position, Tile, Warehouse}
@@ -61,9 +61,9 @@ final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
   def toPlacement: Placement = ofClass match
     case RobotClass.Drone   => Placement(Robot.drone(id, 3), at)
     case RobotClass.Carrier =>
-      Placement(Robot.carrier(id, Weight.average, 5), at)
+      Placement(Robot.lightCarrier(id, 5), at)
     case RobotClass.HeavyCarrier =>
-      Placement(Robot.carrier(id, Weight.max, 1), at)
+      Placement(Robot.heavyCarrier(id, 1), at)
 
 enum Validation:
   /** @param position

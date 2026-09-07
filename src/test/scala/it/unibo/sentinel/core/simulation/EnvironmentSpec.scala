@@ -217,6 +217,10 @@ class EnvironmentSpec
         environment = sc.build
 
         environment.assign(carrier, depId)
+        environment
+          .robot(carrier)
+          .value
+          .pick(Item.Computer) shouldBe true // load 1/50
         environment.perform(carrier) shouldBe Some(Event.MissionFailed(depId))
         environment.mission(depId).value.status shouldBe MissionStatus.Failed
         environment.robot(carrier).value.mission shouldBe None
