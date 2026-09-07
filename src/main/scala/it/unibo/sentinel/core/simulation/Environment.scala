@@ -127,8 +127,8 @@ private[core] final class Environment private[core] (
       if robot.status == RobotStatus.Moving && robot.remaining == Tick.zero
     yield
       robot.step()
-      fleet += (r_id -> spot.copy(at = intent.position))
-      Event.RobotMoved(r_id, from, intent.position)
+      fleet += (r_id -> spot.copy(at = intent.to))
+      Event.RobotMoved(r_id, from, intent.to)
 
   /** @param r_id
     * @return

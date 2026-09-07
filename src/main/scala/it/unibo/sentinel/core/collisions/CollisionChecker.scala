@@ -16,7 +16,15 @@ trait CollisionChecker:
     *   a list of groups of [[RobotId]]s, where each group represents the robots
     *   that will collide (intend to move to the same position)
     */
-  def checkCollisions(intents: Seq[Intent]): Map[Position, Seq[RobotId]]
+  def indirectCollisions(intents: Seq[Intent]): Map[Position, Seq[RobotId]]
+
+  /** @param placements
+    *   the placements of robots to check for direct collisions.
+    * @return
+    *   a list of placements that are colliding between each other in pairs (one
+    *   against the other).
+    */
+  def directCollisions(intents: Seq[Intent]): Seq[(RobotId, RobotId)]
 
   /** @param placement
     *   the placement of the robot to check
@@ -27,42 +35,34 @@ trait CollisionChecker:
     */
   def canMove(placement: Placement, placements: Seq[Placement]): Boolean
 
-  /** @param placements
-    *   the placements of robots to check for direct collisions.
-    * @return
-    *   a list of placements that are colliding between each other in pairs (one
-    *   against the other).
-    */
-  def colliding(placements: Seq[Placement]): Seq[(Placement, Placement)]
-
 object CollisionChecker extends CollisionChecker:
 
-  override def checkCollisions(
+  override def indirectCollisions(
       intents: Seq[Intent]
   ): Map[Position, Seq[RobotId]] =
     intents
-      .groupBy(_.position)
+      .groupBy(_.to)
       .map(x => (x._1, x._2.map(_.robotId)))
 
+  override def directCollisions(
+      intents: Seq[Intent]
+  ): Seq[(RobotId, RobotId)] =
+    for
+      (current, index) <- intents.zipWithIndex
+      collider <- intents
+        .drop(index + 1)
+        .find: other =>
+          other.robotId != current.robotId &&
+            other.from == current.to &&
+            other.to == current.from
+    yield (current.robotId, collider.robotId)
+
   override def canMove(placement: Placement, fleet: Seq[Placement]): Boolean =
-    placement.intent.position != placement.at &&
+    placement.intent.from != placement.intent.to &&
       fleet.filterNot(_ == placement).forall { other =>
-        val targetOccupied = other.at == placement.intent.position
+        val targetOccupied = other.at == placement.intent.to
         lazy val targetBlocked =
-          other.intent.position == placement.at ||
+          other.intent.to == placement.at ||
             !canMove(other, fleet)
         !(targetOccupied && (other.robot.remaining != Tick.zero || targetBlocked))
       }
-
-  override def colliding(
-      placements: Seq[Placement]
-  ): Seq[(Placement, Placement)] =
-    for
-      (placement, index) <- placements.zipWithIndex
-      collider <- placements
-        .drop(index + 1)
-        .find: other =>
-          other.robot.id != placement.robot.id &&
-            other.at == placement.intent.position &&
-            other.intent.position == placement.at
-    yield (placement, collider)

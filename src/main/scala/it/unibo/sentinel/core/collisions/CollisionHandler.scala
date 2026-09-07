@@ -32,14 +32,13 @@ private abstract class BasicHandler extends CollisionHandler:
     */
   protected def partition(placements: Seq[Placement])(using
       selection: SelectionPolicy
-  ): (Seq[Placement], Seq[Placement]) =
+  ): (Option[Placement], Seq[Placement]) =
     val robots = placements.map(_.robot)
-    val selectedIds = selection.select(robots).toSet
-    placements.find(p => p.at == p.intent.position) match
-      case Some(standing) =>
-        (Seq(standing), placements.filterNot(_ == standing))
-      case None =>
-        placements.partition(p => selectedIds.contains(p.robot.id))
+    selection.select(robots) match
+      case Some(id) =>
+        val (selected, remaining) = placements.partition(_.robot.id == id)
+        (selected.headOption, remaining)
+      case None => (None, placements)
 
   protected def transitionRobot(
       placements: Seq[Placement],

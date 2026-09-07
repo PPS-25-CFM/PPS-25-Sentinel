@@ -12,9 +12,9 @@ trait SelectionPolicy:
   /** @param robots
     *   list of [[Robot]]s to select a few from
     * @return
-    *   a list containing the ids of the selected [[Robot]]s
+    *   an `Option` containing the id of the selected [[Robot]]
     */
-  def select(robots: Seq[Robot]): Seq[RobotId]
+  def select(robots: Seq[Robot]): Option[RobotId]
 
 object SelectionPolicy:
 
@@ -23,10 +23,9 @@ object SelectionPolicy:
     * @param selections
     *   number of [[Robot]]s to select
     */
-  def random(selections: Int = 1): SelectionPolicy = robots =>
+  def random(): SelectionPolicy = robots =>
     val ids = robots.map(_.id)
-    val selected = Random.shuffle(ids).take(selections)
-    selected
+    Random.shuffle(ids).headOption
 
   /** Policy that selects the [[Robot]](s) based on who has the mission closest
     * to failing.
@@ -36,18 +35,13 @@ object SelectionPolicy:
     * @param missions
     *   list of [[Mission]]s to extract the deadline from.
     */
-  def closestDeadline(selections: Int = 1)(using
-      missions: => Seq[Mission]
-  ): SelectionPolicy =
-    selectByMissionProperty(selections, _.deadline)
+  def closestDeadline()(using missions: => Seq[Mission]): SelectionPolicy =
+    selectByMissionProperty(_.deadline)
 
-  def highestPriority(
-      selections: Int = 1
-  )(using missions: => Seq[Mission]): SelectionPolicy =
-    selectByMissionProperty(selections, _.priority, false)
+  def highestPriority()(using missions: => Seq[Mission]): SelectionPolicy =
+    selectByMissionProperty(_.priority, false)
 
   private def selectByMissionProperty[A: Ordering](
-      selections: Int,
       extractProperty: Mission => A,
       ascending: Boolean = true
   )(using missions: => Seq[Mission]): SelectionPolicy = robots =>
@@ -60,4 +54,4 @@ object SelectionPolicy:
     val sorted =
       if ascending then result.sortBy(_._2)
       else result.sortBy(_._2)(using Ordering[A].reverse)
-    sorted.map(_._1).take(selections)
+    sorted.map(_._1).headOption
