@@ -151,22 +151,22 @@ class EnvironmentSpec
         environment.assign(r1, m1)
 
         val event = environment.perform(r1)
-        event shouldBe Some(Event.MissionCompleted(m1))
+        event shouldBe Seq(Event.MissionCompleted(m1))
 
         environment.mission(m1).value.status shouldBe MissionStatus.Completed
         environment.robot(r1).value.mission shouldBe None
 
-      "return None if the robot ID does not exist" in:
+      "return empty if the robot ID does not exist" in:
         val event = environment.perform(RobotId("UNKNOWN"))
-        event shouldBe None
+        event shouldBe empty
 
-      "return None if the robot has no mission assigned" in:
+      "return empty if the robot has no mission assigned" in:
         val event = environment.perform(r1)
-        event shouldBe None
+        event shouldBe empty
 
     "performing a deposit mission" should:
 
-      "emit ItemPicked then MissionCompleted keeping the robot assigned in between" in:
+      "emit ItemPicked then ItemDropped and MissionCompleted keeping the robot assigned in between" in:
         val carrier = RobotId("C1")
         val depId = MissionId("D1")
         val shelf = Position(2, 2)
@@ -186,14 +186,15 @@ class EnvironmentSpec
         environment.assign(carrier, depId)
 
         environment.perform(carrier) shouldBe
-          Some(Event.ItemPicked(carrier, depId, Item.Computer, shelf))
+          Seq(Event.ItemPicked(carrier, depId, Item.Computer, shelf))
         environment.mission(depId).value.status shouldBe MissionStatus.Assigned
         environment.mission(depId).value.currentAction.value shouldBe
           Action.Drop(Item.Computer, bay)
         environment.robot(carrier).value.mission shouldBe Some(depId)
         environment.robot(carrier).value.status shouldBe RobotStatus.Ready
 
-        environment.perform(carrier) shouldBe Some(
+        environment.perform(carrier) shouldBe Seq(
+          Event.ItemDropped(carrier, depId, Item.Computer, bay),
           Event.MissionCompleted(depId)
         )
         environment.mission(depId).value.status shouldBe MissionStatus.Completed
@@ -221,7 +222,7 @@ class EnvironmentSpec
           .robot(carrier)
           .value
           .pick(Item.Computer) shouldBe true // load 1/50
-        environment.perform(carrier) shouldBe Some(Event.MissionFailed(depId))
+        environment.perform(carrier) shouldBe Seq(Event.MissionFailed(depId))
         environment.mission(depId).value.status shouldBe MissionStatus.Failed
         environment.robot(carrier).value.mission shouldBe None
 

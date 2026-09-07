@@ -151,12 +151,14 @@ private[core] final class Environment private[core] (
 
   /** @param rid
     * @return
-    *   [[Event.MissionCompleted]] if the mission reached [[Task.Done]],
-    *   [[Event.ItemPicked]] / [[Event.ItemDropped]] for intermediate deposit
-    *   steps, [[Event.MissionFailed]] if pick/drop failed, [[None]] otherwise
+    *   the [[Event]]s produced by the action: [[Event.MissionCompleted]] if the
+    *   mission reached [[Task.Done]] (preceded by [[Event.ItemPicked]] /
+    *   [[Event.ItemDropped]] for deposit steps), [[Event.ItemPicked]] /
+    *   [[Event.ItemDropped]] for intermediate deposit steps,
+    *   [[Event.MissionFailed]] if failed, empty [[Seq]] otherwise
     */
-  def perform(rid: RobotId): Option[Event] =
-    for
+  def perform(rid: RobotId): Seq[Event] =
+    (for
       spot <- fleet.get(rid)
       robot = spot.robot
       mid <- robot.mission
@@ -166,17 +168,23 @@ private[core] final class Environment private[core] (
       case Action.Move(_) =>
         robot.release()
         board += (mid -> mission.complete)
-        Event.MissionCompleted(mid)
+        Seq(Event.MissionCompleted(mid))
 
       case Action.PickUp(item, at) =>
         if robot.pick(item) then
-          robot.clearRoute()
-          board += (mid -> mission.completeCurrentAction)
-          Event.ItemPicked(rid, mid, item, at)
+          val next = mission.completeCurrentAction
+          board += (mid -> next)
+          if next.isOver then robot.release() else robot.clearRoute()
+          if next.isOver then
+            Seq(
+              Event.ItemPicked(rid, mid, item, at),
+              Event.MissionCompleted(mid)
+            )
+          else Seq(Event.ItemPicked(rid, mid, item, at))
         else
           board += (mid -> mission.fail)
           releaseCarrier(mission)
-          Event.MissionFailed(mid)
+          Seq(Event.MissionFailed(mid))
 
       case Action.Drop(item, at) =>
         robot.drop(item) match
@@ -184,12 +192,17 @@ private[core] final class Environment private[core] (
             val next = mission.completeCurrentAction
             board += (mid -> next)
             if next.isOver then robot.release() else robot.clearRoute()
-            if next.isOver then Event.MissionCompleted(mid)
-            else Event.ItemDropped(rid, mid, dropped, at)
+            if next.isOver then
+              Seq(
+                Event.ItemDropped(rid, mid, dropped, at),
+                Event.MissionCompleted(mid)
+              )
+            else Seq(Event.ItemDropped(rid, mid, dropped, at))
           case None =>
             board += (mid -> mission.fail)
             releaseCarrier(mission)
-            Event.MissionFailed(mid)
+            Seq(Event.MissionFailed(mid))
+    ).toSeq.flatten
 
   /** Advances all missions in the environment by one step.
     *

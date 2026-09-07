@@ -188,6 +188,23 @@ class PhaseSpec
         depWorld.mission(depId).value.status shouldBe MissionStatus.Assigned
         depWorld.robot(r1).value.status shouldBe RobotStatus.Ready
 
+    "a carrier stands on the bay after picking" should:
+
+      "emit ItemDropped and MissionCompleted together" in:
+        val (depWorld, _, _, depSel) = depositSetup(spawnAt = bay)
+        Phase.assigning(using depSel)(depWorld)
+        // advance PickUp ignoring position, so current action becomes Drop at bay
+        depWorld.perform(r1) shouldBe Seq(
+          Event.ItemPicked(r1, depId, Item.Computer, shelf)
+        )
+
+        Phase.performing(depWorld) should contain theSameElementsAs Seq(
+          Event.ItemDropped(r1, depId, Item.Computer, bay),
+          Event.MissionCompleted(depId)
+        )
+        depWorld.mission(depId).value.status shouldBe MissionStatus.Completed
+        depWorld.robot(r1).value.mission shouldBe None
+
   "The expiring phase" when:
 
     "the duration of a mission is exhausted" should:

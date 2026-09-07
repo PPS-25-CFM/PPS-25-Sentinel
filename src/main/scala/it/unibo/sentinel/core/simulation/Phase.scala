@@ -64,9 +64,9 @@ private[core] object Phase:
     for
       spot <- world.placements
       robot = spot.robot
-      mid <- robot.mission
-      mission <- world.mission(mid)
-      action <- mission.currentAction
+      mid <- robot.mission.toSeq
+      mission <- world.mission(mid).toSeq
+      action <- mission.currentAction.toSeq
       if isSatisfied(world.warehouse, spot.at, action)
       performed <- world.perform(robot.id)
     yield performed
