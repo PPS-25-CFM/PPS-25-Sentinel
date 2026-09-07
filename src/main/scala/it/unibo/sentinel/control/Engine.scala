@@ -124,7 +124,6 @@ object Engine:
           case (time, Keep)     => time
           case (time, Backward) => time.previous
           case (time, Forward)  => time.next
-        .takeWhile(_ => !simulation.isOver)
 
     override def pause(): Unit = submit(Pause)
 
