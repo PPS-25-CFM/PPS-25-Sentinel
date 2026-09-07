@@ -32,21 +32,21 @@ trait Queries:
     * @return
     *   the [[Robot]] with the given id, if any.
     */
-  def robot(r_id: RobotId): Option[Robot]
+  def robot(rid: RobotId): Option[Robot]
 
-  /** @param m_id
+  /** @param mid
     *   the [[MissionId]] of the mission to query
     * @return
     *   the [[Mission]] with the given id, if any.
     */
-  def mission(m_id: MissionId): Option[Mission]
+  def mission(mid: MissionId): Option[Mission]
 
   /** @param robotId
     *   the [[RobotId]] of the robot contained in the placement to query.
     * @return
     *   the [[Placement]] with the given id, if any.
     */
-  def placement(r_id: RobotId): Option[Placement]
+  def placement(rid: RobotId): Option[Placement]
 
   /** @param status
     *   the [[RobotStatus]] to filter robots by.
@@ -82,50 +82,50 @@ private[core] final class Environment private[core] (
   override def placements: Seq[Placement] = fleet.values.toSeq
   override def missions: Seq[Mission] = board.values.toSeq
 
-  override def robot(r_id: RobotId): Option[Robot] =
-    fleet.get(r_id).map(_.robot)
+  override def robot(rid: RobotId): Option[Robot] =
+    fleet.get(rid).map(_.robot)
 
-  override def mission(m_id: MissionId): Option[Mission] =
-    board.get(m_id)
+  override def mission(mid: MissionId): Option[Mission] =
+    board.get(mid)
 
-  override def placement(r_id: RobotId): Option[Placement] =
-    fleet.get(r_id)
+  override def placement(rid: RobotId): Option[Placement] =
+    fleet.get(rid)
 
-  /** @param r_id
-    * @param m_id
+  /** @param rid
+    * @param mid
     * @return
     *   an [[Event]] if the assignment was successful, None otherwise
     */
-  def assign(r_id: RobotId, m_id: MissionId): Option[Event] =
+  def assign(rid: RobotId, mid: MissionId): Option[Event] =
     for
-      spot <- fleet.get(r_id)
+      spot <- fleet.get(rid)
       robot = spot.robot
-      mission <- board.get(m_id)
+      mission <- board.get(mid)
     yield
       robot.accept(mission)
-      board = board + (m_id -> mission.assignTo(r_id))
-      Event.MissionAssigned(r_id, m_id)
+      board = board + (mid -> mission.assignTo(rid))
+      Event.MissionAssigned(rid, mid)
 
-  /** @param r_id
+  /** @param rid
     * @param path
     * @return
     *   an [[Event]] if the routing was successful, None otherwise
     */
-  def route(r_id: RobotId, path: Path): Option[Event] =
+  def route(rid: RobotId, path: Path): Option[Event] =
     for
-      spot <- fleet.get(r_id)
+      spot <- fleet.get(rid)
       robot = spot.robot
     yield
       robot.follow(path)
-      Event.RobotRouted(r_id, path.positions)
+      Event.RobotRouted(rid, path.positions)
 
-  /** @param r_id
+  /** @param rid
     * @return
     *   an [[Event]] if the [[Robot]] was able to move, None otherwise
     */
-  def advance(r_id: RobotId): Option[Event] =
+  def advance(rid: RobotId): Option[Event] =
     for
-      spot <- fleet.get(r_id)
+      spot <- fleet.get(rid)
       robot = spot.robot
       from = spot.at
       intent = spot.intent
@@ -133,11 +133,11 @@ private[core] final class Environment private[core] (
     yield
       if canMove(spot) then
         robot.step()
-        fleet += (r_id -> spot.copy(at = intent.position))
-        Event.RobotMoved(r_id, from, intent.position)
+        fleet += (rid -> spot.copy(at = intent.position))
+        Event.RobotMoved(rid, from, intent.position)
       else
         spot.robot.pause()
-        Event.RobotBlocked(r_id, from)
+        Event.RobotBlocked(rid, from)
 
   private def canMove(placement: Placement): Boolean =
     placement.robot.status == RobotStatus.Moving
@@ -149,47 +149,47 @@ private[core] final class Environment private[core] (
         !(targetPositionOccupied && targetWillNotBeVacated)
       }
 
-  /** @param r_id
+  /** @param rid
     * @return
     *   [[Event.MissionCompleted]] if the mission reached [[Task.Done]],
     *   [[Event.ItemPicked]] / [[Event.ItemDropped]] for intermediate deposit
     *   steps, [[Event.MissionFailed]] if pick/drop failed, [[None]] otherwise
     */
-  def perform(r_id: RobotId): Option[Event] =
+  def perform(rid: RobotId): Option[Event] =
     for
-      spot <- fleet.get(r_id)
+      spot <- fleet.get(rid)
       robot = spot.robot
-      m_id <- robot.mission
-      mission <- board.get(m_id)
+      mid <- robot.mission
+      mission <- board.get(mid)
       action <- mission.currentAction
     yield action match
       case Action.Move(_) =>
         robot.release()
-        board += (m_id -> mission.complete)
-        Event.MissionCompleted(m_id)
+        board += (mid -> mission.complete)
+        Event.MissionCompleted(mid)
 
       case Action.PickUp(item, at) =>
         if robot.pick(item) then
           robot.clearRoute()
-          board += (m_id -> mission.completeCurrentAction)
-          Event.ItemPicked(r_id, m_id, item, at)
+          board += (mid -> mission.completeCurrentAction)
+          Event.ItemPicked(rid, mid, item, at)
         else
-          board += (m_id -> mission.fail)
+          board += (mid -> mission.fail)
           releaseCarrier(mission)
-          Event.MissionFailed(m_id)
+          Event.MissionFailed(mid)
 
       case Action.Drop(item, at) =>
         robot.drop(item) match
           case Some(dropped) =>
             val next = mission.completeCurrentAction
-            board += (m_id -> next)
+            board += (mid -> next)
             if next.isOver then robot.release() else robot.clearRoute()
-            if next.isOver then Event.MissionCompleted(m_id)
-            else Event.ItemDropped(r_id, m_id, dropped, at)
+            if next.isOver then Event.MissionCompleted(mid)
+            else Event.ItemDropped(rid, mid, dropped, at)
           case None =>
-            board += (m_id -> mission.fail)
+            board += (mid -> mission.fail)
             releaseCarrier(mission)
-            Event.MissionFailed(m_id)
+            Event.MissionFailed(mid)
 
   /** Advances all missions in the environment by one step.
     *
