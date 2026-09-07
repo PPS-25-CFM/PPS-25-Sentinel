@@ -4,6 +4,8 @@ import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.simulation.Event.*
 
+import scala.reflect.ClassTag
+
 object Statistics:
   /** The report of a [[Simulation]] run.
     */
@@ -150,16 +152,16 @@ object Statistics:
     override lazy val numOfMissions: Int = snapshot.missions.size
 
     override lazy val numOfCompletedMissions: Int =
-      countEvents { case Event.MissionCompleted(_) => true }
+      countEvents[MissionCompleted]
 
     override lazy val numOfFailedMissions: Int =
-      countEvents { case Event.MissionFailed(_) => true }
+      countEvents[MissionFailed]
 
     override lazy val totalDistance: Int =
-      countEvents { case Event.RobotMoved(_, _, _) => true }
+      countEvents[RobotMoved]
 
     override lazy val numOfBlocks: Int =
-      countEvents { case Event.RobotBlocked(_, _) => true }
+      countEvents[RobotBlocked]
 
     override lazy val averageCompletionTime: Option[Double] =
       rate(completionTimes.map(_._2).sum, completionTimes.size)
@@ -209,9 +211,9 @@ object Statistics:
         .map((robot, missions) => (robot, missions.toSet))
       base ++ fromHistory
 
-    private def countEvents(p: PartialFunction[Event, Boolean]): Int =
-      history.count:
-        case (e, _) => p.applyOrElse(e, _ => false)
+    private def countEvents[E <: Event: ClassTag]: Int =
+      val clazz = summon[ClassTag[E]].runtimeClass
+      history.count((event, _) => clazz.isInstance(event))
 
   private def rate(num: Double, den: Double): Option[Double] =
     Option.unless(den == 0d)(num / den)
