@@ -29,9 +29,13 @@ object Launcher:
       val engine: Engine = Engine(sim, 1.second)
       val window = toolkit.window
       val panel = toolkit.simulation(engine)
+      val statistics = toolkit.statistics()
       window.show(panel)
       window.open()
       engine.observe(panel.render)
+      engine.observeCompletion: report =>
+        statistics.render(report)
+        window.show(statistics)
       engine.start()
 
   def loadScenario(): Either[Validation, Scenario] =

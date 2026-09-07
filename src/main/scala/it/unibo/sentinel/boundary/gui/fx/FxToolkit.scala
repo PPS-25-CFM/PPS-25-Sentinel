@@ -16,6 +16,7 @@ import it.unibo.sentinel.boundary.gui.fx.panels.{
 }
 import it.unibo.sentinel.core.simulation.{StepResult, Event}
 import it.unibo.sentinel.boundary.gui.toolkit.SimulationView
+import it.unibo.sentinel.boundary.gui.toolkit.StatisticsView
 import it.unibo.sentinel.control.Controller
 
 /** Toolkit implementation using the fx library
@@ -28,6 +29,8 @@ object FxToolkit extends Toolkit:
   override type V = FxView
 
   override val window: W = new FxWindow(Some(defaultWidth), Some(defaultHeight))
+
+  override def statistics(): V & StatisticsView = new FxStatisticsView
 
   override def simulation(c: Controller): V & SimulationView =
     new FxView with SimulationView:
