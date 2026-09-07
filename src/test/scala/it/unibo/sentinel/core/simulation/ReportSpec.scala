@@ -6,6 +6,8 @@ import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.simulation.Event.*
 import it.unibo.sentinel.core.warehouse.Position
 import org.mockito.Mockito.*
+import it.unibo.sentinel.core.scenario.Scenario
+import it.unibo.sentinel.core.scenario.Spawn
 
 class ReportSpec extends UnitTest:
 
@@ -21,18 +23,18 @@ class ReportSpec extends UnitTest:
   private val p4 = Position(3, 0)
 
   private trait ReportFixture:
-    val snapshot: Snapshot = mock[Snapshot]()
+    val scenario: Scenario = mock[Scenario]()
 
-    when(snapshot.robots).thenReturn(Seq.empty[RobotSnapshot])
-    when(snapshot.missions).thenReturn(Seq.empty[Mission])
+    when(scenario.spawns).thenReturn(Seq.empty[Spawn])
+    when(scenario.missions).thenReturn(Seq.empty[Mission])
 
     def createReport(history: History = Vector.empty): Statistics.Report =
-      Statistics.report(snapshot, history, lastTick)
+      Statistics.report(scenario, history, lastTick)
 
-    def robotSnapshot(id: RobotId): RobotSnapshot =
-      val robot = mock[RobotSnapshot]()
-      when(robot.id).thenReturn(id)
-      robot
+    def createSpawn(id: RobotId): Spawn =
+      val spawn = mock[Spawn]()
+      when(spawn.id).thenReturn(id)
+      spawn
 
   private trait MissionsFixture extends ReportFixture:
     val mission1: Mission = mock[Mission]()
@@ -40,7 +42,7 @@ class ReportSpec extends UnitTest:
 
     when(mission1.id).thenReturn(m1)
     when(mission2.id).thenReturn(m2)
-    when(snapshot.missions).thenReturn(Seq(mission1, mission2))
+    when(scenario.missions).thenReturn(Seq(mission1, mission2))
 
     val history: History = Vector(
       (MissionCompleted(m1), Tick(1)),
@@ -48,10 +50,10 @@ class ReportSpec extends UnitTest:
     )
 
   private trait RobotUsageFixture extends ReportFixture:
-    val robots: Seq[RobotSnapshot] =
-      Seq(robotSnapshot(r1), robotSnapshot(r2))
+    val robots: Seq[Spawn] =
+      Seq(createSpawn(r1), createSpawn(r2))
 
-    when(snapshot.robots).thenReturn(robots)
+    when(scenario.spawns).thenReturn(robots)
 
     val history: History = Vector(
       (MissionAssigned(r1, m1), Tick(0)),
@@ -68,8 +70,8 @@ class ReportSpec extends UnitTest:
         report.ticks shouldBe lastTick.value
 
       "show the number of deployed robots in the fleet" in new ReportFixture:
-        val robots = Seq(robotSnapshot(r1), robotSnapshot(r2))
-        when(snapshot.robots).thenReturn(robots)
+        val robots = Seq(createSpawn(r1), createSpawn(r2))
+        when(scenario.spawns).thenReturn(robots)
         val report = createReport()
         report.numOfRobots shouldBe 2
 
@@ -100,8 +102,8 @@ class ReportSpec extends UnitTest:
         report.throughput shouldBe Some(expectedThroughput)
 
       "show the throughput per robot" in new MissionsFixture:
-        val robots = Seq(robotSnapshot(r1), robotSnapshot(r2))
-        when(snapshot.robots).thenReturn(robots)
+        val robots = Seq(createSpawn(r1), createSpawn(r2))
+        when(scenario.spawns).thenReturn(robots)
         val report = createReport(history)
         val expectedThroughput = 1d / (lastTick.value * robots.size)
         report.throughputPerRobot shouldBe Some(expectedThroughput)

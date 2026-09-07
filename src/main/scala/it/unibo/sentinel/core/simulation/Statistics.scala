@@ -5,6 +5,7 @@ import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.simulation.Event.*
 
 import scala.reflect.ClassTag
+import it.unibo.sentinel.core.scenario.Scenario
 
 object Statistics:
   /** The report of a [[Simulation]] run.
@@ -127,8 +128,8 @@ object Statistics:
     * the same simulation run. Each mission is assigned at most once and has at
     * most one outcome.
     *
-    * @param snapshot
-    *   the [[Snapshot]] of the [[Simulation]].
+    * @param scenario
+    *   the [[Scenario]] the [[Simulation]] has been run on.
     * @param history
     *   the [[History]] of the [[Simulation]].
     * @param at
@@ -136,20 +137,20 @@ object Statistics:
     * @return
     *   the [[Report]] of the [[Simulation]] run.
     */
-  def report(snapshot: Snapshot, history: History, at: Tick): Report =
-    Registry(snapshot, history, at)
+  def report(scenario: Scenario, history: History, at: Tick): Report =
+    Registry(scenario, history, at)
 
   private final case class Registry(
-      snapshot: Snapshot,
+      scenario: Scenario,
       history: History,
       tick: Tick
   ) extends Report:
 
     override lazy val ticks: Int = tick.value
 
-    override lazy val numOfRobots: Int = snapshot.robots.size
+    override lazy val numOfRobots: Int = scenario.spawns.size
 
-    override lazy val numOfMissions: Int = snapshot.missions.size
+    override lazy val numOfMissions: Int = scenario.missions.size
 
     override lazy val numOfCompletedMissions: Int =
       countEvents[MissionCompleted]
@@ -202,7 +203,7 @@ object Statistics:
         case _ => None
 
     private lazy val assignments: Map[RobotId, Set[MissionId]] =
-      val allRobots = snapshot.robots.map(_.id)
+      val allRobots = scenario.spawns.map(_.id)
       val base = Map.from(allRobots.map((_, Set.empty[MissionId])))
       val fromHistory = history
         .collect:
