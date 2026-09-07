@@ -7,6 +7,7 @@ import scala.Conversion
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 import monix.reactive.subjects.ConcurrentSubject
+import it.unibo.sentinel.core.simulation.Statistics.Report
 
 /** Represents something that can be stopped.
   */
@@ -39,6 +40,10 @@ trait Engine extends Controller:
   /** Registers a callback invoked after every simulation step.
     */
   def observe(onStep: StepResult => Unit): Stoppable
+
+  /** Registers a callback invoked when the simulation is completed.
+    */
+  def observeCompletion(onCompleted: Report => Unit): Stoppable
 
   /** Starts the simulation.
     */
@@ -73,12 +78,19 @@ object Engine:
 
     private lazy val steps =
       clock
-        .collect:
-          case Tick(time) if history.isDefinedAt(time) => history(time)
+        .map { case Tick(time) => history.lift(time) }
+        .takeWhileInclusive(_ => !simulation.isOver)
+        .collect { case Some(step) => step }
         .publish
+
+    private lazy val completion =
+      steps.completed ++ Observable.eval(simulation.statistics)
 
     override def observe(onStep: StepResult => Unit): Stoppable =
       steps.foreach(onStep)
+
+    override def observeCompletion(onCompleted: Report => Unit): Stoppable =
+      completion.foreach(onCompleted)
 
     override def start(): Stoppable =
       steps.connect()
