@@ -2,24 +2,26 @@ package it.unibo.sentinel.core.item
 
 /** Represents a weight for an [[Item]].
   */
-opaque type ItemWeight = Double
+opaque type Weight = Double
 
-object ItemWeight:
-  /** Zero weight constant */
-  val Zero: ItemWeight = 0
+object Weight:
+  /** Weight constant */
+  val zero: Weight = 0
+  val max: Weight = 200.0
+  val average: Weight = 50.0
 
-  def apply(weight: Double): ItemWeight = Math.max(weight, Zero.value)
+  def apply(weight: Double): Weight = Math.max(weight, zero.value)
 
   /** @param weight
     *   the weight to decompose.
     * @return
     *   [[Some]] with the raw [[Double]] value.
     */
-  def unapply(weight: ItemWeight): Option[Double] = Some(weight)
+  def unapply(weight: Weight): Option[Double] = Some(weight)
 
-  extension (weight: ItemWeight)
+  extension (weight: Weight)
     /** @return
-      *   the [[ItemWeight]] as a raw Double
+      *   the [[Weight]] as a raw Double
       */
     def value: Double = weight
 
@@ -28,7 +30,7 @@ object ItemWeight:
       * @return
       *   the sum of the weights.
       */
-    def +(other: ItemWeight): ItemWeight = ItemWeight(
+    def +(other: Weight): Weight = Weight(
       weight.value + other.value
     )
 
@@ -37,9 +39,9 @@ object ItemWeight:
       * @return
       *   the difference of the weights.
       */
-    def -(other: ItemWeight): ItemWeight = ItemWeight(
+    def -(other: Weight): Weight = Weight(
       weight.value - other.value
     )
 
   /** Ordering by raw weight value, enables standard comparisons and sorting. */
-  given Ordering[ItemWeight] = Ordering.by(_.value)
+  given Ordering[Weight] = Ordering.by(_.value)

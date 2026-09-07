@@ -1,6 +1,6 @@
 package it.unibo.sentinel.core.scenario
 
-import it.unibo.sentinel.core.item.Item
+import it.unibo.sentinel.core.item.{Item, Weight}
 import it.unibo.sentinel.core.mission.{Action, Mission, MissionId}
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.warehouse.{Position, Tile, Warehouse}
@@ -30,7 +30,7 @@ case class Intent(robotId: RobotId, position: Position)
   */
 final case class Placement(robot: Robot, at: Position):
 
-  /** @returns
+  /** @return
     *   an intent to where the robot wants to move
     */
   def intent: Intent =
@@ -51,6 +51,8 @@ enum RobotClass:
   *   the [[RobotId]] of the [[Robot]] to spawn.
   * @param at
   *   the [[Position]] where to spawn the [[Robot]].
+  * @param ofClass
+  *   the [[RobotClass]] of the [[Robot]] to spawn.
   */
 final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
   /** @return
@@ -59,9 +61,9 @@ final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
   def toPlacement: Placement = ofClass match
     case RobotClass.Drone   => Placement(Robot.drone(id, 3), at)
     case RobotClass.Carrier =>
-      Placement(Robot.carrier(id, Item.averageWeight, 5), at)
+      Placement(Robot.carrier(id, Weight.average, 5), at)
     case RobotClass.HeavyCarrier =>
-      Placement(Robot.carrier(id, Item.highestWeight, 1), at)
+      Placement(Robot.carrier(id, Weight.max, 1), at)
 
 enum Validation:
   /** @param position
@@ -85,15 +87,12 @@ enum Validation:
   case MissionAlreadyExists(id: MissionId)
 
   /** @param position
-    *   the [[Position]] that is not a shelf tile. Returned when a mission
-    *   containing a pick operation targets a tile that is not a [[Shelf]].
+    *   the [[Position]] that is not a shelf tile.
     */
   case NotShelfTile(position: Position)
 
   /** @param position
-    *   the [[Position]] that is not a loading zone tile. Returned when a
-    *   mission containing a drop operation targets a tile that is not a
-    *   [[LoadingBay]].
+    *   the [[Position]] that is not a loading zone tile.
     */
   case NotLoadingBay(position: Position)
 

@@ -1,7 +1,7 @@
 package it.unibo.sentinel.core.robot
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.item.{Item, ItemWeight}
+import it.unibo.sentinel.core.item.{Item, Weight}
 import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.Position
@@ -9,7 +9,7 @@ import it.unibo.sentinel.core.robot.RobotStatus
 
 class CarrierSpec extends UnitTest with RobotFixture with RobotBehavior:
 
-  private val maxLoad = ItemWeight(10)
+  private val maxLoad = Weight(10)
   private val deliverId = MissionId("D1")
   private val deliver: Mission =
     Mission.deliver(
@@ -67,7 +67,7 @@ class CarrierSpec extends UnitTest with RobotFixture with RobotBehavior:
         robot.pick(Item.Table) shouldBe true // 10/10
 
       "reject a single item heavier than maxLoad" in:
-        val robot = Robot.carrier(robotId, ItemWeight(1))
+        val robot = Robot.carrier(robotId, Weight(1))
         robot.pick(Item.Fridge) shouldBe false // 50 > 1
 
       "drop a carried item" in:

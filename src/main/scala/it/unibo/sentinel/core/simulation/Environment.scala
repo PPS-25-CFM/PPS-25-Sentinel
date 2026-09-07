@@ -64,7 +64,7 @@ trait Queries:
     missions.filter(_.status == MissionStatus.Pending)
 
 /** Represents the mutable simulation state, maintaining the [[Warehouse]]
-  * layout, the robot [[fleet]], the mission [[board]] and the item [[stock]].
+  * layout, the robot [[fleet]] and the mission [[board]].
   *
   * @param warehouse
   *   the [[Warehouse]] where the simulation takes place.
@@ -72,8 +72,6 @@ trait Queries:
   *   the map of current [[Placement]]s indexed by [[RobotId]].
   * @param board
   *   the map of active [[Mission]]s indexed by [[MissionId]].
-  * @param stock
-  *   the map of stored [[StoredItem]]s indexed by [[ItemId]].
   */
 private[core] final class Environment private[core] (
     val warehouse: Warehouse,

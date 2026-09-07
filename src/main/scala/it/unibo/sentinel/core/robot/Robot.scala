@@ -5,7 +5,7 @@ import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.simulation.Tick
 import scala.collection.immutable.Queue
-import it.unibo.sentinel.core.item.ItemWeight
+import it.unibo.sentinel.core.item.Weight
 import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.mission.Mission
 
@@ -45,9 +45,7 @@ trait Robot:
     */
   def release(): Unit
 
-  /** Clears the current path without removing the mission. Used for the
-    * intermediate pick -> drop step: the robot must return to Ready (Some,
-    * None) to be re-routed, without losing the mission.
+  /** Clears the current path without removing the mission.
     */
   def clearRoute(): Unit
 
@@ -158,7 +156,7 @@ object Robot:
     * @return
     *   a new carrier with the given id, no missions and idle status
     */
-  def carrier(id: RobotId, maxLoad: ItemWeight, capacity: Int = 1): Robot =
+  def carrier(id: RobotId, maxLoad: Weight, capacity: Int = 1): Robot =
     new Carrier(id, maxLoad) with Queued(capacity)
 
   /** Shared movement logic for all mobile robots.
@@ -218,12 +216,12 @@ object Robot:
     * @param maxLoad
     *   max transportable [[ItemWeight]]
     */
-  private abstract class Carrier(id: RobotId, maxLoad: ItemWeight)
+  private abstract class Carrier(id: RobotId, maxLoad: Weight)
       extends BaseRobot(id):
     private var bag: Seq[Item] = Seq.empty
 
-    private def currentLoad: ItemWeight =
-      bag.map(_.weight).foldLeft(ItemWeight.Zero)(_ + _)
+    private def currentLoad: Weight =
+      bag.map(_.weight).foldLeft(Weight.zero)(_ + _)
 
     override def canAccept(mission: Mission): Boolean =
       mission.isMovementOnly ||

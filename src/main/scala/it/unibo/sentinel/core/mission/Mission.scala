@@ -121,7 +121,6 @@ final case class Mission private (
       if deadline.value <= 1 then copy(deadline = deadline.previous).fail
       else copy(deadline = deadline.previous)
 
-/** Companion for [[Mission]] with validation and factories. */
 object Mission:
 
   /** Errors generated when creating a mission.
@@ -166,8 +165,7 @@ object Mission:
     *   The total time window allocated for the relocation, expressed in
     *   [[Tick]] units.
     * @return
-    *   A new relocation [[Mission]] initialized in the unassigned
-    *   [[MissionStatus.Pending]] state.
+    *   A new relocation [[Mission]].
     */
   def relocate(id: MissionId, destination: Position, duration: Tick): Mission =
     Mission(id, Task.move(destination), duration)
