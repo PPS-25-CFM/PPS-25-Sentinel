@@ -52,6 +52,11 @@ trait Simulation:
     */
   def time: Tick
 
+  /** @return
+    *   a [[Snapshot]] of the simulation at the current time.
+    */
+  def snapshot: Snapshot
+
   /** Advances the simulation by one tick.
     */
   def step(): StepResult
@@ -65,6 +70,10 @@ trait Simulation:
     *   the [[History]] of the [[Simulation]] so far.
     */
   def history: History
+
+  /** Returns statistics captured from the current history and executed time.
+    */
+  def statistics: Statistics.Report
 
 object Simulation:
 
@@ -92,7 +101,7 @@ object Simulation:
     */
   def of(id: SimulationId, scenario: Scenario): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(id, world, Phase.all)
+      new BasicSimulation(id, scenario, world, Phase.all)
 
   /** @param scenario
     *   the [[Scenario]] to simulate.
@@ -104,7 +113,7 @@ object Simulation:
     */
   def of(id: SimulationId, scenario: Scenario, limit: Tick): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(id, world, Phase.all) with TimeLimit(limit)
+      new BasicSimulation(id, scenario, world, Phase.all) with TimeLimit(limit)
 
   private abstract class AbstractSimulation extends Simulation:
 
@@ -119,12 +128,18 @@ object Simulation:
 
   private class BasicSimulation(
       val id: SimulationId,
+      scenario: Scenario,
       val world: Environment,
       phases: Seq[Phase]
   ) extends AbstractSimulation:
     private var currentTime: Tick = Tick(0)
 
     def time: Tick = currentTime
+
+    def snapshot: Snapshot = world.snapshot
+
+    def statistics: Statistics.Report =
+      Statistics.report(scenario, history, time)
 
     def step(): StepResult =
       val events = phases.flatMap(_.apply(world))
