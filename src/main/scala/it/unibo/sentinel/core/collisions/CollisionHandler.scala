@@ -1,57 +1,44 @@
 package it.unibo.sentinel.core.collisions
 
-import it.unibo.sentinel.core.simulation.Event
 import it.unibo.sentinel.core.scenario.Placement
-import it.unibo.sentinel.core.robot.RobotStatus
+import it.unibo.sentinel.core.robot.RobotId
+
+enum Action(val id: RobotId):
+  case Block(override val id: RobotId) extends Action(id)
+  case Unblock(override val id: RobotId) extends Action(id)
 
 /** Defines how to handle collisions between [[Robot]]s
   */
 trait CollisionHandler:
-  /** Resolves collisions between a group of [[Robot]]s
-    *
-    * @param placements
-    *   list of colliding [[Robot]]s
-    * @param selection
-    *   used to select the [[Robot]]s to apply the resolution to
-    */
-  def resolveCollisions(placements: Seq[Placement])(using
-      selection: SelectionPolicy
-  ): Seq[Event]
 
-private abstract class BasicHandler extends CollisionHandler:
+  def resolveIndirectCollisions(
+      winner: Placement,
+      losers: Seq[Placement]
+  ): Seq[Action]
 
-  /** Partitions a list of robots.
-    *
-    * @param placements
-    *   the robots to partition.
-    * @param selection
-    *   the selection policy that determines how to partition.
-    * @return
-    *   a tuple of two list of robots, the first are the selected ones, the
-    *   second are the others.
-    */
-  protected def partition(placements: Seq[Placement])(using
-      selection: SelectionPolicy
-  ): (Option[Placement], Seq[Placement]) =
-    val robots = placements.map(_.robot)
-    selection.select(robots) match
-      case Some(id) =>
-        val (selected, remaining) = placements.partition(_.robot.id == id)
-        (selected.headOption, remaining)
-      case None => (None, placements)
+  def resolveDirectCollisions(
+      winner: Placement,
+      loser: Placement
+  ): Seq[Action]
 
-  protected def transitionRobot(
-      placements: Seq[Placement],
-      status: RobotStatus,
-      action: Placement => Unit,
-      toEvent: Placement => Event
-  ): Seq[Event] =
-    placements
-      .filter(_.robot.status == status)
-      .map { p =>
-        action(p)
-        toEvent(p)
-      }
+  def cleanup(placements: Seq[Placement]): Seq[Action]
+
+private abstract class BasicHandler(
+    protected val onWinner: Placement => Seq[Action],
+    protected val onLoser: Placement => Seq[Action]
+) extends CollisionHandler:
+
+  override def resolveIndirectCollisions(
+      winner: Placement,
+      losers: Seq[Placement]
+  ): Seq[Action] =
+    onWinner(winner) ++ losers.flatMap(onLoser)
+
+  override def resolveDirectCollisions(
+      winner: Placement,
+      loser: Placement
+  ): Seq[Action] =
+    onWinner(winner) ++ onLoser(loser)
 
 object CollisionHandler:
 

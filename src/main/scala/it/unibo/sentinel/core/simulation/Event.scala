@@ -59,3 +59,8 @@ enum Event:
     *   the robot that was unblocked.
     */
   case RobotUnblocked(robot: RobotId)
+
+  def isOppositeOf(other: Event): Boolean = (this, other) match
+    case (RobotBlocked(r1, _), RobotUnblocked(r2)) => r1 == r2
+    case (RobotUnblocked(r1), RobotBlocked(r2, _)) => r1 == r2
+    case _                                          => false

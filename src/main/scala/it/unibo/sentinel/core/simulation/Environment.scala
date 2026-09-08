@@ -6,6 +6,7 @@ import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus}
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.robot.RobotStatus
+import it.unibo.sentinel.core.collisions.Action
 
 /** Provides query operations to inspect the state of the simulation.
   */
@@ -113,6 +114,25 @@ private[core] final class Environment private[core] (
     yield
       robot.follow(path)
       Event.RobotRouted(r_id, path.positions)
+
+  /** @param action
+    *   action to execute
+    * @return
+    *   an [[Event]] if the action produces one
+    */
+  def execute(action: Action): Option[Event] =
+    for
+      spot <- fleet.get(action.id)
+      robot = spot.robot
+      event <- action match
+        case Action.Block(id) if robot.status == RobotStatus.Moving =>
+          robot.pause()
+          Some(Event.RobotBlocked(id, spot.at))
+        case Action.Unblock(id) if robot.status == RobotStatus.Waiting =>
+          robot.resume()
+          Some(Event.RobotUnblocked(id))
+        case _ => None
+    yield event
 
   /** @param r_id
     * @return

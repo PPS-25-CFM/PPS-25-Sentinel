@@ -6,6 +6,9 @@ import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.Position
 
+case class IndirectCollision(target: Position, robots: Seq[RobotId])
+case class DirectCollision(robot1: RobotId, robot2: RobotId)
+
 /** Used to check for collisions between [[Robot]]s
   */
 trait CollisionChecker:
@@ -16,7 +19,7 @@ trait CollisionChecker:
     *   a list of groups of [[RobotId]]s, where each group represents the robots
     *   that will collide (intend to move to the same position)
     */
-  def indirectCollisions(intents: Seq[Intent]): Map[Position, Seq[RobotId]]
+  def indirectCollisions(intents: Seq[Intent]): Seq[IndirectCollision]
 
   /** @param placements
     *   the placements of robots to check for direct collisions.
@@ -24,7 +27,7 @@ trait CollisionChecker:
     *   a list of placements that are colliding between each other in pairs (one
     *   against the other).
     */
-  def directCollisions(intents: Seq[Intent]): Seq[(RobotId, RobotId)]
+  def directCollisions(intents: Seq[Intent]): Seq[DirectCollision]
 
   /** @param placement
     *   the placement of the robot to check
@@ -39,15 +42,16 @@ object CollisionChecker extends CollisionChecker:
 
   override def indirectCollisions(
       intents: Seq[Intent]
-  ): Map[Position, Seq[RobotId]] =
+  ): Seq[IndirectCollision] =
     intents
       .groupBy(_.to)
-      .map(x => (x._1, x._2.map(_.robotId)))
+      .map(x => IndirectCollision(x._1, x._2.map(_.robotId).toSeq))
+      .toSeq
 
   override def directCollisions(
       intents: Seq[Intent]
-  ): Seq[(RobotId, RobotId)] =
-    for
+  ): Seq[DirectCollision] =
+    val collisions = for
       (current, index) <- intents.zipWithIndex
       collider <- intents
         .drop(index + 1)
@@ -55,7 +59,8 @@ object CollisionChecker extends CollisionChecker:
           other.robotId != current.robotId &&
             other.from == current.to &&
             other.to == current.from
-    yield (current.robotId, collider.robotId)
+    yield DirectCollision(current.robotId, collider.robotId)
+    collisions.toSeq
 
   override def canMove(placement: Placement, fleet: Seq[Placement]): Boolean =
     placement.intent.from != placement.intent.to &&

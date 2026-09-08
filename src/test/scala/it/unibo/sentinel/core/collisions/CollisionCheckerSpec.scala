@@ -39,11 +39,11 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
 
       "return false if not enough ticks passed" in:
         CollisionChecker.canMove(p4, Seq()) shouldBe false
-      
+
       "return true if the ticks needed are zero" in:
         p4.robot.tick()
         CollisionChecker.canMove(p4, Seq()) shouldBe true
-      
+
       "return false if the robot is either Idle or Ready" in:
         val idle: Robot = Robot.drone(RobotId("idle"))
         val ready: Robot = Robot.drone(RobotId("Ready"))
@@ -52,7 +52,7 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
         ready.tick()
         CollisionChecker.canMove(Placement(idle, Position(0, 0)), Seq()) shouldBe false
         CollisionChecker.canMove(Placement(ready, Position(0, 0)), Seq()) shouldBe false
-      
+
       "return true if the robot is blocked but there is no blockage" in:
         val blocked: Robot = Robot.drone(RobotId("Blocked"))
         blocked.accept(MissionId("M"))
@@ -60,23 +60,24 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
         blocked.tick()
         blocked.pause()
         CollisionChecker.canMove(Placement(blocked, Position(0, 0)), Seq()) shouldBe true
-      
+
       "return false if the robot is trying to move into another robot that can't move" in:
         val rA: Robot = Robot.drone(RobotId("A"))
         rA.accept(MissionId("M"))
         rA.follow(path1)
         val rB: Robot = Robot.drone(RobotId("B"))
-        CollisionChecker.canMove(Placement(rA, Position(0, 0)), Seq(Placement(rB, Position(1, 1)))) shouldBe false
+        CollisionChecker.canMove(
+          Placement(rA, Position(0, 0)),
+          Seq(Placement(rB, Position(1, 1)))
+        ) shouldBe false
 
     "checking direct collisions" should:
 
       "return a list of robots that are colliding face to face" in:
         group2.foreach(_.tick())
         val intents = Seq(p4.intent, p5.intent)
-        CollisionChecker.directCollisions(
-          intents
-        ) should contain theSameElementsAs Seq(
-          (r4.id, r5.id)
+        CollisionChecker.directCollisions(intents) should contain theSameElementsAs Seq(
+          DirectCollision(r4.id, r5.id)
         )
 
     "checking indirect collisions" should:
@@ -84,30 +85,24 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
       "return a list of groups of robots that collide" in:
         group1.foreach(_.tick())
         val intents = group1.map(r => Placement(r, Position(0, 0)).intent)
-        CollisionChecker.indirectCollisions(
-          intents
-        ) should contain theSameElementsAs Map(
-          (Position(1, 1), group1.map(_.id))
+        CollisionChecker.indirectCollisions(intents) should contain theSameElementsAs Seq(
+          IndirectCollision(Position(1, 1), group1.map(_.id))
         )
 
       "not signal any collision between two robots that want to move to the same position with different ticks" in:
         val rA = Robot.drone(RobotId("RA"))
         val rB = Robot.drone(RobotId("RB"))
-
         val pathA = Path(Step(Position(1, 0), Tick(1)))
         val pathB = Path(Step(Position(1, 0), Tick(2)))
-
         rA.follow(pathA)
         rB.follow(pathB)
-
         rA.tick()
         rB.tick()
 
         val intentA = Placement(rA, Position(0, 0)).intent
         val intentB = Placement(rB, Position(2, 0)).intent
-        val collisions =
-          CollisionChecker.indirectCollisions(Seq(intentA, intentB))
-        collisions should contain theSameElementsAs Map(
-          (Position(1, 0), Seq(rA.id)),
-          (Position(2, 0), Seq(rB.id))
+        val collisions = CollisionChecker.indirectCollisions(Seq(intentA, intentB))
+        collisions should contain theSameElementsAs Seq(
+          IndirectCollision(Position(1, 0), Seq(rA.id)),
+          IndirectCollision(Position(2, 0), Seq(rB.id))
         )
