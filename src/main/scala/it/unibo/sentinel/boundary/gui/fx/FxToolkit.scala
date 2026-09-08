@@ -8,14 +8,16 @@ import scalafx.scene.layout.BorderPane
 import scalafx.application.Platform
 import scalafx.Includes.{eventClosureWrapperWithParam, jfxKeyEvent2sfx}
 import scalafx.scene.input.{KeyCode, KeyEvent}
-import it.unibo.sentinel.core.mission.{Mission, MissionStatus}
+import it.unibo.sentinel.core.mission.{Action, Mission, MissionStatus}
 import it.unibo.sentinel.boundary.gui.fx.panels.{
   SideData,
   SidePanel,
   WarehousePanel
 }
-import it.unibo.sentinel.core.simulation.{StepResult, Event}
+import it.unibo.sentinel.core.simulation.{Snapshot, StepResult, Event}
+import it.unibo.sentinel.core.warehouse.Tile
 import it.unibo.sentinel.boundary.gui.toolkit.SimulationView
+import it.unibo.sentinel.boundary.gui.toolkit.StatisticsView
 import it.unibo.sentinel.control.Controller
 
 /** Toolkit implementation using the fx library
@@ -27,8 +29,17 @@ object FxToolkit extends Toolkit:
   override type W = FxWindow
   override type V = FxView
 
+  /** @return the application window. */
   override val window: W = new FxWindow(Some(defaultWidth), Some(defaultHeight))
 
+  /** @return the statistics view. */
+  override def statistics(): V & StatisticsView = new FxStatisticsView
+
+  /** @param c
+    *   the simulation controller.
+    * @return
+    *   the simulation view bound to `c`.
+    */
   override def simulation(c: Controller): V & SimulationView =
     new FxView with SimulationView:
       val controller: Controller = c
@@ -40,6 +51,7 @@ object FxToolkit extends Toolkit:
       root.left = leftSidePanel
       root.right = rightSidePanel
 
+      /** @return the JavaFX scene with key bindings. */
       override def scene: Scene =
         val s = new Scene(root)
         s.onKeyPressed = (e: KeyEvent) =>
@@ -51,6 +63,9 @@ object FxToolkit extends Toolkit:
             case _         => ()
         s
 
+      /** Renders the current simulation [[StepResult]] onto the warehouse and
+        * side panels.
+        */
       override def render(model: StepResult): Unit = onFx:
         val panel = warehousePanel.getOrElse {
           val p = new WarehousePanel(model.snapshot.warehouse)
@@ -71,11 +86,21 @@ object FxToolkit extends Toolkit:
         val robotsData = SideData(
           "Robots",
           model.snapshot.robots.map(r =>
-            s"${r.id} at ${r.position} - ${r.status}"
+            val assignment = model.snapshot.missions
+              .find(_.carrier.contains(r.id))
+              .map(m => s" - on ${m.id}")
+              .getOrElse(" - free")
+            s"${r.id} at ${r.position} - ${r.status}$assignment"
           )
         )
+        val warehouseData = SideData(
+          "Warehouse",
+          describeWarehouse(model.snapshot)
+        )
         val eventsData = SideData("Events", model.events.map(parseEvent(_)))
-        rightSidePanel.updateData(Iterable(robotsData, eventsData))
+        rightSidePanel.updateData(
+          Iterable(robotsData, warehouseData, eventsData)
+        )
 
       /** @param status
         *   used to filter the missions
@@ -94,10 +119,39 @@ object FxToolkit extends Toolkit:
         *   a brief description of the given mission
         */
       private def parseMission(mission: Mission): String =
-        val destinationLabel = mission.currentTarget match
-          case Some(p) => s" - move to $p"
+        val actions = mission.task.actions.toSeq
+        val taskLabel =
+          if actions.isEmpty then "done"
+          else actions.map(parseAction).mkString(" -> ")
+        val currentLabel = mission.currentTarget match
+          case Some(p) => s" - next $p"
           case _       => ""
-        s"${mission.id}$destinationLabel - ${mission.deadline} ticks remaining"
+        s"${mission.id}: $taskLabel$currentLabel - ${mission.deadline} ticks remaining"
+
+      /** @param action
+        *   the action to describe.
+        * @return
+        *   a short textual description.
+        */
+      private def parseAction(action: Action): String = action match
+        case Action.Move(to)         => s"move to $to"
+        case Action.PickUp(item, at) => s"pick $item at $at"
+        case Action.Drop(item, at)   => s"drop $item at $at"
+
+      /** @param snapshot
+        *   the current simulation snapshot.
+        * @return
+        *   a sorted list of shelf and loading bay descriptions, or a
+        *   placeholder if none exist.
+        */
+      private def describeWarehouse(snapshot: Snapshot): Iterable[String] =
+        val shelves = snapshot.warehouse.tiles.collect:
+          case (pos, Tile.Shelf(item)) => s"Shelf $item at $pos"
+        val bays = snapshot.warehouse.tiles.collect:
+          case (pos, _: Tile.LoadingBay) => s"Bay at $pos"
+        (shelves.sorted ++ bays.sorted) match
+          case Seq() => Seq("no shelves/bays")
+          case other => other
 
       /** @param event
         *   the event to extract the description from
@@ -117,3 +171,7 @@ object FxToolkit extends Toolkit:
             s"$robotId moved from $from to $to"
           case Event.RobotBlocked(robotId, at) => s"$robotId blocked at $at"
           case Event.RobotUnblocked(robotId)   => s"$robotId unblocked"
+          case Event.ItemPicked(robotId, missionId, item, at) =>
+            s"$robotId picked $item for $missionId at $at"
+          case Event.ItemDropped(robotId, missionId, item, at) =>
+            s"$robotId dropped $item for $missionId at $at"

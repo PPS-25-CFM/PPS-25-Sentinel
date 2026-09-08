@@ -2,9 +2,10 @@ package it.unibo.sentinel.core.assignment
 
 import org.mockito.Mockito.when
 import it.unibo.sentinel.UnitTest
+import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.mission.*
-import it.unibo.sentinel.core.warehouse.Position
-import it.unibo.sentinel.core.routing.Navigator
+import it.unibo.sentinel.core.warehouse.{Position, Warehouse}
+import it.unibo.sentinel.core.routing.{Navigator, Path, Step}
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.simulation.Tick
 
@@ -57,3 +58,27 @@ class NearestSelectorSpec extends UnitTest with SelectorBehaviors:
         val p1 = Placement(mockRobot(canAccept = true), Position(1, 1))
 
         selector.choose(mission.complete, Iterable(p1)) shouldBe None
+
+      "return the nearest to the shelf interaction points for a PickUp" in:
+        val shelf = Position(2, 2)
+        val bay = Position(3, 3)
+        val deliver = Mission.deliver(
+          MissionId("D1"),
+          Item.Computer,
+          shelf,
+          bay,
+          Tick(10)
+        )
+
+        val mockWh = mock[Warehouse]
+        val ips = Seq(Position(1, 2), Position(2, 1))
+        when(mockWh.interactionPoints(shelf)).thenReturn(ips)
+        when(navigator.warehouse).thenReturn(mockWh)
+
+        val p1 = Placement(mockRobot(canAccept = true), Position(1, 1))
+        val p2 = Placement(mockRobot(canAccept = true), Position(4, 4))
+        when(navigator.path(p1.at, ips.toSet))
+          .thenReturn(Some(Path(Step(Position(1, 2), Tick.unit))))
+        when(navigator.path(p2.at, ips.toSet)).thenReturn(None)
+
+        selector.choose(deliver, Iterable(p1, p2)) shouldBe Some(p1)

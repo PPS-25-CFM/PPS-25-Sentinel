@@ -3,10 +3,15 @@ package it.unibo.sentinel.core.simulation
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus}
+import it.unibo.sentinel.core.mission.{
+  Action,
+  Mission,
+  MissionId,
+  MissionStatus
+}
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.robot.RobotStatus
-import it.unibo.sentinel.core.collisions.Action
+import it.unibo.sentinel.core.collisions.Action as CollisionAction
 
 /** Provides query operations to inspect the state of the simulation.
   */
@@ -28,21 +33,21 @@ trait Queries:
     * @return
     *   the [[Robot]] with the given id, if any.
     */
-  def robot(r_id: RobotId): Option[Robot]
+  def robot(rid: RobotId): Option[Robot]
 
-  /** @param m_id
+  /** @param mid
     *   the [[MissionId]] of the mission to query
     * @return
     *   the [[Mission]] with the given id, if any.
     */
-  def mission(m_id: MissionId): Option[Mission]
+  def mission(mid: MissionId): Option[Mission]
 
   /** @param robotId
     *   the [[RobotId]] of the robot contained in the placement to query.
     * @return
     *   the [[Placement]] with the given id, if any.
     */
-  def placement(r_id: RobotId): Option[Placement]
+  def placement(rid: RobotId): Option[Placement]
 
   /** @param status
     *   the [[RobotStatus]] to filter robots by.
@@ -60,7 +65,7 @@ trait Queries:
     missions.filter(_.status == MissionStatus.Pending)
 
 /** Represents the mutable simulation state, maintaining the [[Warehouse]]
-  * layout, the robot [[fleet]], and the mission [[board]].
+  * layout, the robot [[fleet]] and the mission [[board]].
   *
   * @param warehouse
   *   the [[Warehouse]] where the simulation takes place.
@@ -78,57 +83,57 @@ private[core] final class Environment private[core] (
   override def placements: Seq[Placement] = fleet.values.toSeq
   override def missions: Seq[Mission] = board.values.toSeq
 
-  override def robot(r_id: RobotId): Option[Robot] =
-    fleet.get(r_id).map(_.robot)
+  override def robot(rid: RobotId): Option[Robot] =
+    fleet.get(rid).map(_.robot)
 
-  override def mission(m_id: MissionId): Option[Mission] =
-    board.get(m_id)
+  override def mission(mid: MissionId): Option[Mission] =
+    board.get(mid)
 
-  override def placement(r_id: RobotId): Option[Placement] =
-    fleet.get(r_id)
+  override def placement(rid: RobotId): Option[Placement] =
+    fleet.get(rid)
 
-  /** @param r_id
-    * @param m_id
+  /** @param rid
+    * @param mid
     * @return
     *   an [[Event]] if the assignment was successful, None otherwise
     */
-  def assign(r_id: RobotId, m_id: MissionId): Option[Event] =
+  def assign(rid: RobotId, mid: MissionId): Option[Event] =
     for
-      spot <- fleet.get(r_id)
+      spot <- fleet.get(rid)
       robot = spot.robot
-      mission <- board.get(m_id)
+      mission <- board.get(mid)
     yield
-      robot.accept(m_id)
-      board = board + (m_id -> mission.assignTo(r_id))
-      Event.MissionAssigned(r_id, m_id)
+      robot.accept(mission)
+      board = board + (mid -> mission.assignTo(rid))
+      Event.MissionAssigned(rid, mid)
 
-  /** @param r_id
+  /** @param rid
     * @param path
     * @return
     *   an [[Event]] if the routing was successful, None otherwise
     */
-  def route(r_id: RobotId, path: Path): Option[Event] =
+  def route(rid: RobotId, path: Path): Option[Event] =
     for
-      spot <- fleet.get(r_id)
+      spot <- fleet.get(rid)
       robot = spot.robot
     yield
       robot.follow(path)
-      Event.RobotRouted(r_id, path.positions)
+      Event.RobotRouted(rid, path.positions)
 
   /** @param action
     *   action to execute
     * @return
     *   an [[Event]] if the action produces one
     */
-  def execute(action: Action): Option[Event] =
+  def execute(action: CollisionAction): Option[Event] =
     for
       spot <- fleet.get(action.id)
       robot = spot.robot
       event <- action match
-        case Action.Block(id) if robot.status == RobotStatus.Moving =>
+        case CollisionAction.Block(id) if robot.status == RobotStatus.Moving =>
           robot.pause()
           Some(Event.RobotBlocked(id, spot.at))
-        case Action.Unblock(id) if robot.status == RobotStatus.Waiting =>
+        case CollisionAction.Unblock(id) if robot.status == RobotStatus.Waiting =>
           robot.resume()
           Some(Event.RobotUnblocked(id))
         case _ => None
@@ -138,32 +143,72 @@ private[core] final class Environment private[core] (
     * @return
     *   an [[Event]] if the [[Robot]] was able to move, None otherwise
     */
-  def advance(r_id: RobotId): Option[Event] =
+  def advance(rid: RobotId): Option[Event] =
     for
-      spot <- fleet.get(r_id)
+      spot <- fleet.get(rid)
       robot = spot.robot
       from = spot.at
       intent = spot.intent
       if robot.status == RobotStatus.Moving && robot.remaining == Tick.zero
     yield
       robot.step()
-      fleet += (r_id -> spot.copy(at = intent.to))
-      Event.RobotMoved(r_id, from, intent.to)
+      fleet += (rid -> spot.copy(at = intent.to))
+      Event.RobotMoved(rid, from, intent.to)
 
-  /** @param r_id
+  /** @param rid
     * @return
-    *   [[Event.MissionCompleted]] if the mission was active, [[None]] otherwise
+    *   the [[Event]]s produced by the action: [[Event.MissionCompleted]] if the
+    *   mission reached [[Task.Done]] (preceded by [[Event.ItemPicked]] /
+    *   [[Event.ItemDropped]] for deposit steps), [[Event.ItemPicked]] /
+    *   [[Event.ItemDropped]] for intermediate deposit steps,
+    *   [[Event.MissionFailed]] if failed, empty [[Seq]] otherwise
     */
-  def perform(r_id: RobotId): Option[Event] =
-    for
-      spot <- fleet.get(r_id)
+  def perform(rid: RobotId): Seq[Event] =
+    (for
+      spot <- fleet.get(rid)
       robot = spot.robot
-      m_id <- robot.mission
-      mission <- board.get(m_id)
-    yield
-      robot.release()
-      board += (m_id -> mission.complete)
-      Event.MissionCompleted(m_id)
+      mid <- robot.mission
+      mission <- board.get(mid)
+      action <- mission.currentAction
+    yield action match
+      case Action.Move(_) =>
+        robot.release()
+        board += (mid -> mission.complete)
+        Seq(Event.MissionCompleted(mid))
+
+      case Action.PickUp(item, at) =>
+        if robot.pick(item) then
+          val next = mission.completeCurrentAction
+          board += (mid -> next)
+          if next.isOver then robot.release() else robot.clearRoute()
+          if next.isOver then
+            Seq(
+              Event.ItemPicked(rid, mid, item, at),
+              Event.MissionCompleted(mid)
+            )
+          else Seq(Event.ItemPicked(rid, mid, item, at))
+        else
+          board += (mid -> mission.fail)
+          releaseCarrier(mission)
+          Seq(Event.MissionFailed(mid))
+
+      case Action.Drop(item, at) =>
+        robot.drop(item) match
+          case Some(dropped) =>
+            val next = mission.completeCurrentAction
+            board += (mid -> next)
+            if next.isOver then robot.release() else robot.clearRoute()
+            if next.isOver then
+              Seq(
+                Event.ItemDropped(rid, mid, dropped, at),
+                Event.MissionCompleted(mid)
+              )
+            else Seq(Event.ItemDropped(rid, mid, dropped, at))
+          case None =>
+            board += (mid -> mission.fail)
+            releaseCarrier(mission)
+            Seq(Event.MissionFailed(mid))
+    ).toSeq.flatten
 
   /** Advances all missions in the environment by one step.
     *

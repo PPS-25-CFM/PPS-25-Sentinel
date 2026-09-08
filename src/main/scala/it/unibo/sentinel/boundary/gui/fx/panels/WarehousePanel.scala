@@ -21,6 +21,7 @@ import scalafx.scene.paint.Color
 import it.unibo.sentinel.core.robot.value
 import it.unibo.sentinel.core.simulation.RobotSnapshot
 import it.unibo.sentinel.core.routing.Path
+import it.unibo.sentinel.core.warehouse.Tile
 import scala.collection.mutable
 
 /** Panel used to display a [[Warehouse]]
@@ -47,6 +48,16 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
   private val obstacleBg = new Background(
     Array(
       new BackgroundFill(Color.web("#334155"), CornerRadii.Empty, Insets.Empty)
+    )
+  )
+  private val shelfBg = new Background(
+    Array(
+      new BackgroundFill(Color.web("#F59E0B"), CornerRadii.Empty, Insets.Empty)
+    )
+  )
+  private val loadingBayBg = new Background(
+    Array(
+      new BackgroundFill(Color.web("#86EFAC"), CornerRadii.Empty, Insets.Empty)
     )
   )
 
@@ -81,7 +92,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
       c <- 0 until cols
       pos = Position(c, r)
     yield
-      val (node, label) = createCellNode(pos, warehouse.isTraversable(pos))
+      val (node, label) = createCellNode(pos)
       add(node, c, r)
       pos -> (node, label)
   ).toMap
@@ -97,6 +108,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
       percentHeight = 100.0 / rows
   }
 
+  /** @return a stable distinct color for the given robot id. */
   private def colorForRobot(robotId: String): Color =
     robotColors.getOrElseUpdate(
       robotId, {
@@ -111,7 +123,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
     for pos <- dirtyCells do
       cells.get(pos).foreach { (pane, label) =>
         label.text = ""
-        applyStyle(pane, warehouse.isTraversable(pos))
+        resetCell(pane, pos)
       }
     dirtyCells.clear()
 
@@ -139,6 +151,7 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
         dirtyCells += robot.position
       }
 
+  /** Renders the given path with the specified color. */
   private def showPath(path: Path, color: Color): Unit =
     for pos <- path.positions do
       cells.get(pos).foreach { (pane, _) =>
@@ -149,16 +162,60 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
         )
       }
 
-  private def createCellNode(
-      pos: Position,
-      traversable: Boolean
-  ): (StackPane, Label) =
-    val textColor = if traversable then "#0F172A" else "#F8FAFC"
+  /** @return
+    *   the base background for the tile at `pos`.
+    */
+  private def baseBackground(pos: Position): Background =
+    warehouse.tileAt(pos) match
+      case Some(_: Tile.Shelf)      => shelfBg
+      case Some(_: Tile.LoadingBay) => loadingBayBg
+      case Some(_: Tile.Walkable)   => traversableBg
+      case _                        => obstacleBg
+
+  /** @return the base border for the tile at `pos`. */
+  private def baseBorder(pos: Position): Border =
+    warehouse.tileAt(pos) match
+      case Some(_: Tile.Shelf)      => obstacleBorder
+      case Some(_: Tile.LoadingBay) => traversableBorder
+      case Some(_: Tile.Walkable)   => traversableBorder
+      case _                        => obstacleBorder
+
+  /** @return an optional text and color for tiles. */
+  private def tileMarker(pos: Position): Option[(String, String)] =
+    warehouse.tileAt(pos) match
+      case Some(Tile.Shelf(item)) =>
+        val short = item.toString.headOption.map(_.toString).getOrElse("?")
+        Some((s"$short", "#451A03"))
+      case Some(_: Tile.LoadingBay) => Some(("LB", "#14532D"))
+      case _                        => None
+
+  /** Resets the cell at `pos` to its base background and border. */
+  private def resetCell(pane: StackPane, pos: Position): Unit =
+    pane.background = baseBackground(pos)
+    pane.border = baseBorder(pos)
+
+  /** @return the grid cell node and its robot label for `pos`. */
+  private def createCellNode(pos: Position): (StackPane, Label) =
+    val traversable = warehouse.isTraversable(pos)
+    val textColor = warehouse.tileAt(pos) match
+      case Some(_: Tile.Shelf)      => "#451A03"
+      case Some(_: Tile.LoadingBay) => "#14532D"
+      case _ if traversable         => "#0F172A"
+      case _                        => "#F8FAFC"
     val robotLabel = new Label:
       textFill = Color.web(textColor)
       style = "-fx-font-weight: bold; -fx-font-size: 12px;"
 
     val pane = new StackPane
+
+    tileMarker(pos).foreach { (marker, color) =>
+      val tileLabel = new Label:
+        text = marker
+        textFill = Color.web(color)
+        style = "-fx-font-weight: bold; -fx-font-size: 10px;"
+      StackPane.setAlignment(tileLabel, Pos.TopLeft)
+      pane.children.add(tileLabel)
+    }
 
     if traversable then
       val costText = warehouse.traversalCost(pos).map(_.toString).getOrElse("")
@@ -169,16 +226,19 @@ final class WarehousePanel(warehouse: Warehouse) extends GridPane:
           "-fx-font-size: 9px; -fx-font-weight: normal; -fx-padding: 0 3px 1px 0;"
 
       StackPane.setAlignment(costLabel, Pos.BottomRight)
-      pane.children = Seq(costLabel, robotLabel)
-    else pane.children = Seq(robotLabel)
+      pane.children.add(costLabel)
 
-    applyStyle(pane, traversable)
+    StackPane.setAlignment(robotLabel, Pos.Center)
+    pane.children.add(robotLabel)
+
+    resetCell(pane, pos)
     (pane, robotLabel)
 
+  /** Applies background and border styling to a cell pane. */
   private def applyStyle(
       pane: StackPane,
       traversable: Boolean,
-      customBgColor: Option[Color] = None,
+      customBgColor: Option[Color],
       isRobotTile: Boolean = false
   ): Unit =
     pane.background = customBgColor match

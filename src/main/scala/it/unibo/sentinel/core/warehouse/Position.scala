@@ -35,6 +35,14 @@ object Position:
       */
     def y: Int = p._2
 
+    /** @param other
+      *   the position to add.
+      * @return
+      *   the component-wise sum of the two positions.
+      */
+    def +(other: Position): Position =
+      Position(p.x + other.x, p.y + other.y)
+
   /** The ordering of positions is defined by the ordering of their coordinates.
     */
   given Ordering[Position] = Ordering.by { case (x, y) => (x, y) }

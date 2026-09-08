@@ -11,10 +11,14 @@ import it.unibo.sentinel.control.serialization.validateAll
 /** Schema of a [[Tile]].
   */
 enum TileSchema extends Schema:
-
+  case Shelf(item: ItemSchema)
+  case LoadingBay(cost: Int)
   case Floor(cost: Int)
 
   override def validated: Either[Validation, TileSchema] = this match
+    case Shelf(item)                  => item.validated.map(_ => this)
+    case LoadingBay(cost) if cost < 0 =>
+      Left(Validation.TileValidation(Tile.Validation.NegativeCost(cost)))
     case Floor(cost) if cost < 0 =>
       Left(Validation.TileValidation(Tile.Validation.NegativeCost(cost)))
     case _ => Right(this)

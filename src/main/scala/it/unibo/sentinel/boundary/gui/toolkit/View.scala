@@ -2,6 +2,7 @@ package it.unibo.sentinel.boundary.gui.toolkit
 
 import it.unibo.sentinel.core.simulation.StepResult
 import it.unibo.sentinel.control.Controller
+import it.unibo.sentinel.core.simulation.Statistics.Report
 
 /** Represents a UI responsible for visualizing a given model
   */
@@ -27,3 +28,7 @@ trait SimulationView extends View:
     *   the [[Controller]] that allows to control the [[Simulation]].
     */
   def controller: Controller
+
+/** Displays the report of a completed simulation. */
+trait StatisticsView extends View:
+  type Model = Report

@@ -7,9 +7,11 @@ import it.unibo.sentinel.core.warehouse.Warehouse
 import org.scalatest.BeforeAndAfterEach
 
 import scala.compiletime.uninitialized
-import it.unibo.sentinel.core.warehouse.Position
-import it.unibo.sentinel.core.mission.MissionStatus
+import it.unibo.sentinel.core.warehouse.{Position, Tile}
+import it.unibo.sentinel.core.item.Item
+import it.unibo.sentinel.core.mission.{Mission, MissionId, MissionStatus}
 import it.unibo.sentinel.core.robot.RobotStatus
+import it.unibo.sentinel.core.scenario.{RobotClass, Scenario, Spawn}
 import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
 import it.unibo.sentinel.core.routing.Path
@@ -75,6 +77,22 @@ class PhaseSpec
 
       "do nothing" in:
         Phase.routing(world) shouldBe empty
+
+    "a carrier has a pick mission" should:
+
+      "route to an interaction point of the shelf, not onto the shelf" in:
+        val (depWorld, wh, depNav, depSel) = depositSetup(spawnAt = p1)
+        Phase.assigning(using depSel)(depWorld)
+
+        val routed = Phase.routing(using depNav)(depWorld)
+        routed should not be empty
+
+        val paths = routed.collect { case Event.RobotRouted(_, path) => path }
+        paths should not be empty
+        forAll(paths): path =>
+          path should not be empty
+          path.lastOption.value should not be shelf
+          wh.interactionPoints(shelf) should contain(path.lastOption.value)
 
   "The handle collisions phase" when:
 
@@ -165,18 +183,70 @@ class PhaseSpec
         world.mission(m2).value.status shouldBe MissionStatus.Assigned
         world.robot(r2).value.status shouldBe RobotStatus.Moving
 
-    "The expiring phase" when:
+    "a carrier stands on the shelf interaction point" should:
 
-      "the duration of a mission is exhausted" should:
+      "emit ItemPicked and stay Assigned" in:
+        val spot = depositWarehouse.interactionPoints(shelf).headOption.value
+        val (depWorld, _, _, depSel) = depositSetup(spawnAt = spot)
+        Phase.assigning(using depSel)(depWorld)
 
-        "signal its failure" in:
-          val events =
-            for
-              _ <- 1 to deadline.value
-              event <- Phase.expiring(world)
-            yield event
+        Phase.performing(depWorld) should contain(
+          Event.ItemPicked(r1, depId, Item.Computer, shelf)
+        )
+        depWorld.mission(depId).value.status shouldBe MissionStatus.Assigned
+        depWorld.robot(r1).value.status shouldBe RobotStatus.Ready
 
-          events should contain theSameElementsAs Seq(
-            Event.MissionFailed(m1),
-            Event.MissionFailed(m2)
-          )
+    "a carrier stands on the bay after picking" should:
+
+      "emit ItemDropped and MissionCompleted together" in:
+        val (depWorld, _, _, depSel) = depositSetup(spawnAt = bay)
+        Phase.assigning(using depSel)(depWorld)
+        // advance PickUp ignoring position, so current action becomes Drop at bay
+        depWorld.perform(r1) shouldBe Seq(
+          Event.ItemPicked(r1, depId, Item.Computer, shelf)
+        )
+
+        Phase.performing(depWorld) should contain theSameElementsAs Seq(
+          Event.ItemDropped(r1, depId, Item.Computer, bay),
+          Event.MissionCompleted(depId)
+        )
+        depWorld.mission(depId).value.status shouldBe MissionStatus.Completed
+        depWorld.robot(r1).value.mission shouldBe None
+
+  "The expiring phase" when:
+
+    "the duration of a mission is exhausted" should:
+
+      "signal its failure" in:
+        val events =
+          for
+            _ <- 1 to deadline.value
+            event <- Phase.expiring(world)
+          yield event
+
+        events should contain theSameElementsAs Seq(
+          Event.MissionFailed(m1),
+          Event.MissionFailed(m2)
+        )
+
+  private val depId: MissionId = MissionId("D1")
+  private val shelf: Position = Position(2, 2)
+  private val bay: Position = Position(3, 3)
+
+  private def depositWarehouse: Warehouse =
+    warehouse
+      .withTile(shelf)(Tile.Shelf(Item.Computer))
+      .withTile(bay)(Tile.LoadingBay())
+
+  private def depositSetup(
+      spawnAt: Position
+  ): (Environment, Warehouse, Navigator, Selector) =
+    val wh = depositWarehouse
+    val depScenario = (for
+      s0 <- Right(Scenario.in(wh))
+      s1 <- s0.place(Spawn(r1, spawnAt, RobotClass.Carrier))
+      s2 <- s1.load(Mission.deliver(depId, Item.Computer, shelf, bay, deadline))
+    yield s2).value
+    val depNav = depScenario.routing()(using wh)
+    val depSel = depScenario.assignment()(using depNav)
+    (depScenario.build, wh, depNav, depSel)

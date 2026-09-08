@@ -1,5 +1,6 @@
 package it.unibo.sentinel.core
 
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.*
 import it.unibo.sentinel.UnitTest
@@ -32,7 +33,7 @@ trait SelectorBehaviors:
 
       "return None if every candidate is busy" in:
         val busyRobot = Mockito.mock(classOf[Robot])
-        when(busyRobot.canAccept).thenReturn(false)
+        when(busyRobot.canAccept(any[Mission]())).thenReturn(false)
         val busyPlacement = Placement(busyRobot, Position(0, 0))
 
         val result = selectorBuilder.choose(mission, Iterable(busyPlacement))
@@ -41,7 +42,7 @@ trait SelectorBehaviors:
 
       "return None if no candidate can take more work" in:
         val fullRobot = Mockito.mock(classOf[Robot])
-        when(fullRobot.canAccept).thenReturn(false)
+        when(fullRobot.canAccept(any[Mission]())).thenReturn(false)
         val fullPlacement = Placement(fullRobot, Position(0, 0))
 
         val result = selectorBuilder.choose(mission, Iterable(fullPlacement))
@@ -60,11 +61,11 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
 
   "A Nearest Selector" when:
     val robot1 = Mockito.mock(classOf[Robot])
-    when(robot1.canAccept).thenReturn(true)
+    when(robot1.canAccept(any[Mission]())).thenReturn(true)
     val placement1 = Placement(robot1, Position(1, 1))
 
     val robot2 = Mockito.mock(classOf[Robot])
-    when(robot2.canAccept).thenReturn(true)
+    when(robot2.canAccept(any[Mission]())).thenReturn(true)
     val placement2 = Placement(robot2, Position(2, 2))
 
     val placements = Iterable(placement1, placement2)
@@ -93,7 +94,7 @@ class SelectorSpec extends UnitTest with SelectorBehaviors:
 
       "ignore candidates it cannot reach" in:
         val strandedRobot = Mockito.mock(classOf[Robot])
-        when(strandedRobot.canAccept).thenReturn(true)
+        when(strandedRobot.canAccept(any[Mission]())).thenReturn(true)
         val strandedPlacement = Placement(strandedRobot, Position(3, 3))
 
         when(navigator.distance(strandedPlacement.at, destination))

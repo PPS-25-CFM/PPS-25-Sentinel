@@ -1,8 +1,9 @@
 package it.unibo.sentinel.core.scenario
 
-import it.unibo.sentinel.core.warehouse.{Warehouse, Position}
+import it.unibo.sentinel.core.item.Item
+import it.unibo.sentinel.core.mission.{Action, Mission, MissionId}
 import it.unibo.sentinel.core.robot.{Robot, RobotId}
-import it.unibo.sentinel.core.mission.{Mission, MissionId}
+import it.unibo.sentinel.core.warehouse.{Position, Tile, Warehouse}
 import it.unibo.sentinel.core.scenario.Policies.Routing
 import it.unibo.sentinel.core.scenario.Policies.Assignment
 import it.unibo.sentinel.core.simulation.Environment
@@ -31,13 +32,18 @@ case class Intent(robotId: RobotId, from: Position, to: Position)
   */
 final case class Placement(robot: Robot, at: Position):
 
-  /** @returns
+  /** @return
     *   an intent to where the robot wants to move
     */
   def intent: Intent =
     (robot.next, robot.remaining) match
       case (Some(to), Tick.zero) => Intent(robot.id, at, to)
       case _                      => Intent(robot.id, at, at)
+
+enum RobotClass:
+  case Drone
+  case Carrier
+  case HeavyCarrier
 
 /** Represents a description of a [[Robot]] to spawn in a [[Scenario]]. It will
   * be used to create a [[Robot]] in the given [[Position]] when the
@@ -47,14 +53,20 @@ final case class Placement(robot: Robot, at: Position):
   *   the [[RobotId]] of the [[Robot]] to spawn.
   * @param at
   *   the [[Position]] where to spawn the [[Robot]].
+  * @param ofClass
+  *   the [[RobotClass]] of the [[Robot]] to spawn.
   */
-final case class Spawn(id: RobotId, at: Position):
+final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
   /** @return
     *   the [[Placement]] of the [[Robot]] to spawn in the [[Warehouse]].
     */
-  def toPlacement: Placement = Placement(Robot.drone(id), at)
+  def toPlacement: Placement = ofClass match
+    case RobotClass.Drone   => Placement(Robot.drone(id, 3), at)
+    case RobotClass.Carrier =>
+      Placement(Robot.lightCarrier(id, 5), at)
+    case RobotClass.HeavyCarrier =>
+      Placement(Robot.heavyCarrier(id, 1), at)
 
-/** */
 enum Validation:
   /** @param position
     *   the [[Position]] that is already occupied by another [[Robot]].
@@ -76,9 +88,33 @@ enum Validation:
     */
   case MissionAlreadyExists(id: MissionId)
 
+  /** @param position
+    *   the [[Position]] that is not a shelf tile.
+    */
+  case NotShelfTile(position: Position)
+
+  /** @param position
+    *   the [[Position]] that is not a loading zone tile.
+    */
+  case NotLoadingBay(position: Position)
+
+  /** @param position
+    *   the [[Position]] where the shelf does not contain the expected item.
+    * @param expected
+    *   the [[Item]] requested by the [[Action.PickUp]].
+    * @param found
+    *   the [[Item]] actually stored on the [[Tile.Shelf]].
+    */
+  case ItemMismatch(position: Position, expected: Item, found: Item)
+
 opaque type ScenarioId = String
 
 object ScenarioId:
+  /** @param id
+    *   raw string identifier.
+    * @return
+    *   a [[ScenarioId]] wrapping `id`.
+    */
   def apply(id: String): ScenarioId = id
 
 extension (id: ScenarioId)
@@ -246,11 +282,30 @@ object Scenario:
       yield copy(spawns = spawns :+ spawn)
 
     override def load(mission: Mission): Either[Validation, Scenario] =
-      for _ <- ensure(
+      for
+        _ <- ensure(
           !missions.exists(_.id == mission.id),
           MissionAlreadyExists(mission.id)
         )
+        _ <- checkTask(mission)
       yield copy(missions = missions :+ mission)
+
+    private def checkTask(mission: Mission): Either[Validation, Unit] =
+      mission.task.actions
+        .flatMap(checkAction)
+        .nextOption()
+        .toLeft(())
+
+    private def checkAction(action: Action): Option[Validation] = action match
+      case Action.PickUp(target, at) =>
+        warehouse.tileAt(at).collect { case Tile.Shelf(stored) => stored } match
+          case Some(stored) if stored == target => None
+          case Some(stored) => Some(ItemMismatch(at, target, stored))
+          case None         => Some(NotShelfTile(at))
+      case Action.Drop(_, at) if !warehouse.isLoadingBay(at) =>
+        Some(NotLoadingBay(at))
+      case _ =>
+        None
 
     override def withRouting(routing: Routing): Scenario =
       copy(routing = routing)

@@ -9,6 +9,7 @@ import it.unibo.sentinel.core.warehouse.{
   WarehouseId
 }
 import it.unibo.sentinel.core.simulation.Tick
+import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.Codec
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
@@ -93,3 +94,42 @@ class WarehouseJsonCodecSpec extends UnitTest:
         Validation.TileValidation:
           Tile.Validation.NegativeCost(cost)
       )
+
+    "encoding and decoding correctly a warehouse containing Shelf and LoadingBay" in:
+      val withItems = Warehouse
+        .empty(id, 4, 4)
+        .withTile(Position(0, 0))(Tile.Shelf(Item.Fridge))
+        .withTile(Position(1, 1))(Tile.LoadingBay(Tick(2)))
+      codec.decode(codec.encode(withItems)).shouldBe(Right(withItems))
+
+    "return TileValidation(NegativeCost) for LoadingBay with negative cost" in:
+      val json =
+        s"""{
+          |  "id": "$id",
+          |  "width": 4,
+          |  "height": 4,
+          |  "tiles": [
+          |    [{"x": 0, "y": 0}, {"$$type": "LoadingBay", "cost": -1}]
+          |  ]
+          |}""".stripMargin
+      codec
+        .decode(json)
+        .shouldBe(
+          Left(Validation.TileValidation(Tile.Validation.NegativeCost(-1)))
+        )
+
+    "return ItemValidation(NegativeWeight) for Shelf with invalid item weight" in:
+      val json =
+        s"""{
+          |  "id": "$id",
+          |  "width": 4,
+          |  "height": 4,
+          |  "tiles": [
+          |    [{"x": 0, "y": 0}, {"$$type": "Shelf", "item": {"$$type": "Computer", "weight": -1.0}}]
+          |  ]
+          |}""".stripMargin
+      codec
+        .decode(json)
+        .shouldBe(
+          Left(Validation.ItemValidation(Item.Validation.NegativeWeight(-1.0)))
+        )

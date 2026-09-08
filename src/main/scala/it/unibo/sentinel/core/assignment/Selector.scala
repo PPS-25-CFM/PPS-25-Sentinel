@@ -20,7 +20,7 @@ trait Selector:
       mission: Mission,
       among: Iterable[Placement]
   ): Option[Placement] =
-    val available = among.filter(_.robot.canAccept)
+    val available = among.filter((_.robot.canAccept(mission)))
     if available.isEmpty then None
     else selectFromAvailable(mission, available)
 
@@ -40,6 +40,7 @@ trait Selector:
 object Selector:
 
   import it.unibo.sentinel.core.routing.Navigator
+  import it.unibo.sentinel.core.mission.Action
 
   /** A proximity-based selection strategy that assigns the mission to the
     * available candidate closest to the mission's current target.
@@ -62,12 +63,33 @@ object Selector:
         mission: Mission,
         available: Iterable[Placement]
     ): Option[Placement] =
-      for
-        target <- mission.currentTarget
-        reachable = available.flatMap: candidate =>
-          navigator.distance(candidate.at, target).map(candidate -> _)
-        (closest, _) <- reachable.minByOption(_._2)
-      yield closest
+      mission.currentAction.flatMap:
+        case Action.Move(to)      => nearestTo(to, available)
+        case Action.Drop(_, at)   => nearestTo(at, available)
+        case Action.PickUp(_, at) =>
+          val points = Option(navigator.warehouse)
+            .map(_.interactionPoints(at))
+            .getOrElse(Seq.empty)
+          if points.isEmpty then None
+          else nearestToPoints(points.toSet, available)
+
+    private def nearestTo(
+        target: it.unibo.sentinel.core.warehouse.Position,
+        available: Iterable[Placement]
+    ): Option[Placement] =
+      val reachable = available.flatMap: candidate =>
+        navigator.distance(candidate.at, target).map(candidate -> _)
+      reachable.minByOption(_._2).map(_._1)
+
+    private def nearestToPoints(
+        destinations: Set[it.unibo.sentinel.core.warehouse.Position],
+        available: Iterable[Placement]
+    ): Option[Placement] =
+      val reachable = available.flatMap: candidate =>
+        navigator
+          .path(candidate.at, destinations)
+          .map(path => candidate -> path.positions.size)
+      reachable.minByOption(_._2).map(_._1)
 
   /** A stateful selection strategy that cycles through available candidate
     */

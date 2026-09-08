@@ -5,8 +5,10 @@ import it.unibo.sentinel.core.routing.Navigator
 import it.unibo.sentinel.core.robot.RobotStatus.*
 import it.unibo.sentinel.core.collisions.CollisionHandler
 import it.unibo.sentinel.core.collisions.SelectionPolicy
-import it.unibo.sentinel.core.collisions.CollisionChecker
+import it.unibo.sentinel.core.mission.Action
+import it.unibo.sentinel.core.warehouse.{Position, Warehouse}
 import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.collisions.CollisionChecker
 
 private[core] type Phase = Environment => Seq[Event]
 
@@ -29,8 +31,14 @@ private[core] object Phase:
           mid <- robot.mission;
           mission <- world.mission(mid)
         yield mission
-      destination <- current.currentTarget
-      path <- navigator.path(spot.at, destination)
+      action <- current.currentAction
+      destinations = action match
+        case Action.Move(to)      => Set(to)
+        case Action.Drop(_, at)   => Set(at)
+        case Action.PickUp(_, at) =>
+          world.warehouse.interactionPoints(at).toSet
+      if destinations.nonEmpty
+      path <- navigator.path(spot.at, destinations)
       routed <- world.route(robot.id, path)
     yield routed
 
@@ -99,12 +107,22 @@ private[core] object Phase:
     for
       spot <- world.placements
       robot = spot.robot
-      mid <- robot.mission
-      mission <- world.mission(mid)
-      target <- mission.currentTarget
-      if spot.at == target
+      mid <- robot.mission.toSeq
+      mission <- world.mission(mid).toSeq
+      action <- mission.currentAction.toSeq
+      if isSatisfied(world.warehouse, spot.at, action)
       performed <- world.perform(robot.id)
     yield performed
+
+  private def isSatisfied(
+      warehouse: Warehouse,
+      at: Position,
+      action: Action
+  ): Boolean = action match
+    case Action.Move(to)         => at == to
+    case Action.Drop(_, bay)     => at == bay
+    case Action.PickUp(_, shelf) =>
+      warehouse.interactionPoints(shelf).contains(at)
 
   def expiring: Phase = _.tick()
 

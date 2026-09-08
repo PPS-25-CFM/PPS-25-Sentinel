@@ -1,7 +1,7 @@
 package it.unibo.sentinel.core.robot
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.core.mission.MissionId
+import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.routing.{Path, Step}
 import it.unibo.sentinel.core.simulation.Tick
@@ -10,6 +10,8 @@ trait RobotFixture:
   val robotId: RobotId = RobotId("R1")
   val m1: MissionId = MissionId("M1")
   val m2: MissionId = MissionId("M2")
+  val mission1: Mission = Mission.relocate(m1, Position(9, 9), Tick(10))
+  val mission2: Mission = Mission.relocate(m2, Position(8, 8), Tick(10))
 
   val costs: Seq[Tick] = Seq(Tick(1), Tick(2), Tick(3))
   val positions: Seq[Position] =
@@ -42,10 +44,10 @@ trait RobotBehavior extends RobotFixture:
       val robot = build
 
       "be able to accept one" in:
-        robot.canAccept shouldBe true
+        robot.canAccept(mission1) shouldBe true
 
       "take the mission it is given" in:
-        robot.accept(m1)
+        robot.accept(mission1)
         robot.mission shouldBe Some(m1)
 
       "not be able to be paused" in:
@@ -57,7 +59,7 @@ trait RobotBehavior extends RobotFixture:
 
       "be ready to start it" in:
         val robot = build
-        robot.accept(m1)
+        robot.accept(mission1)
         robot.status shouldBe RobotStatus.Ready
 
     "following a path" should:
@@ -100,7 +102,7 @@ trait RobotBehavior extends RobotFixture:
 
     "releasing its mission" should:
       val robot = build
-      robot.accept(m1)
+      robot.accept(mission1)
       robot.follow(path)
       robot.release()
 

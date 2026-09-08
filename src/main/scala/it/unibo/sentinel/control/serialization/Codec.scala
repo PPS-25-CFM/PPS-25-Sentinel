@@ -3,6 +3,7 @@ package it.unibo.sentinel.control.serialization
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.warehouse.Tile
 import it.unibo.sentinel.core.mission.Mission
+import it.unibo.sentinel.core.item.Item
 
 /** A type class or trait representing a contract for converting domain models
   * into a string-based representation (e.g., JSON, XML, or custom format).
@@ -85,6 +86,10 @@ object Codec:
     /** Scenario generation error.
       */
     case ScenarioValidation(error: it.unibo.sentinel.core.scenario.Validation)
+
+    /** Item generation error.
+      */
+    case ItemValidation(error: Item.Validation)
 
   def validate(condition: Boolean)(
       error: Validation
