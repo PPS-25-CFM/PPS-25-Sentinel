@@ -14,15 +14,48 @@ import it.unibo.sentinel.core.collisions.CollisionHandler
   */
 final case class StepResult(snapshot: Snapshot, events: Seq[Event])
 
+/** The history of the simulation as a sequence of pairs of events and the tick
+  * at which they occurred.
+  */
+type History = Vector[(Event, Tick)]
+
+/** The identifier of a [[Simulation]].
+  */
+opaque type SimulationId = String
+
+object SimulationId:
+  /** @param id
+    *   a [[String]] representing the identifier of a [[Simulation]].
+    * @return
+    *   a [[SimulationId]].
+    */
+  def apply(id: String): SimulationId = id
+
+  extension (id: SimulationId)
+    /** @return
+      *   the identifier as a [[String]].
+      */
+    def value: String = id
+
 /** Represents the discrete-time simulation of a scenario. It is responsible for
   * keeping track of the current time and for executing the actions of the
   * scenario at each tick.
   */
 trait Simulation:
   /** @return
+    *   the ID of the simulation.
+    */
+  def id: SimulationId
+
+  /** @return
     *   the current time of the simulation
     */
   def time: Tick
+
+  /** @return
+    *   a [[Snapshot]] of the simulation at the current time.
+    */
+  def snapshot: Snapshot
 
   /** Advances the simulation by one tick.
     */
@@ -32,6 +65,15 @@ trait Simulation:
     *   whether the simulation is over.
     */
   def isOver: Boolean
+
+  /** @return
+    *   the [[History]] of the [[Simulation]] so far.
+    */
+  def history: History
+
+  /** Returns statistics captured from the current history and executed time.
+    */
+  def statistics: Statistics.Report
 
 object Simulation:
 
@@ -57,9 +99,9 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   missions are over.
     */
-  def of(scenario: Scenario): Simulation =
+  def of(id: SimulationId, scenario: Scenario): Simulation =
     withContext(scenario): world =>
-      BasicSimulation(world, Phase.all)
+      new BasicSimulation(id, scenario, world, Phase.all)
 
   /** @param scenario
     *   the [[Scenario]] to simulate.
@@ -69,14 +111,24 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   [[Mission]]s are or when the limit is reached.
     */
-  def of(scenario: Scenario, limit: Tick): Simulation =
+  def of(id: SimulationId, scenario: Scenario, limit: Tick): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(world, Phase.all) with TimeLimit(limit)
+      new BasicSimulation(id, scenario, world, Phase.all) with TimeLimit(limit)
 
   private abstract class AbstractSimulation extends Simulation:
-    protected def world: Environment
+
+    private var recorded: History = Vector.empty
+
+    protected final def recordEvents(events: Seq[Event], tick: Tick): Unit =
+      recorded = recorded ++ (for event <- events yield (event, tick))
+
+    def history: History = recorded
+
+    def world: Environment
 
   private class BasicSimulation(
+      val id: SimulationId,
+      scenario: Scenario,
       val world: Environment,
       phases: Seq[Phase]
   ) extends AbstractSimulation:
@@ -84,8 +136,14 @@ object Simulation:
 
     def time: Tick = currentTime
 
+    def snapshot: Snapshot = world.snapshot
+
+    def statistics: Statistics.Report =
+      Statistics.report(scenario, history, time)
+
     def step(): StepResult =
       val events = phases.flatMap(_.apply(world))
+      recordEvents(events, currentTime)
       currentTime = currentTime.next
       StepResult(snapshot = world.snapshot, events = events)
 
@@ -96,10 +154,12 @@ object Simulation:
       summon[Ordering[Tick]].gteq(time, max)
 
     abstract override def step(): StepResult =
+      val now = time
       val stepResult = super.step()
       if limitReached
       then
         val lastEvents = world.end
+        recordEvents(lastEvents, now)
         StepResult(
           snapshot = world.snapshot,
           events = stepResult.events ++ lastEvents

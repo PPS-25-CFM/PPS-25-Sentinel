@@ -19,3 +19,6 @@ trait Toolkit:
     *   the simulation [[View]] to display the snapshot
     */
   def simulation(controller: Controller): V & SimulationView
+
+  /** Creates a view for the final simulation report. */
+  def statistics(): V & StatisticsView
