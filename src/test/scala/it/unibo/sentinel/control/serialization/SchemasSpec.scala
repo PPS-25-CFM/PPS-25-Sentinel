@@ -153,6 +153,29 @@ class SchemasSpec extends UnitTest:
           )
         )
 
+      "accept a valid priority" in:
+        val schema = MissionSchema(
+          "M1",
+          TaskSchema.Single(ActionSchema.Move(PositionSchema(0, 0))),
+          10,
+          5
+        )
+        schema.validated.shouldBe(Right(schema))
+
+      "reject an out-of-range priority as InvalidPriority" in:
+        MissionSchema(
+          "M1",
+          TaskSchema.Single(ActionSchema.Move(PositionSchema(0, 0))),
+          10,
+          0
+        ).validated.shouldBe(
+          Left(
+            Validation.MissionValidation(
+              Mission.Validation.InvalidPriority(MissionId("M1"), 0)
+            )
+          )
+        )
+
   "A SpawnSchema" when:
 
     "validated" should:

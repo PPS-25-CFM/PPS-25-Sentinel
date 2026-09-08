@@ -27,7 +27,7 @@ final case class Mission private (
     deadline: Tick,
     status: MissionStatus,
     carrier: Option[RobotId],
-    priority: Int
+    priority: Priority
 ):
   import MissionStatus.*
   export task.{isMovementOnly, requiresCarrying}
@@ -134,6 +134,10 @@ object Mission:
       */
     case NegativeDuration(id: MissionId, duration: Int)
 
+    /** The mission has a priority outside the valid range.
+      */
+    case InvalidPriority(id: MissionId, priority: Int)
+
     /** The mission is already completed when created.
       */
     case AlreadyCompleted(id: MissionId)
@@ -147,7 +151,7 @@ object Mission:
     *   units.
     * @param priority
     *   The priority level of the mission, where higher values indicate higher
-    *   priority. Defaults to `0`.
+    *   priority. Defaults to [[Priority.normal]].
     * @return
     *   A new [[Mission]] initialized in the unassigned
     *   [[MissionStatus.Pending]] state.
@@ -156,7 +160,7 @@ object Mission:
       id: MissionId,
       task: Task,
       deadline: Tick,
-      priority: Int = 0
+      priority: Priority = Priority.normal
   ): Mission = new Mission(
     id,
     task,
@@ -183,7 +187,7 @@ object Mission:
       id: MissionId,
       destination: Position,
       duration: Tick,
-      priority: Int = 0
+      priority: Priority = Priority.normal
   ): Mission =
     Mission(id, Task.move(destination), duration, priority)
 
@@ -209,6 +213,6 @@ object Mission:
       from: Position,
       to: Position,
       duration: Tick,
-      priority: Int = 0
+      priority: Priority = Priority.normal
   ): Mission =
     Mission(id, Task.pickAndDrop(item, from, to), duration, priority)

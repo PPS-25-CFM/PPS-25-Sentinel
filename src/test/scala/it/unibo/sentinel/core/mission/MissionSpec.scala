@@ -41,11 +41,13 @@ class MissionSpec extends UnitTest:
       "have the initial Duration" in:
         pendingMission.deadline shouldBe duration
 
-      "have default priority 0" in:
-        pendingMission.priority shouldBe 0
+      "have default priority normal" in:
+        pendingMission.priority shouldBe Priority.normal
 
       "preserve an explicit priority" in:
-        Mission.relocate(missionID, target, duration, 5).priority shouldBe 5
+        Mission
+          .relocate(missionID, target, duration, Priority(7))
+          .priority shouldBe Priority(7)
         Mission
           .deliver(
             missionID,
@@ -53,9 +55,9 @@ class MissionSpec extends UnitTest:
             target,
             Position(3, 3),
             duration,
-            5
+            Priority(7)
           )
-          .priority shouldBe 5
+          .priority shouldBe Priority(7)
 
       "expose the current Action and Target" in:
         pendingMission.currentAction shouldBe Some(Action.Move(target))
@@ -169,12 +171,13 @@ class MissionSpec extends UnitTest:
     "managing priority" should:
 
       "preserve it across carrier and status transitions" in:
-        val prioritized = Mission.relocate(missionID, target, duration, 5)
-        prioritized.assignTo(robotID).priority shouldBe 5
-        prioritized.assignTo(robotID).unassign.priority shouldBe 5
-        prioritized.assignTo(robotID).complete.priority shouldBe 5
-        prioritized.assignTo(robotID).fail.priority shouldBe 5
-        prioritized.fail.priority shouldBe 5
+        val prioritized =
+          Mission.relocate(missionID, target, duration, Priority(7))
+        prioritized.assignTo(robotID).priority shouldBe Priority(7)
+        prioritized.assignTo(robotID).unassign.priority shouldBe Priority(7)
+        prioritized.assignTo(robotID).complete.priority shouldBe Priority(7)
+        prioritized.assignTo(robotID).fail.priority shouldBe Priority(7)
+        prioritized.fail.priority shouldBe Priority(7)
 
       "preserve it when advancing actions and ticking time" in:
         val prioritized = Mission
@@ -184,12 +187,14 @@ class MissionSpec extends UnitTest:
             target,
             Position(3, 3),
             duration,
-            5
+            Priority(7)
           )
           .assignTo(robotID)
-        prioritized.completeCurrentAction.priority shouldBe 5
-        prioritized.tick.priority shouldBe 5
-        prioritized.completeCurrentAction.completeCurrentAction.priority shouldBe 5
+        prioritized.completeCurrentAction.priority shouldBe Priority(7)
+        prioritized.tick.priority shouldBe Priority(7)
+        prioritized.completeCurrentAction.completeCurrentAction.priority shouldBe Priority(
+          7
+        )
 
     "a deliver mission" should:
       val from: Position = Position(2, 2)

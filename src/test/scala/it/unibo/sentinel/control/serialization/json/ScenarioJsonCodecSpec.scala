@@ -15,6 +15,7 @@ import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.control.serialization.Codec
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.mission.Mission
+import it.unibo.sentinel.core.mission.Priority
 import it.unibo.sentinel.core.scenario.ScenarioId
 import it.unibo.sentinel.control.serialization.FileRepository
 import it.unibo.sentinel.core.item.Item
@@ -65,7 +66,7 @@ class ScenarioJsonCodecSpec extends UnitTest:
         pickPos,
         bayPos,
         Tick(10),
-        4
+        Priority(4)
       )
       val rich = scenario.load(deliver).value
       val json = codec.encode(rich)
@@ -74,7 +75,7 @@ class ScenarioJsonCodecSpec extends UnitTest:
       decoded.shouldBe(Right(rich))
       decoded.map(
         _.missions.find(_.id == MissionId("M2")).value.priority
-      ) shouldBe Right(4)
+      ) shouldBe Right(Priority(4))
 
     "correctly encode and decode a valid Scenario domain object" in:
       codec.encode(scenario) shouldBe
