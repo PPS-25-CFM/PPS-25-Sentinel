@@ -32,8 +32,11 @@ private[collisions] final class PauseCollisionHandler
       val movingLosers = losers.filterNot(isStationary)
       onLoser(winner) ++ movingLosers.flatMap(onLoser)
     else onWinner(winner) ++ losers.flatMap(onLoser)
-  
-  override def resolveDirectCollisions(winner: Placement, loser: Placement): Seq[Action] =
+
+  override def resolveDirectCollisions(
+      winner: Placement,
+      loser: Placement
+  ): Seq[Action] =
     onLoser(winner) ++ onLoser(loser)
 
   override def cleanup(placements: Seq[Placement]): Seq[Action] =

@@ -167,10 +167,8 @@ object Robot:
           case (None, None)    => RobotStatus.Idle
           case (Some(_), None) => RobotStatus.Ready
           case (_, Some(path)) =>
-            if path.positions.isEmpty then
-              RobotStatus.Ready
-            else
-              RobotStatus.Moving
+            if path.positions.isEmpty then RobotStatus.Ready
+            else RobotStatus.Moving
 
     override def release(): Unit =
       waiting = false

@@ -133,7 +133,8 @@ private[core] final class Environment private[core] (
         case CollisionAction.Block(id) if robot.status == RobotStatus.Moving =>
           robot.pause()
           Some(Event.RobotBlocked(id, spot.at))
-        case CollisionAction.Unblock(id) if robot.status == RobotStatus.Waiting =>
+        case CollisionAction.Unblock(id)
+            if robot.status == RobotStatus.Waiting =>
           robot.resume()
           Some(Event.RobotUnblocked(id))
         case _ => None

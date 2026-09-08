@@ -15,7 +15,14 @@ trait CollisionHandlerFixture extends CollisionCheckerFixture:
   given policy: SelectionPolicy = SelectionPolicy.random()
   val pausing: CollisionHandler = CollisionHandler.pausing()
   (group1 ++ group2).zipWithIndex.foreach { (robot, idx) =>
-    robot.accept(Mission.relocate(MissionId(s"m-$idx"), Position(1, 1), Tick(10), Priority.normal))
+    robot.accept(
+      Mission.relocate(
+        MissionId(s"m-$idx"),
+        Position(1, 1),
+        Tick(10),
+        Priority.normal
+      )
+    )
   }
   (group1 ++ group2).foreach(_.tick())
 

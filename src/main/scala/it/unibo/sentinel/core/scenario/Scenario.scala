@@ -38,7 +38,7 @@ final case class Placement(robot: Robot, at: Position):
   def intent: Intent =
     (robot.next, robot.remaining) match
       case (Some(to), Tick.zero) => Intent(robot.id, at, to)
-      case _                      => Intent(robot.id, at, at)
+      case _                     => Intent(robot.id, at, at)
 
 enum RobotClass:
   case Drone

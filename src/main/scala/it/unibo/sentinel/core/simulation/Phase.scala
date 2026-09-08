@@ -48,24 +48,24 @@ private[core] object Phase:
   ): Phase = world =>
     val rawIndirectEvents = for
       (winner, losers) <- getIndirectWinnerLosers(world)
-      action           <- handler.resolveIndirectCollisions(winner, losers)
-      event            <- world.execute(action)
+      action <- handler.resolveIndirectCollisions(winner, losers)
+      event <- world.execute(action)
     yield event
     val rawDirectEvents = for
       (winner, loser) <- getDirectWinnerLoser(world)
-      action          <- handler.resolveDirectCollisions(winner, loser)
-      event           <- world.execute(action)
+      action <- handler.resolveDirectCollisions(winner, loser)
+      event <- world.execute(action)
     yield event
     val rawCleanupEvents = for
       action <- handler.cleanup(world.placements)
-      event  <- world.execute(action)
+      event <- world.execute(action)
     yield event
     cancelOpposites(rawIndirectEvents ++ rawDirectEvents ++ rawCleanupEvents)
 
   private def cancelOpposites(events: Seq[Event]): Seq[Event] =
     events.foldLeft(Vector.empty[Event]) { (acc, event) =>
       acc.indexWhere(_.isOppositeOf(event)) match
-        case -1 => acc :+ event
+        case -1  => acc :+ event
         case idx => acc.patch(idx, Nil, 1)
     }
 
@@ -91,10 +91,11 @@ private[core] object Phase:
       robots = Seq(collision.robot1, collision.robot2).flatMap(world.robot)
       winnerId <- selector.select(robots)
       winner <- world.placement(winnerId)
-      loserId = if winnerId == collision.robot1 then collision.robot2 else collision.robot1
+      loserId =
+        if winnerId == collision.robot1 then collision.robot2
+        else collision.robot1
       loser <- world.placement(loserId)
-    yield
-      (winner, loser)
+    yield (winner, loser)
 
   def moving: Phase = world =>
     for

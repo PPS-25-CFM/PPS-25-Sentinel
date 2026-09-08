@@ -2,12 +2,7 @@ package it.unibo.sentinel.control.serialization.converters
 
 import it.unibo.sentinel.control.serialization.Converter
 import it.unibo.sentinel.control.serialization.schemas.MissionSchema
-import it.unibo.sentinel.core.mission.{
-  Mission,
-  MissionId,
-  Action,
-  Task
-}
+import it.unibo.sentinel.core.mission.{Mission, MissionId, Action, Task}
 import it.unibo.sentinel.control.serialization.schemas.TaskSchema
 import it.unibo.sentinel.control.serialization.schemas.ActionSchema
 import it.unibo.sentinel.core.simulation.Tick
