@@ -24,6 +24,5 @@ class TimeSpec extends UnitTest:
       "return no score" in :
         given warehouse: Warehouse = mock[Warehouse]()
         val p = mock[Position]()
-        when(warehouse.isTraversable(p)).thenReturn(false)
         when(warehouse.traversalCost(p)).thenReturn(None)
         metric.cost(p) shouldBe None
