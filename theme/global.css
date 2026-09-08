@@ -183,6 +183,13 @@ body.quarkdown.quarkdown-slides .reveal .slides > .pdf-page {
   border-style: var(--qd-page-content-border-style);
   box-sizing: border-box;
 }
+body.quarkdown.quarkdown-slides .reveal .slides > .pdf-page section {
+  padding: 0 var(--qd-slides-horizontal-inset, 0) !important;
+  top: 0 !important;
+}
+body.quarkdown.quarkdown-slides .reveal .slides.slides.slides section:not(:has(h1, h2)) {
+  padding-top: var(--qd-slides-blank-vertical-inset, 0) !important;
+}
 body.quarkdown.quarkdown-paged .pagedjs_pages {
   display: flex;
   flex-direction: column;
@@ -212,6 +219,9 @@ body.quarkdown.quarkdown-paged .pagedjs_area {
 .quarkdown caption, .quarkdown figcaption {
   text-align: var(--qd-horizontal-alignment-local);
   text-align-last: center;
+}
+.quarkdown .stack {
+  justify-content: var(--qd-horizontal-alignment-global);
 }
 .quarkdown [style*=text-align] > :is(p, li, span) {
   text-align: unset !important;
@@ -342,9 +352,6 @@ body.quarkdown.quarkdown-paged .pagedjs_area {
   margin: var(--qd-heading-margin);
   text-transform: none !important;
   font-family: var(--qd-heading-custom-font, var(--qd-heading-localized-font, var(--qd-heading-font, var(--qd-main-custom-font, var(--qd-main-localized-font, var(--qd-main-font, serif))), var(--qd-main-localized-font, var(--qd-main-font, serif)), var(--qd-main-font, serif), serif))), var(--qd-heading-localized-font, var(--qd-heading-font, var(--qd-main-custom-font, var(--qd-main-localized-font, var(--qd-main-font, serif))), var(--qd-main-localized-font, var(--qd-main-font, serif)), var(--qd-main-font, serif), serif)), var(--qd-heading-font, var(--qd-main-custom-font, var(--qd-main-localized-font, var(--qd-main-font, serif))), var(--qd-main-localized-font, var(--qd-main-font, serif)), var(--qd-main-font, serif), serif), var(--qd-main-custom-font, var(--qd-main-localized-font, var(--qd-main-font, serif))), var(--qd-main-localized-font, var(--qd-main-font, serif)), var(--qd-main-font, serif), serif;
-}
-.quarkdown.quarkdown-slides section > :is(h1, h2, h3, h4, h5, h6):first-child {
-  margin-top: 0;
 }
 .quarkdown div.marker {
   display: none;
@@ -554,6 +561,28 @@ details > summary + p,
   background-color: darkgreen;
   color: white;
 }
+.quarkdown .code-callout-marker {
+  font-family: var(--qd-main-custom-font, var(--qd-main-localized-font, var(--qd-main-font, serif))), var(--qd-main-localized-font, var(--qd-main-font, serif)), var(--qd-main-font, serif), serif;
+  background-color: var(--qd-background-color);
+  font-variant-numeric: tabular-nums;
+  color: var(--qd-main-color);
+  border: 1px solid var(--qd-main-color);
+  border-radius: 100%;
+  padding: 0 var(--qd-digit-circle-padding);
+}
+.quarkdown pre .code-callout-marker {
+  margin-left: 0.5em;
+}
+.quarkdown .code-callouts {
+  list-style: none;
+  padding-left: 0;
+}
+.quarkdown .code-callouts .code-callout-marker {
+  margin-right: 0.5em;
+}
+.quarkdown :is(pre, figure):has(code[data-callouts]) {
+  margin-bottom: 0;
+}
 .quarkdown .hljs-copy-wrapper .hljs-copy-container {
   --hljs-theme-padding: 16px !important;
   transform: none;
@@ -646,6 +675,13 @@ details > summary + p,
 .quarkdown figure > pre {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+.quarkdown div.whitespace {
+  margin-top: var(--qd-block-margin);
+}
+.quarkdown span.whitespace {
+  display: inline-block;
 }
 
 .quarkdown.quarkdown-plain .mermaid > svg {
@@ -993,6 +1029,9 @@ details > summary + p,
   color: inherit !important;
 }
 
+.quarkdown .stack {
+  align-items: center;
+}
 .quarkdown .stack > :is(p, h1, h2, h3, h4, h5, h6, figure) {
   margin: 0 !important;
 }
@@ -1325,6 +1364,9 @@ body.quarkdown-paged:not(:has(.pagedjs_page)) {
 }
 .quarkdown-docs aside nav[data-role=table-of-contents] a {
   transition: color 0.2s, opacity 0.2s;
+}
+.quarkdown-docs .table-scroll-area {
+  overflow-x: auto;
 }
 .quarkdown-docs #sibling-pages-button-area {
   display: flex;
@@ -1682,6 +1724,7 @@ body.quarkdown-paged:not(:has(.pagedjs_page)) {
   --qd-caption-margin: 0.4em;
   --qd-box-margin-multiplier: 1.5;
   --qd-box-content-vertical-padding: 8px;
+  --qd-digit-circle-padding: 0.55cap;
   --qd-nested-navigation-padding-left: 28px;
   --qd-page-content-border-width: unset;
   --qd-page-content-border-color: var(--qd-main-color);
@@ -1737,6 +1780,8 @@ body.quarkdown-paged:not(:has(.pagedjs_page)) {
   --qd-file-tree-highlight-color: color-mix(in srgb, var(--qd-link-color) 10%, transparent);
   --qd-kbd-background-color: color-mix(in srgb, var(--qd-main-color-muted) 15%, var(--qd-background-color));
   --qd-kbd-border-color: color-mix(in srgb, var(--qd-main-color-muted) 90%, var(--qd-main-color));
+  --qd-slides-blank-vertical-inset: 3rem;
+  --qd-slides-horizontal-inset: 2rem;
   --qd-docs-header-height: 60px;
   --qd-docs-header-vertical-padding: 12px;
   --qd-docs-header-background-color: var(--qd-primary-color);

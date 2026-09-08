@@ -1,6 +1,10 @@
 /* Inspired by latex-css https://github.com/vincentdoerig/latex-css */
 @import url("computermodern/index.css");
 @import url("latinmodern-mono/index.css");
+/* Utilities for importing font families bundled alongside the assembled theme. */
+/* Imports a font family's variant stylesheets from its sibling directory in the theme.
+   The default variants provide regular, italic, bold and bold italic;
+   families without italics (e.g. monospace) can pass `$variants: '400' '700'`. */
 :root {
   --qd-main-font: "Computer Modern Serif", sans-serif;
   --qd-main-font-size: 1rem;
