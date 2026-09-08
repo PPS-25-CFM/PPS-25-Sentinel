@@ -135,8 +135,8 @@ object FxToolkit extends Toolkit:
         */
       private def parseAction(action: Action): String = action match
         case Action.Move(to)         => s"move to $to"
-        case Action.PickUp(item, at) => s"pick $item @ $at"
-        case Action.Drop(item, at)   => s"drop $item @ $at"
+        case Action.PickUp(item, at) => s"pick $item at $at"
+        case Action.Drop(item, at)   => s"drop $item at $at"
 
       /** @param snapshot
         *   the current simulation snapshot.
