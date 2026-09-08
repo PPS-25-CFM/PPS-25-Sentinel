@@ -149,8 +149,6 @@ class PhaseSpec
         Phase.collisionHandling(world) should matchPattern {
           case Seq(Event.RobotUnblocked(_)) =>
         }
-        Phase.moving(world)
-        Phase.expiring(world)
         Phase.moving(world) should matchPattern {
           case Seq(Event.RobotMoved(_, _, _), Event.RobotMoved(_, _, _)) =>
         }

@@ -30,7 +30,7 @@ trait SelectionPolicyFixture:
     i <- 0 until 5
     robot = robots(i)
     mission = missions(i)
-  do robot.accept(mission.id)
+  do robot.accept(mission)
 
 class SelectionPolicySpec extends UnitTest with SelectionPolicyFixture:
 

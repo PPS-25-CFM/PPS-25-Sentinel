@@ -5,6 +5,9 @@ import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.robot.Robot
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.mission.Mission
+import it.unibo.sentinel.core.mission.Priority
+import it.unibo.sentinel.core.simulation.Tick
 
 trait CollisionHandlerFixture extends CollisionCheckerFixture:
   self: UnitTest =>
@@ -12,7 +15,7 @@ trait CollisionHandlerFixture extends CollisionCheckerFixture:
   given policy: SelectionPolicy = SelectionPolicy.random()
   val pausing: CollisionHandler = CollisionHandler.pausing()
   (group1 ++ group2).zipWithIndex.foreach { (robot, idx) =>
-    robot.accept(MissionId(s"m-$idx"))
+    robot.accept(Mission.relocate(MissionId(s"m-$idx"), Position(1, 1), Tick(10), Priority.normal))
   }
   (group1 ++ group2).foreach(_.tick())
 
@@ -48,7 +51,7 @@ class CollisionHandlerSpec extends UnitTest with CollisionHandlerFixture:
 
       "only block moving losers when the winner is stationary" in:
         val r1Stationary = Robot.drone(r1.id)
-        r1Stationary.accept(MissionId("m-1-stat"))
+        r1Stationary.accept(mission)
         val p1Stationary = Placement(r1Stationary, Position(0, 0))
         val actions = pausing.resolveIndirectCollisions(p1Stationary, Seq(p2))
         actions shouldBe Seq(Action.Block(r2.id))

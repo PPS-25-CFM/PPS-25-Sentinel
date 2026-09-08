@@ -9,10 +9,13 @@ import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.routing.Step
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.mission.MissionId
+import it.unibo.sentinel.core.mission.Mission
+import it.unibo.sentinel.core.mission.Priority
 
 trait CollisionCheckerFixture:
   self: UnitTest =>
 
+  val mission: Mission = Mission.relocate(MissionId("M"), Position(1, 1), Tick(10), Priority.normal)
   val path1: Path = Path(Step(Position(1, 1), Tick.unit))
   val path2: Path = Path(Step(Position(5, 5), Tick.unit))
 
@@ -47,7 +50,7 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
       "return false if the robot is either Idle or Ready" in:
         val idle: Robot = Robot.drone(RobotId("idle"))
         val ready: Robot = Robot.drone(RobotId("Ready"))
-        ready.accept(MissionId("M"))
+        ready.accept(mission)
         idle.tick()
         ready.tick()
         CollisionChecker.canMove(Placement(idle, Position(0, 0)), Seq()) shouldBe false
@@ -55,7 +58,7 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
 
       "return true if the robot is blocked but there is no blockage" in:
         val blocked: Robot = Robot.drone(RobotId("Blocked"))
-        blocked.accept(MissionId("M"))
+        blocked.accept(mission)
         blocked.follow(path1)
         blocked.tick()
         blocked.pause()
@@ -63,7 +66,7 @@ class CollisionCheckerSpec extends UnitTest with CollisionCheckerFixture:
 
       "return false if the robot is trying to move into another robot that can't move" in:
         val rA: Robot = Robot.drone(RobotId("A"))
-        rA.accept(MissionId("M"))
+        rA.accept(mission)
         rA.follow(path1)
         val rB: Robot = Robot.drone(RobotId("B"))
         CollisionChecker.canMove(
