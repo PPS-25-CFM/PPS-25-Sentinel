@@ -2,19 +2,19 @@ package it.unibo.sentinel.core.warehouse
 
 import it.unibo.sentinel.core.simulation.Tick
 
-/** Defines the strategy for determining adjacent positions.
+/** Defines the strategy for determining adjacent [[Position]]s.
   */
 trait Adjacency:
   /** @param position
-    *   the position whose neighbors are to be retrieved.
+    *   the [[Position]] whose neighbors are to be retrieved.
     * @return
-    *   the neighbors of the given [[position]].
+    *   the neighbors of the given [[Position]].
     */
   def around(position: Position): Seq[Position]
 
 object Adjacency:
-  /** Considers only the four orthogonal positions as adjacent to a given
-    * position.
+  /** Considers only the four orthogonal [[Position]]s as adjacent to a given
+    * one.
     */
   given orthogonal: Adjacency with
     def around(position: Position): Seq[Position] = position match
@@ -33,14 +33,14 @@ object Adjacency:
   * @param opposite
   *   the opposite corner of the area.
   */
-case class Area(corner: Position, opposite: Position):
+final case class Area(corner: Position, opposite: Position):
   private val xs =
     math.min(corner.x, opposite.x) to math.max(corner.x, opposite.x)
   private val ys =
     math.min(corner.y, opposite.y) to math.max(corner.y, opposite.y)
 
   /** @return
-    *   the sequence of [[Position]]s contained in the area, including the
+    *   the [[Seq]] of [[Position]]s contained in the [[Area]], including the
     *   corners.
     */
   def positions: Seq[Position] = for
@@ -68,31 +68,32 @@ extension (id: WarehouseId)
   */
 trait Warehouse:
   /** @return
-    *   the warehouse's identifier.
+    *   the [[Warehouse]]'s identifier.
     */
   def id: WarehouseId
 
   /** @return
-    *   the width of the warehouse.
+    *   the width of the [[Warehouse]].
     */
   def width: Int
 
   /** @return
-    *   the height of the warehouse.
+    *   the height of the [[Warehouse]].
     */
   def height: Int
 
   /** @return
-    *   the size of the warehouse.
+    *   the size of the [[Warehouse]].
     */
   def size: Int = width * height
 
   /** @param position
     *   the position to check.
     * @return
-    *   whether [[position]] is in bound of the warehouse.
+    *   whether `position` is in bound of the [[Warehouse]].
     */
-  def inBound(position: Position): Boolean
+  def inBound(position: Position): Boolean = position match
+    case Position(x, y) => x >= 0 && x < width && y >= 0 && y < height
 
   /** @param position
     *   the position to check.
@@ -135,14 +136,14 @@ trait Warehouse:
       case _                        => false
 
   /** @param position
-    *   the position of the tile to retrieve.
+    *   the position of the [[Tile]] to retrieve.
     * @return
-    *   an [[Option]] containing the tile at the given position, if any.
+    *   an [[Option]] containing the [[Tile]] at the given [[Position]], if any.
     */
   def tileAt(position: Position): Option[Tile]
 
   /** @param position
-    *   the position of the tile to retrieve.
+    *   the position of the [[Tile]] to retrieve.
     * @return
     *   an [[Option]] containing the traversal cost in [[Tick]] of the tile at
     *   the given.
@@ -173,7 +174,7 @@ trait Warehouse:
     * @param tile
     *   the tile to add.
     * @return
-    *   a new warehouse with the given tile at the given [[position]].
+    *   a new warehouse with the given tile at the given `position`.
     */
   def withTile(position: Position)(tile: Tile): Warehouse
 
@@ -234,12 +235,12 @@ object Warehouse:
       */
     case TilesOutOfBounds(positions: Seq[Position], width: Int, height: Int)
 
-  /** @param width
-    *   the width of the warehouse.
-    * @param height
-    *   the height of the warehouse.
+  /** @param w
+    *   the width of the [[Warehouse]].
+    * @param h
+    *   the height of the [[Warehouse]].
     * @return
-    *   an empty warehouse sized [[width]]x[[height]].
+    *   an empty warehouse sized `w` * `h`.
     */
   def empty(id: WarehouseId, w: Int, h: Int): Warehouse =
     require(w > 0 && h > 0)
@@ -251,9 +252,6 @@ object Warehouse:
       height: Int,
       layout: Map[Position, Tile]
   ) extends Warehouse:
-
-    override def inBound(position: Position): Boolean = position match
-      case Position(x, y) => x >= 0 && x < width && y >= 0 && y < height
 
     override def tileAt(position: Position): Option[Tile] = layout.get(position)
 
