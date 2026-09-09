@@ -18,6 +18,7 @@ import it.unibo.sentinel.core.simulation.{Snapshot, StepResult, Event}
 import it.unibo.sentinel.core.warehouse.Tile
 import it.unibo.sentinel.boundary.gui.toolkit.SimulationView
 import it.unibo.sentinel.boundary.gui.toolkit.StatisticsView
+import it.unibo.sentinel.boundary.gui.toolkit.MenuView
 import it.unibo.sentinel.control.Controller
 
 /** Toolkit implementation using the fx library
@@ -32,6 +33,10 @@ object FxToolkit extends Toolkit:
   /** @return the application window. */
   override val window: W = new FxWindow(Some(defaultWidth), Some(defaultHeight))
 
+  override def execute(action: => Unit): Unit = onFx(action)
+
+  override def menu(): V & MenuView = new FxMenuView
+
   /** @return the statistics view. */
   override def statistics(): V & StatisticsView = new FxStatisticsView
 
@@ -41,13 +46,14 @@ object FxToolkit extends Toolkit:
     *   the simulation view bound to `c`.
     */
   override def simulation(c: Controller): V & SimulationView =
-    new FxView with SimulationView:
+    new FxNavigableView with SimulationView:
       val controller: Controller = c
       private val root = new BorderPane
       private var warehousePanel: Option[WarehousePanel] = None
       private val leftSidePanel = new SidePanel(Iterable.empty)
       private val rightSidePanel = new SidePanel(Iterable.empty)
 
+      root.top = menuButton
       root.left = leftSidePanel
       root.right = rightSidePanel
 

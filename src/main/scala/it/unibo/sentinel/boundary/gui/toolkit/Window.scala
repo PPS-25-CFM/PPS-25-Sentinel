@@ -17,9 +17,20 @@ trait Window:
     */
   def close(): Unit
 
+  /** Registers cleanup for both user and programmatic window closure. */
+  def onClose(action: () => Unit): Unit
+
   /** Shows a view on the window
     *
     * @param view
     *   the view to display
     */
   def show(view: V): Unit
+
+  /** Selects a JSON file, or returns None when the dialog is canceled. Must be
+    * called on the UI thread.
+    */
+  def chooseJsonFile(): Option[os.Path]
+
+  /** Displays a loading error. Must be called on the UI thread. */
+  def showError(message: String): Unit

@@ -7,19 +7,21 @@ import it.unibo.sentinel.core.robot.{RobotId, value}
 import scalafx.geometry.Insets
 import scalafx.scene.Scene
 import scalafx.scene.control.{Label, ScrollPane}
-import scalafx.scene.layout.{ColumnConstraints, GridPane, VBox}
+import scalafx.scene.layout.{BorderPane, ColumnConstraints, GridPane, VBox}
 
 /** Presents the final report without accessing the running simulation. */
-final class FxStatisticsView extends FxView with StatisticsView:
+final class FxStatisticsView extends FxNavigableView with StatisticsView:
   private lazy val reportContent = new VBox:
     spacing = 24
     padding = Insets(32)
     style = "-fx-background-color: #0F172A;"
 
-  override lazy val scene: Scene = new Scene(new ScrollPane:
-    fitToWidth = true
-    style = "-fx-background: #0F172A; -fx-background-color: #0F172A;"
-    content = reportContent)
+  override lazy val scene: Scene = new Scene(new BorderPane:
+    top = menuButton
+    center = new ScrollPane:
+      fitToWidth = true
+      style = "-fx-background: #0F172A; -fx-background-color: #0F172A;"
+      content = reportContent)
 
   override def render(report: Report): Unit = onFx:
     reportContent.children = Seq(

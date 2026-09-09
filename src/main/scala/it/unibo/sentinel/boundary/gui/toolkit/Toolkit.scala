@@ -13,6 +13,14 @@ trait Toolkit:
     */
   val window: W { type V = Toolkit.this.V }
 
+  /** Executes immediately on the UI thread, or queues the action when called
+    * from another thread.
+    */
+  def execute(action: => Unit): Unit
+
+  /** Creates the application's main menu. */
+  def menu(): V & MenuView
+
   /** Creates a [[View]] to display a snapshot of the simulation
     *
     * @return
