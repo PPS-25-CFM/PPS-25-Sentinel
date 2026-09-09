@@ -52,3 +52,8 @@ object Path:
     def advanced: Path = path match
       case step +: rest if step.cost == Tick.zero => rest
       case _                                      => path
+
+    /** @return
+      *   the final [[Position]] of the [[Path]].
+      */
+    def destination: Option[Position] = path.lastOption.map(_.to)

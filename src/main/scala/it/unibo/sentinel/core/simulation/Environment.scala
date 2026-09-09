@@ -125,18 +125,20 @@ private[core] final class Environment private[core] (
     * @return
     *   an [[Event]] if the action produces one
     */
-  def execute(action: CollisionAction): Option[Event] =
+  def execute(robotId: RobotId, action: CollisionAction): Option[Event] =
     for
-      spot <- fleet.get(action.id)
+      spot <- fleet.get(robotId)
       robot = spot.robot
       event <- action match
-        case CollisionAction.Block(id) if robot.status == RobotStatus.Moving =>
-          robot.pause()
-          Some(Event.RobotBlocked(id, spot.at))
-        case CollisionAction.Unblock(id)
-            if robot.status == RobotStatus.Waiting =>
+        case CollisionAction.Move if robot.status == RobotStatus.Waiting =>
           robot.resume()
-          Some(Event.RobotUnblocked(id))
+          Some(Event.RobotUnblocked(robotId))
+        case CollisionAction.Wait if robot.status == RobotStatus.Moving =>
+          robot.pause()
+          Some(Event.RobotBlocked(robotId, spot.at))
+        case CollisionAction.Reroute(path) =>
+          robot.follow(path)
+          Some(Event.RobotRouted(robotId, path.positions))
         case _ => None
     yield event
 

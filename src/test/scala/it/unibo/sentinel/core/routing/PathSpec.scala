@@ -38,6 +38,9 @@ class PathSpec extends UnitTest:
       "have the cost of its first step as remaining time" in:
         path.remaining shouldBe steps.headOption.value.cost
 
+      "have the correct destination" in:
+        path.destination shouldBe steps.lastOption.map(_.to)
+
     "advanced" should:
 
       "be empty if it was the last step and remaining time is up" in:

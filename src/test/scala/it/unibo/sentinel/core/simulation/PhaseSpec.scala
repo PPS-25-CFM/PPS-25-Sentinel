@@ -16,6 +16,8 @@ import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.routing.Step
+import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.collisions.Action
 
 class PhaseSpec
     extends UnitTest
@@ -98,15 +100,67 @@ class PhaseSpec
 
     "there are colliding robots" should:
 
-      "pause one robot and let the other proceed" in:
+      "block the yielding robot when receiving Action.Wait" in:
         Phase.assigning(world)
         world.route(r1, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
         world.route(r2, Path(Step(p3, Tick.unit), Step(p4, Tick.unit)))
         Phase.expiring(world)
-        Phase.expiring(world)
-        Phase.collisionHandling(world) should matchPattern {
-          case Seq(Event.RobotBlocked(_, _)) =>
+        val events = Phase.collisionHandling(world)
+        events should matchPattern {
+          case Seq(Event.RobotBlocked(_, `p1`)) |
+              Seq(Event.RobotBlocked(_, `p2`)) =>
         }
+
+    "a blocked robot is allowed to proceed" should:
+
+      "unblock the robot when receiving Action.Move" in:
+        Phase.assigning(world)
+        world.route(r1, Path(Step(Position(2, 1), Tick.unit)))
+        world.route(r2, Path(Step(Position(2, 1), Tick.unit)))
+        Phase.expiring(world)
+        val blockEvents = Phase.collisionHandling(world)
+        blockEvents should matchPattern { case Seq(Event.RobotBlocked(_, _)) =>
+        }
+        val blockedRobotId = blockEvents.headOption match
+          case Some(Event.RobotBlocked(rid, _)) => rid
+          case _ => fail("Expected RobotBlocked event")
+        val customHandler: CollisionHandler = new CollisionHandler:
+          override def resolveCollisions(placements: Seq[Placement])(using
+              SelectionPolicy
+          ) =
+            Map(blockedRobotId -> Action.Move)
+        val unblockEvents = Phase.collisionHandling(using customHandler)(world)
+        unblockEvents should contain(Event.RobotUnblocked(blockedRobotId))
+        world.robot(blockedRobotId).value.status shouldBe RobotStatus.Moving
+
+    "a robot receives a reroute action" should:
+
+      "update the robot path and emit RobotRouted" in:
+        Phase.assigning(world)
+        world.route(r1, Path(Step(p3, Tick.unit)))
+        Phase.expiring(world)
+        val newPath = Path(Step(Position(2, 1), Tick.unit), Step(p3, Tick.unit))
+        val rerouteHandler: CollisionHandler = new CollisionHandler:
+          override def resolveCollisions(placements: Seq[Placement])(using
+              SelectionPolicy
+          ) =
+            Map(r1 -> Action.Reroute(newPath))
+        val events = Phase.collisionHandling(using rerouteHandler)(world)
+        events should contain(Event.RobotRouted(r1, newPath.positions))
+        world.robot(r1).value.path shouldBe Some(newPath)
+
+    "no state change is required" should:
+
+      "emit no events if a moving robot receives Action.Move" in:
+        Phase.assigning(world)
+        world.route(r1, Path(Step(p3, Tick.unit)))
+        Phase.expiring(world)
+        val noOpHandler: CollisionHandler = new CollisionHandler:
+          override def resolveCollisions(placements: Seq[Placement])(using
+              SelectionPolicy
+          ) = Map(r1 -> Action.Move)
+        val events = Phase.collisionHandling(using noOpHandler)(world)
+        events shouldBe empty
 
   "The moving phase" when:
 
