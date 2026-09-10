@@ -23,7 +23,7 @@ trait RobotFixture:
 trait RobotBehavior extends RobotFixture:
   selft: UnitTest =>
 
-  def baseRobot(build: => Robot): Unit =
+  def baseRobot(build: => Robot, pace: Tick = Pace.fast): Unit =
 
     "just created" should:
       val robot = build
@@ -83,9 +83,9 @@ trait RobotBehavior extends RobotFixture:
       "head to the first position of the path" in:
         robot.next shouldBe positions.headOption
 
-      "wait the cost of the next position" in:
+      "wait the cost of the next position plus its pace" in:
         val stepCost = costs.headOption.value
-        robot.remaining shouldBe stepCost
+        robot.remaining shouldBe stepCost + pace
 
       "be able to be paused" in:
         robot.pause()
@@ -96,7 +96,8 @@ trait RobotBehavior extends RobotFixture:
       "move to the next position of the path if the remaining time is up" in:
         val robot = build
         robot.follow(path)
-        robot.tick()
+        val waits = (costs.headOption.value + pace).value
+        for _ <- 0 until waits do robot.tick()
         robot.step()
         robot.next shouldBe positions.drop(1).headOption
 

@@ -19,7 +19,7 @@ class DroneSpec extends UnitTest with RobotFixture with RobotBehavior:
     )
 
   "A Drone" when:
-    behave like baseRobot(Robot.drone(robotId))
+    behave like baseRobot(Robot.drone(robotId), Pace.fast)
 
     "accepting missions" should:
       "accept a relocation mission" in:

@@ -5,7 +5,7 @@ import it.unibo.sentinel.UnitTest
 class SimpleRobotSpec extends UnitTest with RobotFixture with RobotBehavior:
 
   "A SimpleRobot" when:
-    behave like baseRobot(Robot.drone(robotId))
+    behave like baseRobot(Robot.drone(robotId), Pace.fast)
 
     "already on a mission" should:
       val robot = Robot.drone(robotId)
