@@ -16,12 +16,16 @@ enum TileSchema extends Schema:
   case Floor(cost: Int)
 
   override def validated: Either[Validation, TileSchema] = this match
-    case Shelf(item)                  => item.validated.map(_ => this)
-    case LoadingBay(cost) if cost < 0 =>
-      Left(Validation.TileValidation(Tile.Validation.NegativeCost(cost)))
-    case Floor(cost) if cost < 0 =>
-      Left(Validation.TileValidation(Tile.Validation.NegativeCost(cost)))
-    case _ => Right(this)
+    case Shelf(item)      => item.validated.map(_ => this)
+    case LoadingBay(cost) => validatedCost(cost)
+    case Floor(cost)      => validatedCost(cost)
+
+  private def validatedCost(cost: Int): Either[Validation, TileSchema] =
+    Tile
+      .validateCost(cost)
+      .left
+      .map(Validation.TileValidation(_))
+      .map(_ => this)
 
 /** Schema of a [[Warehouse]].
   */
