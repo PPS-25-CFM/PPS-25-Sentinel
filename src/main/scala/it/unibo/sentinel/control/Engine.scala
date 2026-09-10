@@ -5,29 +5,11 @@ import it.unibo.sentinel.core.simulation.Statistics.Report
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.Observable
-import monix.reactive.subjects.ConcurrentSubject
 import scala.concurrent.duration.FiniteDuration
-
-trait Controller:
-  /** Pauses the [[Simulation]].
-    */
-  def pause(): Unit
-
-  /** Resumes the [[Simulation]].
-    */
-  def resume(): Unit
-
-  /** Moves the [[Simulation]] one step back and pauses it.
-    */
-  def back(): Unit
-
-  /** Moves the [[Simulation]] one step forward and pauses it.
-    */
-  def next(): Unit
 
 /** Advances a simulation periodically and hands each result to an observer.
   */
-trait Engine extends Controller:
+trait Engine:
 
   /** Describes a complete run of the [[Simulation]].
     * @param onStep
@@ -38,21 +20,44 @@ trait Engine extends Controller:
   def run(onStep: StepResult => Task[Unit]): Task[Report]
 
 object Engine:
+
+  /** The commands that can be used to control the [[Simulation]].
+    */
+  enum Command:
+    /** Pauses the [[Simulation]].
+      */
+    case Pause
+
+    /** Resumes the [[Simulation]].
+      */
+    case Resume
+
+    /** Goes back in the [[Simulation]] and pauses it.
+      */
+    case Back
+
+    /** Goes forward in the [[Simulation]] and pauses it.
+      */
+    case Next
+
   /** Creates an [[Engine]] that advances the given [[Simulation]] every
     * [[period]].
     *
     * @param simulation
-    *   The simulation to advance.
+    *   The [[Simulation]] to advance.
     * @param period
     *   The time interval between simulation steps.
+    * @param commands
+    *   The [[Command]]s driving the `simulation` while it runs.
     * @return
     *   An [[Engine]] that advances the given simulation.
     */
   def apply(
       simulation: Simulation,
-      period: FiniteDuration
+      period: FiniteDuration,
+      commands: Observable[Command]
   )(using Scheduler): Engine =
-    new ReactiveEngine(simulation) with ControllableClock(period)
+    new ReactiveEngine(simulation) with ControllableClock(commands, period)
 
   private abstract class ReactiveEngine(simulation: Simulation)(using
       scheduler: Scheduler
@@ -75,19 +80,15 @@ object Engine:
         .map(_ => simulation.statistics)
         .executeOn(scheduler)
 
-  private trait ControllableClock(period: FiniteDuration)(using
-      Scheduler
+  private trait ControllableClock(
+      commands: Observable[Command],
+      period: FiniteDuration
   ):
     self: ReactiveEngine =>
-    import ControlledClock.*, Command.*, Movement.*
-
-    /** Retains the latest command, so that one submitted before the run has
-      * subscribed still drives the clock.
-      */
-    private val commands = ConcurrentSubject.behavior[Command](Resume)
+    import Command.*, Movement.*
 
     override def clock: Observable[Tick] =
-      commands
+      (Observable.now(Resume) ++ commands)
         .switchMap:
           case Pause  => Observable.now(Keep)
           case Back   => Observable.now(Backward)
@@ -101,19 +102,5 @@ object Engine:
           case (time, Backward) => time.previous
           case (time, Forward)  => time.next
 
-    override def pause(): Unit = submit(Pause)
-
-    override def resume(): Unit = submit(Resume)
-
-    override def back(): Unit = submit(Back)
-
-    override def next(): Unit = submit(Next)
-
-    private def submit(command: Command): Unit = commands.onNext(command)
-
-  private object ControlledClock:
-    enum Command:
-      case Pause, Resume, Back, Next
-
-    enum Movement:
-      case Keep, Backward, Forward
+  private enum Movement:
+    case Keep, Backward, Forward

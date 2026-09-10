@@ -1,9 +1,11 @@
 package it.unibo.sentinel.control
 
 import it.unibo.sentinel.UnitTest
+import it.unibo.sentinel.control.Engine.Command
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.execution.schedulers.TestScheduler
+import monix.reactive.subjects.ConcurrentSubject
 import org.mockito.Mockito.*
 import scala.concurrent.Promise
 import scala.concurrent.duration.*
@@ -21,6 +23,7 @@ class EngineSpec extends UnitTest:
     val scheduler = TestScheduler()
     given Scheduler = scheduler
     val period = 1.second
+    val commands = ConcurrentSubject.publish[Command]
     val simulation = mock[Simulation]()
     val initial = StepResult(mock[Snapshot](), Seq.empty)
     val second = StepResult(mock[Snapshot](), Seq.empty)
@@ -28,7 +31,10 @@ class EngineSpec extends UnitTest:
     when(simulation.snapshot).thenReturn(initial.snapshot)
     when(simulation.step()).thenReturn(second)
     when(simulation.statistics).thenReturn(expectedReport)
-    val engine = Engine(simulation, period)
+    val engine = Engine(simulation, period, commands)
+
+    def submit(command: Command): Unit =
+      val _ = commands.onNext(command)
 
   "An Engine" when:
 
@@ -56,6 +62,15 @@ class EngineSpec extends UnitTest:
         scheduler.tick(period)
         step shouldBe Some(second)
         verify(simulation, times(1)).step()
+
+      "ignore the commands submitted before it starts" in new EngineFixture:
+        var step = Option.empty[StepResult]
+        submit(Command.Next)
+        scheduler.tick()
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
+        scheduler.tick()
+        step shouldBe Some(initial)
+        verify(simulation, never()).step()
 
       "stop advancing when it is canceled" in new EngineFixture:
         var step = Option.empty[StepResult]
@@ -86,7 +101,7 @@ class EngineSpec extends UnitTest:
         var step = Option.empty[StepResult]
         val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick()
-        engine.pause()
+        submit(Command.Pause)
         scheduler.tick(period)
         step shouldBe Some(initial)
         verify(simulation, never()).step()
@@ -96,9 +111,9 @@ class EngineSpec extends UnitTest:
         var step = Option.empty[StepResult]
         val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick()
-        engine.pause()
+        submit(Command.Pause)
         scheduler.tick(period)
-        engine.resume()
+        submit(Command.Resume)
         scheduler.tick(period)
         step shouldBe Some(second)
         verify(simulation, times(1)).step()
@@ -110,7 +125,7 @@ class EngineSpec extends UnitTest:
         val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick(period)
         step shouldBe Some(second)
-        engine.back()
+        submit(Command.Back)
         scheduler.tick()
         step shouldBe Some(initial)
 
@@ -118,7 +133,7 @@ class EngineSpec extends UnitTest:
         var step = Option.empty[StepResult]
         val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick(period)
-        engine.back()
+        submit(Command.Back)
         scheduler.tick(2 * period)
         step shouldBe Some(initial)
         verify(simulation, times(1)).step()
@@ -128,14 +143,16 @@ class EngineSpec extends UnitTest:
       "move the simulation one step forward" in new EngineFixture:
         var step = Option.empty[StepResult]
         val _ = engine.run(result => Task { step = Some(result) }).runToFuture
-        engine.next()
+        scheduler.tick()
+        submit(Command.Next)
         scheduler.tick()
         step shouldBe Some(second)
 
       "pause the simulation" in new EngineFixture:
         var step = Option.empty[StepResult]
         val _ = engine.run(result => Task { step = Some(result) }).runToFuture
-        engine.next()
+        scheduler.tick()
+        submit(Command.Next)
         scheduler.tick(period)
         step shouldBe Some(second)
         verify(simulation, times(1)).step()
