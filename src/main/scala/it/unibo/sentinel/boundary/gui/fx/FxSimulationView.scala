@@ -10,13 +10,14 @@ import it.unibo.sentinel.boundary.gui.toolkit.SimulationView
 import it.unibo.sentinel.control.Engine.Command
 import it.unibo.sentinel.core.mission.{Action, Mission, MissionStatus}
 import it.unibo.sentinel.core.simulation.{Event, Snapshot, StepResult}
-import it.unibo.sentinel.core.warehouse.Tile
+import it.unibo.sentinel.core.warehouse.{Tile, Warehouse}
 import monix.eval.Task
 import monix.execution.{CancelablePromise, Scheduler}
 import monix.reactive.Observable
 import monix.reactive.subjects.ConcurrentSubject
 import scalafx.Includes.{eventClosureWrapperWithParam, jfxKeyEvent2sfx}
 import scalafx.scene.Scene
+import scalafx.scene.control.{Button, SplitPane}
 import scalafx.scene.input.{KeyCode, KeyEvent}
 import scalafx.scene.layout.BorderPane
 
@@ -31,9 +32,52 @@ final class FxSimulationView extends FxView with SimulationView:
   private val leftSidePanel = new SidePanel(Iterable.empty)
   private val rightSidePanel = new SidePanel(Iterable.empty)
 
-  root.left = leftSidePanel
-  root.right = rightSidePanel
-  root.top = FxControls.backToMenu(exit)
+  private val split = new SplitPane:
+    minWidth = 0
+    minHeight = 0
+  private var showMissions = true
+  private var showDetails = true
+  private var leftFraction = 0.2
+  private var rightFraction = 0.2
+  private var describedWarehouse = Option.empty[Warehouse]
+  private var warehouseDescription = Seq.empty[String]
+
+  root.styleClass += "warehouse-view"
+  root.center = split
+  root.top = FxControls.toolbar(
+    Seq(FxControls.backToMenu(exit)) ++ zoomControls ++ Seq(
+      FxControls.button("Pause (P)", () => emit(Command.Pause)),
+      FxControls.button("Resume (R)", () => emit(Command.Resume)),
+      FxControls.button("Previous (A)", () => emit(Command.Back)),
+      FxControls.button("Next (D)", () => emit(Command.Next)),
+      FxControls.button("Missions", () => toggleSidebar(missions = true)),
+      FxControls.button("Details", () => toggleSidebar(missions = false))
+    )
+  )
+
+  private def toggleSidebar(missions: Boolean): Unit =
+    val positions = split.delegate.getDividerPositions.toSeq
+    if showMissions then
+      positions.headOption.foreach(value => leftFraction = value)
+    if showDetails then
+      positions.lastOption.foreach(value => rightFraction = 1 - value)
+    if missions then showMissions = !showMissions
+    else showDetails = !showDetails
+    arrangePanels()
+
+  private def arrangePanels(): Unit =
+    warehousePanel.foreach { panel =>
+      val panels: Seq[scalafx.scene.Node] =
+        Option.when(showMissions)(leftSidePanel).toSeq ++ Seq(panel) ++
+          Option.when(showDetails)(rightSidePanel).toSeq
+      val _ = split.items.setAll(panels.map(_.delegate)*)
+      val left = math.max(0.1, math.min(0.35, leftFraction))
+      val right = math.max(0.1, math.min(0.35, rightFraction))
+      val positions = Option.when(showMissions)(left).toSeq ++ Option
+        .when(showDetails)(1 - right)
+        .toSeq
+      split.delegate.setDividerPositions(positions*)
+    }
 
   override def commands: Observable[Command] = subject
 
@@ -41,7 +85,7 @@ final class FxSimulationView extends FxView with SimulationView:
 
   /** @return the JavaFX scene with key bindings. */
   override lazy val scene: Scene =
-    val s = new Scene(root)
+    val s = FxControls.style(new Scene(root))
     s.onKeyPressed = (e: KeyEvent) =>
       e.code match
         case KeyCode.P => emit(Command.Pause)
@@ -57,55 +101,70 @@ final class FxSimulationView extends FxView with SimulationView:
   private def emit(command: Command): Unit =
     val _ = subject.onNext(command)
 
+  /** @return the zoom controls, wired to the current panel once it exists. */
+  private def zoomControls: Seq[Button] =
+    FxControls.zoomControls(
+      zoomIn = () => warehousePanel.foreach(_.zoomIn()),
+      zoomOut = () => warehousePanel.foreach(_.zoomOut()),
+      zoomToFit = () => warehousePanel.foreach(_.zoomToFit())
+    )
+
   /** Describes the rendering of the current simulation [[StepResult]] onto the
     * warehouse and side panels.
     */
-  override def render(model: StepResult): Task[Unit] = onFx:
-    val panel = warehousePanel.getOrElse {
-      val p = new WarehousePanel(model.snapshot.warehouse)
-      root.center = p
-      warehousePanel = Some(p)
-      p
+  override def render(model: StepResult): Task[Unit] =
+    Task(prepareSidebarData(model)).flatMap { (missions, details) =>
+      onFx {
+        val panel = warehousePanel.getOrElse {
+          val created = new WarehousePanel(model.snapshot.warehouse)
+          warehousePanel = Some(created)
+          arrangePanels()
+          created
+        }
+        panel.updateWarehouse(model.snapshot.warehouse)
+        panel.updateRobots(model.snapshot.robots)
+        leftSidePanel.updateData(missions)
+        rightSidePanel.updateData(details)
+        panel.redraw()
+      }
     }
-    panel.updateRobots(model.snapshot.robots)
 
-    val sideMissions =
-      for status <- MissionStatus.values
-      yield SideData(
-        status.toString(),
-        filterAndParseMissions(status, model.snapshot.missions)
-      )
-    leftSidePanel.updateData(sideMissions)
-
-    val robotsData = SideData(
-      "Robots",
-      model.snapshot.robots.map(r =>
-        val assignment = model.snapshot.missions
-          .find(_.carrier.contains(r.id))
-          .map(m => s" - on ${m.id}")
-          .getOrElse(" - free")
-        s"${r.id} at ${r.position} - ${r.status}$assignment"
-      )
-    )
-    val warehouseData = SideData(
-      "Warehouse",
-      describeWarehouse(model.snapshot)
-    )
-    val eventsData = SideData("Events", model.events.map(parseEvent(_)))
-    rightSidePanel.updateData(
-      Iterable(robotsData, warehouseData, eventsData)
-    )
-
-  /** @param status
-    *   used to filter the missions
-    * @return
-    *   a list of descriptions, one for each of the filtered missions
+  /** Runs on the render caller's scheduler, before handing UI changes to
+    * JavaFX. Application serialises render tasks, so this cache needs no extra
+    * thread.
     */
-  private def filterAndParseMissions(
-      status: MissionStatus,
-      missions: Seq[Mission]
-  ): Iterable[String] =
-    missions.filter(_.status == status).map(parseMission)
+  private def prepareSidebarData(
+      model: StepResult
+  ): (Seq[SideData], Seq[SideData]) =
+    val snapshot = model.snapshot
+    val byStatus = snapshot.missions.groupBy(_.status)
+    val missions = MissionStatus.values.toSeq.map(status =>
+      SideData(
+        status.toString,
+        byStatus.getOrElse(status, Seq.empty).map(parseMission)
+      )
+    )
+    val assignments = snapshot.missions
+      .flatMap(m => m.carrier.map(_ -> m.id))
+      .groupMap(_._1)(_._2)
+      .flatMap { (robot, ids) => ids.headOption.map(robot -> _) }
+    val robots = SideData(
+      "Robots",
+      snapshot.robots.map { robot =>
+        val assignment =
+          assignments.get(robot.id).fold(" - free")(id => s" - on $id")
+        s"${robot.id} at ${robot.position} - ${robot.status}$assignment"
+      }
+    )
+    if !describedWarehouse.exists(_ eq snapshot.warehouse) then
+      describedWarehouse = Some(snapshot.warehouse)
+      warehouseDescription = describeWarehouse(snapshot).toSeq
+    val details = Seq(
+      robots,
+      SideData("Warehouse", warehouseDescription),
+      SideData("Events", model.events.map(parseEvent))
+    )
+    (missions, details)
 
   /** @param mission
     *   the mission to extract the description from

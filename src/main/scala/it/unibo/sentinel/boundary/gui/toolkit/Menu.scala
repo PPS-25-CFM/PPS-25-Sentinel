@@ -11,6 +11,15 @@ enum MenuCommand:
     */
   case RunSimulation(scenario: os.Path)
 
+  /** @param id
+    *   the identifier of the new [[Warehouse]] to create and edit.
+    * @param width
+    *   the width of the new [[Warehouse]].
+    * @param height
+    *   the height of the new [[Warehouse]].
+    */
+  case NewWarehouse(id: String, width: Int, height: Int)
+
 /** Represents the menu of the application.
   */
 trait Menu extends Interactive[MenuCommand]:

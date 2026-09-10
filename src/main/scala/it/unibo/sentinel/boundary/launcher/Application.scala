@@ -1,19 +1,20 @@
 package it.unibo.sentinel.boundary.launcher
 
 import it.unibo.sentinel.boundary.gui.toolkit.{MenuCommand, Toolkit}
-import it.unibo.sentinel.control.Engine
+import it.unibo.sentinel.control.{Engine, WarehouseEditor}
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.FileRepository
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.scenario.{Scenario, value}
 import it.unibo.sentinel.core.simulation.Statistics.Report
 import it.unibo.sentinel.core.simulation.{Simulation, SimulationId}
-import it.unibo.sentinel.core.warehouse.Warehouse
+import it.unibo.sentinel.core.warehouse.{Warehouse, WarehouseId}
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.execution.schedulers.SchedulerService
 
 import scala.concurrent.duration.*
+import scala.util.{Try, Failure, Success}
 
 /** This component coordinates the application lifecycle.
   * @param toolkit
@@ -45,6 +46,14 @@ final class Application(toolkit: Toolkit):
       load(scenario) match
         case Left(failure) => menu.report(failure)
         case Right(loaded) => simulate(loaded)
+    case MenuCommand.NewWarehouse(id, width, height) =>
+      Try(Warehouse.empty(WarehouseId(id), width, height)) match
+        case Failure(_) =>
+          val failure = Validation.WarehouseValidation(
+            Warehouse.Validation.InvalidSize(width, height)
+          )
+          menu.report(failure)
+        case Success(warehouse) => editWarehouse(warehouse)
 
   private def simulate(scenario: Scenario): Task[Unit] =
     val scheduler = Scheduler.singleThread("engine")
@@ -71,6 +80,21 @@ final class Application(toolkit: Toolkit):
       _ <- view.render(report)
       _ <- window.show(view)
       _ <- view.dismissed
+    yield ()
+
+  private def editWarehouse(initial: Warehouse): Task[Unit] =
+    val view = toolkit.editor
+    for
+      _ <- window.show(view)
+      _ <- view.render(WarehouseEditor.State(initial))
+      edited <-
+        view.commands
+          .scan(WarehouseEditor.State(initial))(WarehouseEditor.reduce)
+          .mapEval(state => view.render(state).map(_ => state))
+          .takeUntilEval(view.dismissed)
+          .lastOrElseL(WarehouseEditor.State(initial))
+      outcome = new FileRepository[Warehouse]().save(edited.warehouse)
+      _ <- outcome.fold(menu.report, _ => Task.unit)
     yield ()
 
   private def load(scenario: os.Path): Either[Validation, Scenario] =

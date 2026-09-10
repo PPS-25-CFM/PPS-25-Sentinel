@@ -5,7 +5,7 @@ import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import monix.eval.Task
 import monix.execution.CancelablePromise
 import scalafx.Includes.{eventClosureWrapperWithParam, jfxWindowEvent2sfx}
-import scalafx.stage.{Stage, WindowEvent}
+import scalafx.stage.{Screen, Stage, WindowEvent}
 
 /** [[Window]] implementation based on the fx library
   */
@@ -17,8 +17,9 @@ final class FxWindow(
   private val closeRequest = CancelablePromise[Unit]()
 
   private lazy val stage: Stage = new Stage():
-    defaultWidth.foreach(w => width = w)
-    defaultHeight.foreach(h => height = h)
+    private val screen = Screen.primary.visualBounds
+    defaultWidth.foreach(w => width = math.min(w, screen.width * 0.9))
+    defaultHeight.foreach(h => height = math.min(h, screen.height * 0.9))
     onCloseRequest = (_: WindowEvent) =>
       val _ = closeRequest.trySuccess(())
 

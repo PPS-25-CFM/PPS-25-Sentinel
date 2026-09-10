@@ -10,10 +10,10 @@ import monix.reactive.subjects.ConcurrentSubject
 import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Scene
-import scalafx.scene.control.{Alert, Button, Label}
+import scalafx.scene.control.{Alert, Button, Label, TextField}
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.layout.VBox
-import scalafx.stage.FileChooser
+import scalafx.stage.{FileChooser, Stage}
 
 /** */
 final class FxMenuView extends FxView with Menu:
@@ -34,8 +34,7 @@ final class FxMenuView extends FxView with Menu:
     style = "-fx-background-color: #0F172A;"
     children = Seq(
       heading("Sentinel"),
-      caption("Choose what to do"),
-      pending("Edit Warehouse"),
+      editWarehouse,
       pending("Configure Scenario"),
       runSimulation
     ))
@@ -55,6 +54,54 @@ final class FxMenuView extends FxView with Menu:
         Option(chooser.showOpenDialog(owner)).foreach: file =>
           val _ = subject.onNext(MenuCommand.RunSimulation(os.Path(file)))
 
+  private lazy val editWarehouse: Button =
+    new Button("Edit Warehouse"):
+      style = enabledStyle
+      delegate.setOnAction: _ =>
+        showNewWarehouseDialog()
+
+  /** Opens a small modal asking for the id/width/height of a new [[Warehouse]],
+    * emitting [[MenuCommand.NewWarehouse]] on confirmation.
+    */
+  private def showNewWarehouseDialog(): Unit =
+    val idField = new TextField:
+      promptText = "Warehouse id"
+    val widthField = new TextField:
+      promptText = "Width"
+    val heightField = new TextField:
+      promptText = "Height"
+    val create = new Button("Create"):
+      disable = true
+      style = enabledStyle
+
+    def valid: Boolean =
+      idField.text.value.trim.nonEmpty &&
+        widthField.text.value.toIntOption.exists(_ > 0) &&
+        heightField.text.value.toIntOption.exists(_ > 0)
+
+    Seq(idField, widthField, heightField).foreach: field =>
+      field.text.onChange { (_, _, _) => create.disable = !valid }
+
+    val dialog = new Stage:
+      title = "New Warehouse"
+    dialog.scene = new Scene(new VBox:
+      spacing = 12
+      padding = Insets(24)
+      style = "-fx-background-color: #0F172A;"
+      children = Seq(idField, widthField, heightField, create))
+
+    create.delegate.setOnAction: _ =>
+      val _ = subject.onNext(
+        MenuCommand.NewWarehouse(
+          idField.text.value.trim,
+          widthField.text.value.toInt,
+          heightField.text.value.toInt
+        )
+      )
+      dialog.close()
+
+    dialog.show()
+
   private def pending(text: String): Button =
     new Button(text):
       disable = true
@@ -63,10 +110,6 @@ final class FxMenuView extends FxView with Menu:
   private def heading(text: String): Label =
     new Label(text):
       style = "-fx-text-fill: #F8FAFC; -fx-font-size: 32px;"
-
-  private def caption(text: String): Label =
-    new Label(text):
-      style = "-fx-text-fill: #94A3B8; -fx-font-size: 16px;"
 
   private def describe(failure: Validation): String = failure match
     case Validation.FileNotFound(path)      => s"File not found: $path"

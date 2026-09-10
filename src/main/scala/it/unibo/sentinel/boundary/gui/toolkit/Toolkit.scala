@@ -28,6 +28,13 @@ trait Toolkit:
   /** Creates a view for the final simulation report. */
   def statistics: V & StatisticsView
 
+  /** Creates a [[View]] to edit a [[Warehouse]].
+    *
+    * @return
+    *   the [[WarehouseEditorView]].
+    */
+  def editor: V & WarehouseEditorView
+
   /** Shuts down the application.
     *
     * @return
