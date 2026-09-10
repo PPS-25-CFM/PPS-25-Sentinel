@@ -2,6 +2,7 @@ package it.unibo.sentinel.boundary.gui.fx
 
 import it.unibo.sentinel.boundary.gui.toolkit.Window
 import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
+import monix.eval.Task
 import scalafx.stage.Stage
 
 /** [[Window]] implementation based on the fx library
@@ -17,9 +18,9 @@ final class FxWindow(
 
   override type V = FxView
 
-  override def open(): Unit = onFx(stage.show())
+  override def open(): Task[Unit] = onFx(stage.show())
 
-  override def close(): Unit = onFx(stage.close())
+  override def close(): Task[Unit] = onFx(stage.close())
 
-  override def show(view: V): Unit = onFx:
+  override def show(view: V): Task[Unit] = onFx:
     stage.scene = view.scene

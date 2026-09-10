@@ -1,6 +1,9 @@
 package it.unibo.sentinel.boundary.gui.fx
 
-import scalafx.application.Platform
+import javafx.application.Platform
+import monix.eval.Task
+import monix.execution.Scheduler
+import scala.concurrent.ExecutionContext
 
 /** Utility functions for managing JavaFX/ScalaFX UI execution
   */
@@ -14,14 +17,21 @@ object FxUtils:
     */
   val defaultHeight: Double = 900.0
 
-  /** Executes an action on the JavaFx Application Thread.
+  /** Runs every submitted task on the JavaFX Application Thread.
+    */
+  private val fxScheduler: Scheduler =
+    Scheduler(
+      ExecutionContext.fromExecutor((r: Runnable) => Platform.runLater(r))
+    )
+
+  /** Describes an action to be executed on the JavaFX Application Thread.
     *
-    * If called from the JavaFX thread, the action runs immediately. Otherwise,
-    * it is scheduled to run asynchronously on the JavaFX thread via
-    * [[scalafx.application.Platform.runLater Platform.runLater]].
+    * The action is not evaluated until the returned task is run, and the task
+    * completes only once the action has been executed, so its completion can be
+    * used as a rendering acknowledgement.
     *
     * @param action
     *   the code block to be executed on the JavaFX Application Thread
     */
-  def onFx(action: => Unit): Unit =
-    if Platform.isFxApplicationThread then action else Platform.runLater(action)
+  def onFx(action: => Unit): Task[Unit] =
+    Task(action).executeOn(fxScheduler)

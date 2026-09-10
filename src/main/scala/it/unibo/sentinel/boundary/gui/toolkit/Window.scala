@@ -1,5 +1,7 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
+import monix.eval.Task
+
 /** Abstraction of a window that opens on the screen to visualize a [[View]]
   */
 trait Window:
@@ -11,15 +13,15 @@ trait Window:
 
   /** Opens the window on the screen
     */
-  def open(): Unit
+  def open(): Task[Unit]
 
   /** Closes the window
     */
-  def close(): Unit
+  def close(): Task[Unit]
 
   /** Shows a view on the window
     *
     * @param view
     *   the view to display
     */
-  def show(view: V): Unit
+  def show(view: V): Task[Unit]

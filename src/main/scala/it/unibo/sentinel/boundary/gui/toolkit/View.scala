@@ -1,5 +1,6 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
+import monix.eval.Task
 import it.unibo.sentinel.core.simulation.StepResult
 import it.unibo.sentinel.control.Controller
 import it.unibo.sentinel.core.simulation.Statistics.Report
@@ -11,12 +12,13 @@ trait View:
     */
   type Model
 
-  /** Loads all the graphics components to visualize the given model
+  /** Describes the update of the graphic components visualizing the given
+    * model. Nothing is displayed until the returned task is run.
     *
     * @param model
-    *   the current state to display
+    *   the current state to display.
     */
-  def render(model: Model): Unit
+  def render(model: Model): Task[Unit]
 
 /** A [[View]] that is able to visualize the [[StepResult]] and interact with
   * the [[Controller]] to control the [[Simulation]].

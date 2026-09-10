@@ -1,20 +1,12 @@
 package it.unibo.sentinel.control
 
 import it.unibo.sentinel.core.simulation.{Simulation, StepResult, Tick}
-import monix.execution.{Cancelable, Scheduler}
-import monix.reactive.Observable
-import scala.Conversion
-import scala.concurrent.duration.FiniteDuration
-import scala.language.implicitConversions
-import monix.reactive.subjects.ConcurrentSubject
 import it.unibo.sentinel.core.simulation.Statistics.Report
-
-/** Represents something that can be stopped.
-  */
-trait Stoppable:
-  /** Stops the underlying process.
-    */
-  def stop(): Unit
+import monix.eval.Task
+import monix.execution.Scheduler
+import monix.reactive.Observable
+import monix.reactive.subjects.ConcurrentSubject
+import scala.concurrent.duration.FiniteDuration
 
 trait Controller:
   /** Pauses the [[Simulation]].
@@ -25,33 +17,34 @@ trait Controller:
     */
   def resume(): Unit
 
-  /** Moves the [[Simulation]] one step back.
+  /** Moves the [[Simulation]] one step back and pauses it.
     */
   def back(): Unit
 
-  /** Moves the [[Simulation]] one step forward.
+  /** Moves the [[Simulation]] one step forward and pauses it.
     */
   def next(): Unit
 
-/** Advances a simulation periodically and publishes each result to observers.
+/** Advances a simulation periodically and hands each result to an observer.
   */
 trait Engine extends Controller:
 
-  /** Registers a callback invoked after every simulation step.
+  /** Describes a complete run of the [[Simulation]].
+    *
+    * Nothing is executed until the returned task is run, and no further step is
+    * produced until the task returned by [[onStep]] completes. An [[Engine]] is
+    * single use: running it more than once shares the same simulation.
+    *
+    * @param onStep
+    *   The observer evaluated after every simulation step.
+    * @return
+    *   A task producing the report of the completed simulation.
     */
-  def observe(onStep: StepResult => Unit): Stoppable
-
-  /** Registers a callback invoked when the simulation is completed.
-    */
-  def observeCompletion(onCompleted: Report => Unit): Stoppable
-
-  /** Starts the simulation.
-    */
-  def start(): Stoppable
+  def run(onStep: StepResult => Task[Unit]): Task[Report]
 
 object Engine:
   /** Creates an [[Engine]] that advances the given [[Simulation]] every
-    * [[period]] and notifies its observers after each step.
+    * [[period]].
     *
     * @param simulation
     *   The simulation to advance.
@@ -63,12 +56,11 @@ object Engine:
   def apply(
       simulation: Simulation,
       period: FiniteDuration
-  ): Engine =
-    given Scheduler = Scheduler.singleThread("engine")
+  )(using Scheduler): Engine =
     new ReactiveEngine(simulation) with ControllableClock(period)
 
-  private[control] abstract class ReactiveEngine(val simulation: Simulation)(
-      using Scheduler
+  private abstract class ReactiveEngine(simulation: Simulation)(using
+      scheduler: Scheduler
   ) extends Engine:
     def clock: Observable[Tick]
 
@@ -78,40 +70,29 @@ object Engine:
         .iterate(initial)(_ => simulation.step())
         .takeWhile(_ => !simulation.isOver)
 
-    private lazy val steps =
+    override def run(onStep: StepResult => Task[Unit]): Task[Report] =
       clock
         .map { case Tick(time) => history.lift(time) }
         .takeWhileInclusive(_ => !simulation.isOver)
         .collect { case Some(step) => step }
-        .publish
+        .mapEval(onStep)
+        .completedL
+        .map(_ => simulation.statistics)
+        .executeOn(scheduler)
 
-    private lazy val completion =
-      steps.completed ++ Observable.eval(simulation.statistics)
-
-    override def observe(onStep: StepResult => Unit): Stoppable =
-      steps.foreach(onStep)
-
-    override def observeCompletion(onCompleted: Report => Unit): Stoppable =
-      completion.foreach(onCompleted)
-
-    override def start(): Stoppable =
-      steps.connect()
-
-    private given Conversion[Cancelable, Stoppable] with
-      override def apply(source: Cancelable): Stoppable =
-        () => source.cancel()
-
-  private[control] trait ControllableClock(period: FiniteDuration)(using
+  private trait ControllableClock(period: FiniteDuration)(using
       Scheduler
   ):
     self: ReactiveEngine =>
     import ControlledClock.*, Command.*, Movement.*
 
-    private val commands = ConcurrentSubject.publish[Command]
+    /** Retains the latest command, so that one submitted before the run has
+      * subscribed still drives the clock.
+      */
+    private val commands = ConcurrentSubject.behavior[Command](Resume)
 
     override def clock: Observable[Tick] =
       commands
-        .startWith(Seq(Resume))
         .switchMap:
           case Pause  => Observable.now(Keep)
           case Back   => Observable.now(Backward)
@@ -135,7 +116,7 @@ object Engine:
 
     private def submit(command: Command): Unit = commands.onNext(command)
 
-  private[control] object ControlledClock:
+  private object ControlledClock:
     enum Command:
       case Pause, Resume, Back, Next
 

@@ -4,6 +4,7 @@ import it.unibo.sentinel.boundary.gui.toolkit.StatisticsView
 import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import it.unibo.sentinel.core.simulation.Statistics.Report
 import it.unibo.sentinel.core.robot.{RobotId, value}
+import monix.eval.Task
 import scalafx.geometry.Insets
 import scalafx.scene.Scene
 import scalafx.scene.control.{Label, ScrollPane}
@@ -21,7 +22,7 @@ final class FxStatisticsView extends FxView with StatisticsView:
     style = "-fx-background: #0F172A; -fx-background-color: #0F172A;"
     content = reportContent)
 
-  override def render(report: Report): Unit = onFx:
+  override def render(report: Report): Task[Unit] = onFx:
     reportContent.children = Seq(
       label("Simulation completed", 28, "#F8FAFC"),
       label("Final statistics", 16, "#94A3B8"),

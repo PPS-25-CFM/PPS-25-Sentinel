@@ -4,6 +4,7 @@ import it.unibo.sentinel.boundary.gui.toolkit.Toolkit
 import it.unibo.sentinel.boundary.gui.fx.FxToolkit
 import it.unibo.sentinel.core.simulation.Simulation
 import it.unibo.sentinel.control.Engine
+import monix.execution.Scheduler
 import scala.concurrent.duration.*
 import it.unibo.sentinel.core.scenario.Scenario
 import it.unibo.sentinel.control.serialization.Repository
@@ -11,7 +12,7 @@ import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.core.simulation.SimulationId
 
-/** Application launcher.w
+/** Application launcher.
   *
   * Uses a [[Toolkit]] to create and setup a [[Window]], which will display the
   * simulation's [[View]]s.
@@ -23,19 +24,22 @@ object Launcher:
   def main(args: Array[String]): Unit =
     for loaded <- loadScenario()
     yield
+      given Scheduler = Scheduler.singleThread("engine")
       val id = SimulationId("sim-1")
       val sim = Simulation.of(id, loaded)
       val engine: Engine = Engine(sim, 1.second)
       val window = toolkit.window
       val panel = toolkit.simulation(engine)
       val statistics = toolkit.statistics()
-      window.show(panel)
-      window.open()
-      engine.observe(panel.render)
-      engine.observeCompletion: report =>
-        statistics.render(report)
-        window.show(statistics)
-      engine.start()
+      val application =
+        for
+          _ <- window.show(panel)
+          _ <- window.open()
+          report <- engine.run(panel.render)
+          _ <- statistics.render(report)
+          _ <- window.show(statistics)
+        yield ()
+      val _ = application.runToFuture
 
   def loadScenario(): Either[Validation, Scenario] =
     import it.unibo.sentinel.control.serialization.JsonSerialization.given

@@ -19,6 +19,7 @@ import it.unibo.sentinel.core.warehouse.Tile
 import it.unibo.sentinel.boundary.gui.toolkit.SimulationView
 import it.unibo.sentinel.boundary.gui.toolkit.StatisticsView
 import it.unibo.sentinel.control.Controller
+import monix.eval.Task
 
 /** Toolkit implementation using the fx library
   */
@@ -63,10 +64,10 @@ object FxToolkit extends Toolkit:
             case _         => ()
         s
 
-      /** Renders the current simulation [[StepResult]] onto the warehouse and
-        * side panels.
+      /** Describes the rendering of the current simulation [[StepResult]] onto
+        * the warehouse and side panels.
         */
-      override def render(model: StepResult): Unit = onFx:
+      override def render(model: StepResult): Task[Unit] = onFx:
         val panel = warehousePanel.getOrElse {
           val p = new WarehousePanel(model.snapshot.warehouse)
           root.center = p
