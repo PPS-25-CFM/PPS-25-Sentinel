@@ -34,12 +34,12 @@ class PaceSpec extends UnitTest with RobotFixture:
 
   "Pace presets" should:
     "be ordered from fast to slow" in:
-      Pace.fast.value shouldBe 0
-      (Pace.fast.value < Pace.normal.value) shouldBe true
-      (Pace.normal.value < Pace.slow.value) shouldBe true
+      Speed.fast.value shouldBe 0
+      (Speed.fast.value < Speed.normal.value) shouldBe true
+      (Speed.normal.value < Speed.slow.value) shouldBe true
 
     "have fast as zero extra cost" in:
-      Pace.fast shouldBe Tick.zero
+      Speed.fast shouldBe Tick.zero
 
   "A Paced robot" when:
     "following a path" should:
@@ -49,17 +49,17 @@ class PaceSpec extends UnitTest with RobotFixture:
         robot.stored.value.remaining shouldBe (costs.headOption.value + Tick(2))
 
       "leave positions unchanged" in:
-        val robot = paced(Pace.slow)
+        val robot = paced(Speed.slow)
         robot.follow(path)
         robot.stored.value.positions shouldBe positions
 
       "leave an empty path empty" in:
-        val robot = paced(Pace.slow)
+        val robot = paced(Speed.slow)
         robot.follow(Path.empty)
         robot.stored.value shouldBe Path.empty
 
       "leave the path unchanged when pace is fast" in:
-        val robot = paced(Pace.fast)
+        val robot = paced(Speed.fast)
         robot.follow(path)
         robot.stored.value shouldBe path
 
@@ -71,6 +71,6 @@ class PaceSpec extends UnitTest with RobotFixture:
       drone.follow(path)
       light.follow(path)
       heavy.follow(path)
-      drone.remaining shouldBe costs.headOption.value + Pace.fast
-      light.remaining shouldBe costs.headOption.value + Pace.normal
-      heavy.remaining shouldBe costs.headOption.value + Pace.slow
+      drone.remaining shouldBe costs.headOption.value + Speed.fast
+      light.remaining shouldBe costs.headOption.value + Speed.normal
+      heavy.remaining shouldBe costs.headOption.value + Speed.slow

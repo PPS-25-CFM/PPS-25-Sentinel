@@ -23,7 +23,7 @@ trait RobotFixture:
 trait RobotBehavior extends RobotFixture:
   selft: UnitTest =>
 
-  def baseRobot(build: => Robot, pace: Tick = Pace.fast): Unit =
+  def baseRobot(build: => Robot, pace: Tick = Speed.fast): Unit =
 
     "just created" should:
       val robot = build

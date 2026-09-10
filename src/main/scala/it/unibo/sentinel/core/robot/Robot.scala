@@ -111,14 +111,14 @@ trait Robot:
     */
   def drop(item: Item): Option[Item]
 
-trait Pace(pace: Tick) extends Robot:
-  abstract override def follow(path: Path): Unit =
-    super.follow(path.slowed(pace))
-
-object Pace:
+object Speed:
   val fast: Tick = Tick.zero
   val normal: Tick = Tick(1)
   val slow: Tick = Tick(2)
+
+trait Pace(pace: Tick) extends Robot:
+  abstract override def follow(path: Path): Unit =
+    super.follow(path.slowed(pace))
 
 /** [[Robot]] capable of accepting multiple [[Mission]]s using a queue.
   *
@@ -165,18 +165,19 @@ object Robot:
     */
   def drone(id: RobotId, capacity: Int = 1): Robot = new Drone(id)
     with Queued(capacity)
-    with Pace(Pace.fast)
+    with Pace(Speed.fast)
 
   def lightCarrier(id: RobotId, capacity: Int = 1): Robot =
-    new Carrier(id, Weight.average) with Queued(capacity) with Pace(Pace.normal)
+    new Carrier(id, Weight.average)
+      with Queued(capacity)
+      with Pace(Speed.normal)
 
   def heavyCarrier(id: RobotId, capacity: Int = 1): Robot =
-    new Carrier(id, Weight.max) with Queued(capacity) with Pace(Pace.slow)
+    new Carrier(id, Weight.max) with Queued(capacity) with Pace(Speed.slow)
 
   /** Shared movement logic for all mobile robots.
     */
-  private abstract class BaseRobot(val id: RobotId, val pace: Tick)
-      extends Robot:
+  private abstract class BaseRobot(val id: RobotId) extends Robot:
 
     private var waiting: Boolean = false
     private var currentPath: Option[Path] = None
@@ -221,7 +222,7 @@ object Robot:
 
   /** [[Robot]] accepting only relocation missions.
     */
-  private abstract class Drone(id: RobotId) extends BaseRobot(id, Tick.zero):
+  private abstract class Drone(id: RobotId) extends BaseRobot(id):
     override def canAccept(mission: Mission): Boolean =
       mission.isMovementOnly
 
@@ -235,7 +236,7 @@ object Robot:
     *   max transportable [[ItemWeight]]
     */
   private abstract class Carrier(id: RobotId, maxLoad: Weight)
-      extends BaseRobot(id, Tick.zero):
+      extends BaseRobot(id):
     private var bag: Seq[Item] = Seq.empty
 
     private def currentLoad: Weight =

@@ -13,7 +13,7 @@ class CarrierSpec
     with CarrierBehavior:
 
   "A LightCarrier" when:
-    behave like baseRobot(Robot.lightCarrier(robotId), Pace.normal)
+    behave like baseRobot(Robot.lightCarrier(robotId), Speed.normal)
     behave like baseCarrier(Robot.lightCarrier(robotId))
 
     "accepting missions" should:
@@ -44,7 +44,7 @@ class CarrierSpec
         robot.pick(Item.Computer) shouldBe true
 
   "A HeavyCarrier" when:
-    behave like baseRobot(Robot.heavyCarrier(robotId), Pace.slow)
+    behave like baseRobot(Robot.heavyCarrier(robotId), Speed.slow)
     behave like baseCarrier(Robot.heavyCarrier(robotId))
 
     "managing its load limit" should:
