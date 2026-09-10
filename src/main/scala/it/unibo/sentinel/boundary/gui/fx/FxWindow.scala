@@ -3,24 +3,27 @@ package it.unibo.sentinel.boundary.gui.fx
 import it.unibo.sentinel.boundary.gui.toolkit.Window
 import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import monix.eval.Task
-import scalafx.stage.Stage
+import monix.execution.CancelablePromise
+import scalafx.Includes.{eventClosureWrapperWithParam, jfxWindowEvent2sfx}
+import scalafx.stage.{Stage, WindowEvent}
 
 /** [[Window]] implementation based on the fx library
   */
 final class FxWindow(
     defaultWidth: Option[Double] = None,
     defaultHeight: Option[Double] = None
-) extends Window:
+) extends Window[FxView]:
+
+  private val closeRequest = CancelablePromise[Unit]()
 
   private lazy val stage: Stage = new Stage():
     defaultWidth.foreach(w => width = w)
     defaultHeight.foreach(h => height = h)
+    onCloseRequest = (_: WindowEvent) =>
+      val _ = closeRequest.trySuccess(())
 
-  override type V = FxView
+  override def open(): Task[Unit] =
+    onFx(stage.show()) >> Task.fromCancelablePromise(closeRequest)
 
-  override def open(): Task[Unit] = onFx(stage.show())
-
-  override def close(): Task[Unit] = onFx(stage.close())
-
-  override def show(view: V): Task[Unit] = onFx:
+  override def show(view: FxView): Task[Unit] = onFx:
     stage.scene = view.scene

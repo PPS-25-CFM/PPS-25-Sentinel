@@ -1,53 +1,15 @@
 package it.unibo.sentinel.boundary.launcher
 
-import it.unibo.sentinel.boundary.gui.toolkit.Toolkit
 import it.unibo.sentinel.boundary.gui.fx.FxToolkit
-import it.unibo.sentinel.core.simulation.Simulation
-import it.unibo.sentinel.control.Engine
-import monix.execution.Scheduler
-import scala.concurrent.duration.*
-import it.unibo.sentinel.core.scenario.Scenario
-import it.unibo.sentinel.control.serialization.Repository
-import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.core.simulation.SimulationId
+import monix.execution.Scheduler.Implicits.global
 
 /** Application launcher.
   *
-  * Uses a [[Toolkit]] to create and setup a [[Window]], which will display the
-  * simulation's [[View]]s.
+  * Runs the [[Application]] on the fx [[Toolkit]], keeping the main thread
+  * alive until the user closes the window.
   */
 object Launcher:
-
-  private val toolkit: Toolkit = FxToolkit
-
   def main(args: Array[String]): Unit =
-    for loaded <- loadScenario("rerouting-demo")
-    yield
-      given Scheduler = Scheduler.singleThread("engine")
-      val id = SimulationId("sim-1")
-      val sim = Simulation.of(id, loaded)
-      val engine: Engine = Engine(sim, 1.second)
-      val window = toolkit.window
-      val panel = toolkit.simulation(engine)
-      val statistics = toolkit.statistics()
-      val application =
-        for
-          _ <- window.show(panel)
-          _ <- window.open()
-          report <- engine.run(panel.render)
-          _ <- statistics.render(report)
-          _ <- window.show(statistics)
-        yield ()
-      application.runToFuture
-
-  def loadScenario(fileName: String): Either[Validation, Scenario] =
-    import it.unibo.sentinel.control.serialization.JsonSerialization.given
-    import it.unibo.sentinel.control.serialization.FileRepository
-    given warehouseRepo: FileRepository[Warehouse] =
-      new FileRepository[Warehouse]
-    val scenarioRepo: Repository[String, Scenario] =
-      new FileRepository[Scenario]
-    warehouseRepo.save(Dataset.warehouse)
-    scenarioRepo.save(Dataset.scenario)
-    scenarioRepo.load(s"$fileName.json")
+    Application(FxToolkit)
+      .run()
+      .runSyncUnsafe()

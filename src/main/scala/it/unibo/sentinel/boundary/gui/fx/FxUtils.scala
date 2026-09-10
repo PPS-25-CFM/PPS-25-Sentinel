@@ -26,12 +26,8 @@ object FxUtils:
 
   /** Describes an action to be executed on the JavaFX Application Thread.
     *
-    * The action is not evaluated until the returned task is run, and the task
-    * completes only once the action has been executed, so its completion can be
-    * used as a rendering acknowledgement.
-    *
     * @param action
-    *   the code block to be executed on the JavaFX Application Thread
+    *   the code block to be executed.
     */
   def onFx(action: => Unit): Task[Unit] =
     Task(action).executeOn(fxScheduler)
