@@ -30,15 +30,10 @@ trait Controller:
 trait Engine extends Controller:
 
   /** Describes a complete run of the [[Simulation]].
-    *
-    * Nothing is executed until the returned task is run, and no further step is
-    * produced until the task returned by [[onStep]] completes. An [[Engine]] is
-    * single use: running it more than once shares the same simulation.
-    *
     * @param onStep
-    *   The observer evaluated after every simulation step.
+    *   The observer evaluated after every simulation [[StepResult]].
     * @return
-    *   A task producing the report of the completed simulation.
+    *   A [[Task]] producing the [[Report]] of the completed [[Simulation]].
     */
   def run(onStep: StepResult => Task[Unit]): Task[Report]
 
