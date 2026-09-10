@@ -37,11 +37,11 @@ object FileRepository:
     */
   final val folderPath: os.Path = os.home / ".sentinel"
 
-  extension (path: String) def inRoot: os.Path = folderPath / path
-
 /** Repository that uses the file system to store and load data.
   */
-final class FileRepository[M: Codec](using
+final class FileRepository[M: Codec](
+    root: os.Path = FileRepository.folderPath
+)(using
     extension: String,
     idExtractor: M => String
 ) extends Repository[String, M]:
@@ -60,7 +60,7 @@ final class FileRepository[M: Codec](using
       fileName: String
   ): Either[Validation, Unit] =
     operate(fileName) { path =>
-      os.makeDir.all(FileRepository.folderPath)
+      os.makeDir.all(root)
       os.write.over(path, data)
     }(Validation.FileAlreadyExists.apply)
 
@@ -73,8 +73,7 @@ final class FileRepository[M: Codec](using
   private def operate[A](fileName: String)(operation: os.Path => A)(
       validation: String => Validation
   ): Either[Validation, A] =
-    import it.unibo.sentinel.control.serialization.FileRepository.inRoot
-    val targetPath = fileName.inRoot
+    val targetPath = root / fileName
     Try {
       operation(targetPath)
     }.toEither.left.map { _ =>

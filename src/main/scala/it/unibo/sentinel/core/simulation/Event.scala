@@ -86,12 +86,3 @@ enum Event:
     *   the [[Position]] of the loading bay.
     */
   case ItemDropped(robot: RobotId, mission: MissionId, item: Item, at: Position)
-
-  def isOppositeOf(other: Event): Boolean = (this, other) match
-    case (RobotBlocked(r1, _), RobotUnblocked(r2))                   => r1 == r2
-    case (RobotUnblocked(r1), RobotBlocked(r2, _))                   => r1 == r2
-    case (ItemPicked(r1, m1, i1, at1), ItemDropped(r2, m2, i2, at2)) =>
-      r1 == r2 && m1 == m2 && i1 == i2 && at1 == at2
-    case (ItemDropped(r1, m1, i1, at1), ItemPicked(r2, m2, i2, at2)) =>
-      r1 == r2 && m1 == m2 && i1 == i2 && at1 == at2
-    case _ => false

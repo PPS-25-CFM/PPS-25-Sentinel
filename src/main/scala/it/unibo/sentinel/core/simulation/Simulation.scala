@@ -6,6 +6,7 @@ import it.unibo.sentinel.core.assignment.Selector
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
+import scala.util.Random
 
 /** @param snapshot
   *   the snapshot of the simulation after the step.
@@ -88,9 +89,11 @@ object Simulation:
   ): Simulation =
     given Warehouse = scenario.warehouse
     given Navigator = scenario.routing()
-    given Selector = scenario.assignment()
+    given Selector = scenario.assignment(new Random(scenario.seed))
     given SelectionPolicy =
-      scenario.collisionSelection()(using scenario.missions)
+      scenario.collisionSelection(new Random(scenario.seed))(using
+        scenario.missions
+      )
     given CollisionHandler = scenario.collisionAvoidance()
     fromWorld(scenario.build)
 

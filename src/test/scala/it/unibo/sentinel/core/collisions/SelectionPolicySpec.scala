@@ -8,6 +8,11 @@ import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.mission.Priority
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
+import scala.collection.generic.CanBuildFrom
+import scala.util.Random
 
 trait SelectionPolicyFixture:
   self: UnitTest =>
@@ -32,16 +37,45 @@ trait SelectionPolicyFixture:
     mission = missions(i)
   do robot.accept(mission)
 
-class SelectionPolicySpec extends UnitTest with SelectionPolicyFixture:
+class SelectionPolicySpec
+    extends UnitTest
+    with SelectionPolicyFixture
+    with MockitoSugar:
+
+  private type IdOrder = CanBuildFrom[Seq[RobotId], RobotId, Seq[RobotId]]
+
+  private def rigged(
+      rng: Random,
+      ids: Seq[RobotId],
+      order: Seq[RobotId]
+  ): Unit =
+    when(rng.shuffle(eqTo(ids))(using any[IdOrder]())).thenReturn(order)
 
   "A selection policy" when:
     given Seq[Mission] = missions
 
     "selecting randomly" should:
-      val policy = SelectionPolicy.random()
 
-      "select random robots from a given list" in:
-        policy.select(robots) shouldBe defined
+      "return None when no robots are given" in:
+        val rng = mock[Random]
+        rigged(rng, Seq.empty, Seq.empty)
+
+        SelectionPolicy.random(rng).select(Seq.empty) shouldBe None
+
+      "select the head of the order produced by the RNG" in:
+        val ids = robots.map(_.id)
+        val order = Seq(ids(2), ids(0), ids(1), ids(3), ids(4))
+        val rng = mock[Random]
+        rigged(rng, ids, order)
+
+        SelectionPolicy.random(rng).select(robots) shouldBe Some(ids(2))
+
+      "return the only id when a single robot is given" in:
+        val id = robots(0).id
+        val rng = mock[Random]
+        rigged(rng, Seq(id), Seq(id))
+
+        SelectionPolicy.random(rng).select(robots.take(1)) shouldBe Some(id)
 
     "selecting based on mission deadline" should:
       val policy = SelectionPolicy.closestDeadline()

@@ -11,7 +11,9 @@ import it.unibo.sentinel.core.warehouse.{Position, Tile, Warehouse, WarehouseId}
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.converters.*
 import it.unibo.sentinel.control.serialization.converters.WarehouseConverter.given
+import it.unibo.sentinel.control.serialization.converters.ScenarioConverter.given
 import it.unibo.sentinel.control.serialization.schemas.*
+import it.unibo.sentinel.core.scenario.Scenario
 
 class ConvertersSpec extends UnitTest:
 
@@ -189,6 +191,35 @@ class ConvertersSpec extends UnitTest:
       schema.id.shouldBe(spawn.id.value)
       schema.position.shouldBe(PositionConverter.toSchema(spawn.at))
       schema.ofClass.shouldBe(spawn.ofClass)
+
+  "A ScenarioConverter" when:
+    val warehouse: Warehouse = Warehouse
+      .empty(WarehouseId("W"), 3, 3)
+      .withTile(Position(1, 1))(Tile.Floor(Tick.unit))
+
+    given Repository[String, Warehouse] with
+      override def save(model: Warehouse): Either[Validation, Unit] = Right(())
+      override def load(key: String): Either[Validation, Warehouse] =
+        Right(warehouse)
+
+    val converter: Converter[Scenario, ScenarioSchema] =
+      summon[Converter[Scenario, ScenarioSchema]]
+
+    "converting a Scenario" should:
+      "preserve a non-default seed in toSchema" in:
+        val scenario = Scenario.in(warehouse).withSeed(123L)
+        converter.toSchema(scenario).seed.shouldBe(123L)
+
+      "restore the seed in toDomain" in:
+        val scenario = Scenario.in(warehouse).withSeed(123L)
+        val schema = converter.toSchema(scenario)
+        converter.toDomain(schema).map(_.seed).shouldBe(Right(123L))
+
+      "preserve the default seed" in:
+        val scenario = Scenario.in(warehouse)
+        converter
+          .toDomain(converter.toSchema(scenario))
+          .shouldBe(Right(scenario))
 
   private def basicConverter[M, S](
       model: M,

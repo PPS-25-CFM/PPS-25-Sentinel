@@ -24,7 +24,8 @@ final case class ScenarioSchema(
     routing: Routing,
     assignment: Assignment,
     collisionSelection: CollisionSelection,
-    collisionAvoidance: CollisionAvoidance
+    collisionAvoidance: CollisionAvoidance,
+    seed: Long = 42L
 ) extends Schema:
 
   override def validated: Either[Validation, ScenarioSchema] =

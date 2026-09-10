@@ -15,6 +15,7 @@ import it.unibo.sentinel.core.scenario.RobotClass
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.scenario.ScenarioId
 import it.unibo.sentinel.core.item.Item
+import it.unibo.sentinel.core.scenario.Policies.CollisionAvoidance
 
 /** Contains default values for a test simulation
   */
@@ -96,6 +97,6 @@ object Dataset:
           Tick(80)
         )
       )
-    yield s13) match
+    yield s13.withCollisionAvoidance(CollisionAvoidance.Reroute)) match
       case Left(_)      => sys.exit(1)
       case Right(value) => value.withId(ScenarioId("s01"))

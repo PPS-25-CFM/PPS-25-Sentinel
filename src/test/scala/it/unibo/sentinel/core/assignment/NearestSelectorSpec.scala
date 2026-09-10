@@ -6,8 +6,9 @@ import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.mission.*
 import it.unibo.sentinel.core.warehouse.{Position, Warehouse}
 import it.unibo.sentinel.core.routing.{Navigator, Path, Step}
-import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.scenario.{Placement, Policies}
 import it.unibo.sentinel.core.simulation.Tick
+import scala.util.Random
 
 class NearestSelectorSpec extends UnitTest with SelectorBehaviors:
 
@@ -82,3 +83,11 @@ class NearestSelectorSpec extends UnitTest with SelectorBehaviors:
         when(navigator.path(p2.at, ips.toSet)).thenReturn(None)
 
         selector.choose(deliver, Iterable(p1, p2)) shouldBe Some(p1)
+
+    "resolving a policy" should:
+
+      "build a Nearest selector from Policies.Assignment.Nearest" in:
+        given Navigator = navigator
+        val policy: Policies.Assignment = Policies.Assignment.Nearest
+
+        policy(new Random(0)) shouldBe a[Selector.Nearest]

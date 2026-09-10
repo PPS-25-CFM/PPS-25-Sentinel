@@ -6,6 +6,7 @@ import it.unibo.sentinel.core.assignment.Selector
 import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
 import it.unibo.sentinel.core.mission.Mission
+import scala.util.Random
 
 /** Represents the policies that govern the behavior of the simulation.
   */
@@ -35,11 +36,28 @@ object Policies:
       */
     case Nearest
 
-    /** @return
+    /** Round-robin assignment cycling through candidates.
+      */
+    case Cycle
+
+    /** Random assignment.
+      */
+    case Random
+
+    /** Assignment to the robot with the fewest assigned missions.
+      */
+    case LeastWorkload
+
+    /** @param rng
+      *   the random generator governing random choices.
+      * @return
       *   the [[Selector]] for the given [[Assignment]] policy.
       */
-    def apply()(using nav: Navigator): Selector = this match
-      case Nearest => Selector.Nearest(nav)
+    def apply(rng: Random)(using nav: Navigator): Selector = this match
+      case Nearest       => Selector.Nearest(nav)
+      case Cycle         => Selector.CycleSelector()
+      case Random        => Selector.RandomSelector(rng)
+      case LeastWorkload => Selector.LeastWorkload()
 
   enum CollisionSelection:
 
@@ -47,15 +65,24 @@ object Policies:
     case Deadline
     case Priority
 
-    def apply()(using missionSupplier: => Seq[Mission]): SelectionPolicy =
+    /** @param rng
+      *   the random generator governing random choices.
+      * @return
+      *   the [[SelectionPolicy]] for the given policy.
+      */
+    def apply(rng: Random)(using
+        missionSupplier: => Seq[Mission]
+    ): SelectionPolicy =
       this match
-        case Random   => SelectionPolicy.random()
+        case Random   => SelectionPolicy.random(rng)
         case Deadline => SelectionPolicy.closestDeadline()
         case Priority => SelectionPolicy.highestPriority()
 
   enum CollisionAvoidance:
 
     case Wait
+    case Reroute
 
-    def apply(): CollisionHandler = this match
-      case Wait => CollisionHandler.pausing()
+    def apply()(using navigator: Navigator): CollisionHandler = this match
+      case Wait    => CollisionHandler.pause()
+      case Reroute => CollisionHandler.reroute()

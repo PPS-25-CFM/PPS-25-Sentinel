@@ -50,14 +50,15 @@ object ScenarioConverter:
         model.routing,
         model.assignment,
         model.collisionSelection,
-        model.collisionAvoidance
+        model.collisionAvoidance,
+        model.seed
       )
 
     override def toDomain(
         schema: ScenarioSchema
     ): Either[Validation, Scenario] =
       repo.load(schema.warehouseId).map { warehouse =>
-        var scenario = Scenario.in(warehouse)
+        var scenario = Scenario.in(warehouse).withSeed(schema.seed)
         scenario = loadValues[Spawn, SpawnSchema](scenario, schema.spawns) {
           (s, spawn) => s.place(spawn)
         }

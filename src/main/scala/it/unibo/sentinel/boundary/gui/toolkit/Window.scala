@@ -1,25 +1,25 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
-/** Abstraction of a window that opens on the screen to visualize a [[View]]
+import monix.eval.Task
+
+/** Abstraction of a window that opens on the screen to visualize a [[View]].
+  *
+  * @tparam V
+  *   the type of view that the window can show.
   */
-trait Window:
+trait Window[V]:
 
-  /** The type of [[View]] that the window can show. Depends on the technology
-    * chosen to program the UI
+  /** Opens the window on the screen.
+    * @return
+    *   a [[Task]] that completes when the user closes the window.
     */
-  type V <: View
-
-  /** Opens the window on the screen
-    */
-  def open(): Unit
-
-  /** Closes the window
-    */
-  def close(): Unit
+  def open(): Task[Unit]
 
   /** Shows a view on the window
     *
     * @param view
     *   the view to display
+    * @return
+    *   a [[Task]] that completes when the view is displayed.
     */
-  def show(view: V): Unit
+  def show(view: V): Task[Unit]

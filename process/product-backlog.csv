@@ -14,14 +14,16 @@
   PB-13,13,"As a warehouse manager, I want to configure a routing policy that minimizes travel time",PB-11,5,5,5,DONE,-,-
   PB-14,14,"As a warehouse manager, I want to configure cyclically mission assigment policy","",3,3,3,DONE,-,-
   PB-15,15,"As a warehouse manager, I want to configure collision avoidance based on random waiting",PB-12,8,8,8,DONE,-,-
-  PB-16,16,"As a warehouse manager, I want to model shelves, loading zones, and the items stored in them",PB-04,8,8,8,8,,
-  PB-17,17,"As a warehouse manager, I want to equip robots with a bag to pick up and drop items",PB-16,8,8,8,13,,
-  PB-27,18,"As a warehouse manager, I want to generate statistics so I can evaluate a scenario",PB-09,5,5,5,5,,
-  PB-28,19,"As a warehouse manager, I want to save and load warehouses, scenarios, and statistics as JSON files in ~/.sentinel","PB-16, PB-17, PB-27",8,8,8,8,,
-  PB-24,20,"As a warehouse manager, I want to create and edit warehouse layouts through a graphical view","PB-16, PB-28",8,8,8,8,,
-  PB-25,21,"As a warehouse manager, I want to configure and run scenarios through a graphical view","PB-24, PB-28",8,8,8,8,,
-  PB-26,22,"As a warehouse manager, I want to pause a simulation, browse its timeline, and resume it",PB-09,5,5,5,5,,
-  PB-18,23,"As a warehouse manager, I want to configure collision avoidance based on higher-priority missions",PB-15,5,5,5,5,,
-  PB-20,24,"As a warehouse manager, I want to configure lowest workload mission assigments policy","",5,5,5,5,,
-  PB-22,25,"As a warehouse manager, I want to configure collision avoidance based on least remaining mission time",PB-15,3,3,3,3,,
-  PB-23,26,"As a warehouse manager, I want to configure collision avoidance based on rerouting",PB-12,8,8,8,8,,
+  PB-16,16,"As a warehouse manager, I want to model shelves, loading zones, and the items stored in them",PB-04,8,8,8,8,DONE,-
+  PB-17,17,"As a warehouse manager, I want to equip robots with a bag to pick up and drop items",PB-16,8,8,8,13,DONE,-
+  PB-27,18,"As a warehouse manager, I want to generate statistics so I can evaluate a scenario",PB-09,5,5,5,5,DONE,-
+  PB-28,19,"As a warehouse manager, I want to save and load warehouses, scenarios, and statistics as JSON files in ~/.sentinel","PB-16, PB-17, PB-27",8,8,8,8,DONE,-
+  PB-24,20,"As a warehouse manager, I want to create and edit warehouse layouts through a graphical view","PB-16, PB-28",8,8,8,8,8,
+  PB-25,21,"As a warehouse manager, I want to configure and run scenarios through a graphical view","PB-24, PB-28",8,8,8,8,8,
+  PB-26,22,"As a warehouse manager, I want to pause a simulation, browse its timeline, and resume it",PB-09,5,5,5,5,DONE,-
+  PB-18,23,"As a warehouse manager, I want to configure collision avoidance based on higher-priority missions",PB-15,5,5,5,5,DONE,-
+  PB-20,24,"As a warehouse manager, I want to configure lowest workload mission assigments policy","",5,5,5,5,5,
+  PB-22,25,"As a warehouse manager, I want to configure collision avoidance based on least remaining mission time",PB-15,3,3,3,3,DONE,-
+  PB-23,26,"As a warehouse manager, I want to configure collision avoidance based on rerouting",PB-12,8,8,8,8,8,
+  PB-29,27,"As a warehouse manager, I want to configure a routing policy that penalizes routes that involve entering areas with few exit routes","",2,2,2,2,2,
+  PB-30,28,"As a warehouse manager, I want to configure random mission assigment policy","",2,2,2,2,2,

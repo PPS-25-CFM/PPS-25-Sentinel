@@ -2,9 +2,11 @@ package it.unibo.sentinel.core.assignment
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.*
-import it.unibo.sentinel.core.warehouse.Position
-import it.unibo.sentinel.core.scenario.Placement
+import it.unibo.sentinel.core.routing.Navigator
+import it.unibo.sentinel.core.scenario.{Placement, Policies}
 import it.unibo.sentinel.core.simulation.Tick
+import it.unibo.sentinel.core.warehouse.Position
+import scala.util.Random
 
 class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
 
@@ -63,3 +65,11 @@ class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
         selector.choose(mission, withoutP1) shouldBe Some(p3)
 
         selector.choose(mission, all) shouldBe Some(p1)
+
+    "resolving a policy" should:
+
+      "build a CycleSelector from Policies.Assignment.Cycle" in:
+        given Navigator = mock[Navigator]
+        val policy: Policies.Assignment = Policies.Assignment.Cycle
+
+        policy(new Random(0)) shouldBe a[Selector.CycleSelector]

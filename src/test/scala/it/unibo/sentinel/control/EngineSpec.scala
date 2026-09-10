@@ -1,12 +1,15 @@
 package it.unibo.sentinel.control
 
 import it.unibo.sentinel.UnitTest
+import it.unibo.sentinel.control.Engine.Command
+import monix.eval.Task
 import monix.execution.Scheduler
 import monix.execution.schedulers.TestScheduler
+import monix.reactive.subjects.ConcurrentSubject
 import org.mockito.Mockito.*
+import scala.concurrent.Promise
 import scala.concurrent.duration.*
-import it.unibo.sentinel.control.Engine.ReactiveEngine
-import it.unibo.sentinel.control.Engine.ControllableClock
+import scala.util.Success
 import it.unibo.sentinel.core.simulation.{
   Simulation,
   Statistics,
@@ -20,6 +23,7 @@ class EngineSpec extends UnitTest:
     val scheduler = TestScheduler()
     given Scheduler = scheduler
     val period = 1.second
+    val commands = ConcurrentSubject.publish[Command]
     val simulation = mock[Simulation]()
     val initial = StepResult(mock[Snapshot](), Seq.empty)
     val second = StepResult(mock[Snapshot](), Seq.empty)
@@ -27,132 +31,137 @@ class EngineSpec extends UnitTest:
     when(simulation.snapshot).thenReturn(initial.snapshot)
     when(simulation.step()).thenReturn(second)
     when(simulation.statistics).thenReturn(expectedReport)
-    val engine = new ReactiveEngine(simulation) with ControllableClock(period)
+    val engine = Engine(simulation, period, commands)
+
+    def submit(command: Command): Unit =
+      val _ = commands.onNext(command)
 
   "An Engine" when:
 
-    "not started" should:
+    "not run" should:
       "leave the simulation idle" in new EngineFixture:
-        scheduler.tick()
+        var step = Option.empty[StepResult]
+        val _ = engine.run(result => Task { step = Some(result) })
+        scheduler.tick(period * 2)
         verify(simulation, never()).step()
+        step shouldBe None
 
-    "started" should:
+    "run" should:
 
       "show the initial state of the simulation" in new EngineFixture:
         var step = Option.empty[StepResult]
-        engine.observe(r => step = Some(r))
-        engine.start()
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick()
         step shouldBe Some(initial)
         verify(simulation, never()).step()
 
-      "advance the simulation and notify its observers" in new EngineFixture:
+      "advance the simulation and notify its observer" in new EngineFixture:
         var step = Option.empty[StepResult]
-        engine.observe(r => step = Some(r))
-        engine.start()
+        val _ =
+          engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick(period)
         step shouldBe Some(second)
         verify(simulation, times(1)).step()
 
-      "share each simulation step among all observers" in new EngineFixture:
-        var step1 = Option.empty[StepResult]
-        var step2 = Option.empty[StepResult]
-        engine.observe(r => step1 = Some(r))
-        engine.observe(r => step2 = Some(r))
-        engine.start()
-        scheduler.tick()
-        step1 shouldBe Some(initial)
-        step2 shouldBe Some(initial)
-
-      "remove a canceled observer without stopping the engine" in new EngineFixture:
-        var step1 = Option.empty[StepResult]
-        var step2 = Option.empty[StepResult]
-        val obs1 = engine.observe(r => step1 = Some(r))
-        engine.observe(r => step2 = Some(r))
-        engine.start()
-        scheduler.tick()
-        obs1.stop()
-        scheduler.tick(period)
-        verify(simulation, times(1)).step()
-        step1 shouldBe Some(initial)
-        step2 shouldBe Some(second)
-
-      "stop advancing when it is stopped" in new EngineFixture:
+      "ignore the commands submitted before it starts" in new EngineFixture:
         var step = Option.empty[StepResult]
-        engine.observe(r => step = Some(r))
-        val cancelable = engine.start()
+        submit(Command.Next)
         scheduler.tick()
-        cancelable.stop()
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
+        scheduler.tick()
+        step shouldBe Some(initial)
+        verify(simulation, never()).step()
+
+      "stop advancing when it is canceled" in new EngineFixture:
+        var step = Option.empty[StepResult]
+        val cancellable =
+          engine.run(result => Task { step = Some(result) }).runToFuture
+        scheduler.tick()
+        cancellable.cancel()
         scheduler.tick(period)
         verify(simulation, never()).step()
         step shouldBe Some(initial)
 
-      "stop automatically when the simulation is over" in new EngineFixture:
-        when(simulation.isOver).thenReturn(false, false, true)
-        engine.start()
+      "not advance while the observer task is pending" in new EngineFixture:
+        val gate = Promise[Unit]()
+        val _ = engine.run(_ => Task.fromFuture(gate.future)).runToFuture
         scheduler.tick(period * 3)
+        verify(simulation, never()).step()
+
+      "advance again once the observer task completes" in new EngineFixture:
+        val gate = Promise[Unit]()
+        val _ = engine.run(_ => Task.fromFuture(gate.future)).runToFuture
+        scheduler.tick(period * 3)
+        val _ = gate.success(())
+        scheduler.tick(period)
         verify(simulation, times(1)).step()
 
     "paused" should:
       "stop advancing the simulation" in new EngineFixture:
-        engine.start()
+        var step = Option.empty[StepResult]
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick()
-        engine.pause()
+        submit(Command.Pause)
         scheduler.tick(period)
+        step shouldBe Some(initial)
         verify(simulation, never()).step()
 
     "resumed" should:
       "resume advancing the simulation" in new EngineFixture:
-        engine.start()
+        var step = Option.empty[StepResult]
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick()
-        engine.pause()
+        submit(Command.Pause)
         scheduler.tick(period)
-        engine.resume()
+        submit(Command.Resume)
         scheduler.tick(period)
+        step shouldBe Some(second)
         verify(simulation, times(1)).step()
 
     "moved one step back" should:
 
       "move the simulation one step back" in new EngineFixture:
         var step = Option.empty[StepResult]
-        engine.observe(r => step = Some(r))
-        engine.start()
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick(period)
         step shouldBe Some(second)
-        engine.back()
+        submit(Command.Back)
         scheduler.tick()
         step shouldBe Some(initial)
 
       "pause the simulation" in new EngineFixture:
-        engine.start()
+        var step = Option.empty[StepResult]
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
         scheduler.tick(period)
-        engine.back()
+        submit(Command.Back)
         scheduler.tick(2 * period)
+        step shouldBe Some(initial)
         verify(simulation, times(1)).step()
 
     "moved one step forward" should:
 
       "move the simulation one step forward" in new EngineFixture:
         var step = Option.empty[StepResult]
-        engine.observe(r => step = Some(r))
-        engine.start()
-        engine.next()
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
+        scheduler.tick()
+        submit(Command.Next)
         scheduler.tick()
         step shouldBe Some(second)
 
       "pause the simulation" in new EngineFixture:
-        engine.start()
-        engine.next()
+        var step = Option.empty[StepResult]
+        val _ = engine.run(result => Task { step = Some(result) }).runToFuture
+        scheduler.tick()
+        submit(Command.Next)
         scheduler.tick(period)
+        step shouldBe Some(second)
         verify(simulation, times(1)).step()
         scheduler.tick(period * 2)
         verify(simulation, times(1)).step()
 
     "terminated" should:
-      "provide a report to its observers" in new EngineFixture:
-        var report: Option[Statistics.Report] = None
-        engine.observeCompletion(r => report = Some(r))
+      "produce the report of the completed simulation" in new EngineFixture:
         when(simulation.isOver).thenReturn(false, true)
-        engine.start()
+        val running = engine.run(_ => Task.unit).runToFuture
         scheduler.tick(period)
-        report shouldBe defined
+        running.value shouldBe Some(Success(expectedReport))

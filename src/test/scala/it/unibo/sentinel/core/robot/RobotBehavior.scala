@@ -40,6 +40,9 @@ trait RobotBehavior extends RobotFixture:
       "have nothing to wait for" in:
         robot.remaining shouldBe Tick.zero
 
+      "have zero workload" in:
+        robot.workload shouldBe Workload.zero
+
     "without a mission" should:
       val robot = build
 
@@ -49,6 +52,11 @@ trait RobotBehavior extends RobotFixture:
       "take the mission it is given" in:
         robot.accept(mission1)
         robot.mission shouldBe Some(m1)
+
+      "track the accepted mission in its workload" in:
+        val fresh = build
+        fresh.accept(mission1)
+        fresh.workload shouldBe Workload(1)
 
       "not be able to be paused" in:
         val previous = robot.status

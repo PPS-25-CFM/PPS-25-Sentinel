@@ -77,6 +77,13 @@ class ScenarioJsonCodecSpec extends UnitTest:
         _.missions.find(_.id == MissionId("M2")).value.priority
       ) shouldBe Right(Priority(4))
 
+    "preserve a non-default seed across encode and decode" in:
+      persistWarehouse()
+      val seeded = scenario.withSeed(123L)
+      val json = codec.encode(seeded)
+      json.should(include("\"seed\":123"))
+      codec.decode(json).shouldBe(Right(seeded))
+
     "correctly encode and decode a valid Scenario domain object" in:
       codec.encode(scenario) shouldBe
         s"""{

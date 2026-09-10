@@ -139,6 +139,18 @@ trait Scenario:
   def withId(id: ScenarioId): Scenario
 
   /** @return
+    *   the seed governing all random choices in the [[Scenario]].
+    */
+  def seed: Long
+
+  /** @param seed
+    *   the new seed for the scenario.
+    * @return
+    *   a new [[Scenario]] with the given seed.
+    */
+  def withSeed(seed: Long): Scenario
+
+  /** @return
     *   the [[Warehouse]] the [[Scenario]] refers to.
     */
   def warehouse: Warehouse
@@ -248,6 +260,7 @@ object Scenario:
   private final case class Blueprint(
       id: ScenarioId,
       warehouse: Warehouse,
+      seed: Long = 42L,
       spawns: Seq[Spawn] = Seq.empty,
       missions: Seq[Mission] = Seq.empty,
       routing: Routing = Routing.Distance,
@@ -257,6 +270,8 @@ object Scenario:
   ) extends Scenario:
 
     override def withId(id: ScenarioId): Scenario = copy(id = id)
+
+    override def withSeed(seed: Long): Scenario = copy(seed = seed)
 
     override def build: Environment =
       Environment(

@@ -43,6 +43,15 @@ class ScenarioSpec extends UnitTest:
       "have a default assignment policy" in:
         s0.assignment shouldBe Policies.Assignment.Nearest
 
+      "have a default seed" in:
+        s0.seed shouldBe 42L
+
+    "changing the seed" should:
+
+      "return a new scenario with the given seed" in:
+        val result = s0.withSeed(123L)
+        result.seed shouldBe 123L
+
     "changing the id" should:
 
       "return a new scenario with the given id" in:

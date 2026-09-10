@@ -25,6 +25,11 @@ trait Robot:
   def mission: Option[MissionId]
 
   /** @return
+    *   the number of missions currently assigned to the robot.
+    */
+  def workload: Workload = Workload(mission.size)
+
+  /** @return
     *   the robot's current operational status
     */
   def status: RobotStatus
@@ -128,6 +133,11 @@ trait Queued(capacity: Int) extends Robot:
 
   /** @return the head of the mission queue, if any. */
   override def mission: Option[MissionId] = backlog.headOption
+
+  /** @return
+    *   the number of missions in queue, including the one under execution.
+    */
+  override def workload: Workload = Workload(backlog.size)
 
   /** Dequeues the current mission and its queue to the underlying robot. */
   abstract override def release(): Unit =
