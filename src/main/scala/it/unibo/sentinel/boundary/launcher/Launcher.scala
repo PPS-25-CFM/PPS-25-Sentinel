@@ -39,7 +39,7 @@ object Launcher:
           _ <- statistics.render(report)
           _ <- window.show(statistics)
         yield ()
-      val _ = application.runToFuture
+      application.runToFuture
 
   def loadScenario(): Either[Validation, Scenario] =
     import it.unibo.sentinel.control.serialization.JsonSerialization.given
