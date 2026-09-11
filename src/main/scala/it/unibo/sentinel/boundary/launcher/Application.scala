@@ -43,9 +43,7 @@ final class Application(toolkit: Toolkit):
 
   private def handle(command: MenuCommand): Task[Unit] = command match
     case MenuCommand.RunSimulation(scenario) =>
-      load(scenario) match
-        case Left(failure) => menu.report(failure)
-        case Right(loaded) => simulate(loaded)
+      loadScenario(scenario).fold(menu.report, simulate)
     case MenuCommand.NewWarehouse(id, width, height) =>
       Try(Warehouse.empty(WarehouseId(id), width, height)) match
         case Failure(_) =>
@@ -53,7 +51,13 @@ final class Application(toolkit: Toolkit):
             Warehouse.Validation.InvalidSize(width, height)
           )
           menu.report(failure)
-        case Success(warehouse) => editWarehouse(warehouse)
+        case Success(warehouse) =>
+          editWarehouse(warehouse, FileRepository.folderPath)
+    case MenuCommand.OpenWarehouse(warehouse) =>
+      loadWarehouse(warehouse).fold(
+        menu.report,
+        editWarehouse(_, warehouse / os.up)
+      )
 
   private def simulate(scenario: Scenario): Task[Unit] =
     val scheduler = Scheduler.singleThread("engine")
@@ -82,7 +86,7 @@ final class Application(toolkit: Toolkit):
       _ <- view.dismissed
     yield ()
 
-  private def editWarehouse(initial: Warehouse): Task[Unit] =
+  private def editWarehouse(initial: Warehouse, root: os.Path): Task[Unit] =
     val view = toolkit.editor
     for
       _ <- window.show(view)
@@ -93,11 +97,14 @@ final class Application(toolkit: Toolkit):
           .mapEval(state => view.render(state).map(_ => state))
           .takeUntilEval(view.dismissed)
           .lastOrElseL(WarehouseEditor.State(initial))
-      outcome = new FileRepository[Warehouse]().save(edited.warehouse)
+      outcome = new FileRepository[Warehouse](root).save(edited.warehouse)
       _ <- outcome.fold(menu.report, _ => Task.unit)
     yield ()
 
-  private def load(scenario: os.Path): Either[Validation, Scenario] =
+  private def loadScenario(scenario: os.Path): Either[Validation, Scenario] =
     given warehouses: FileRepository[Warehouse] =
       new FileRepository[Warehouse]()
     new FileRepository[Scenario](scenario / os.up).load(scenario.last)
+
+  private def loadWarehouse(warehouse: os.Path): Either[Validation, Warehouse] =
+    new FileRepository[Warehouse](warehouse / os.up).load(warehouse.last)

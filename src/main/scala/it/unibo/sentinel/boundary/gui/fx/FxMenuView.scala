@@ -3,6 +3,7 @@ package it.unibo.sentinel.boundary.gui.fx
 import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import it.unibo.sentinel.boundary.gui.toolkit.{MenuCommand, Menu}
 import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.control.serialization.FileRepository
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.Observable
@@ -21,9 +22,9 @@ final class FxMenuView extends FxView with Menu:
 
   private val subject = ConcurrentSubject.publish[MenuCommand]
 
-  private val chooser = new FileChooser:
-    delegate.setTitle("Choose a scenario")
-    extensionFilters += new FileChooser.ExtensionFilter("Scenario", "*.json")
+  private val scenarioChooser = chooser("Choose a scenario", "Scenario")
+
+  private val warehouseChooser = chooser("Choose a warehouse", "Warehouse")
 
   override def commands: Observable[MenuCommand] = subject
 
@@ -34,7 +35,8 @@ final class FxMenuView extends FxView with Menu:
     style = "-fx-background-color: #0F172A;"
     children = Seq(
       heading("Sentinel"),
-      editWarehouse,
+      newWarehouse,
+      openWarehouse,
       pending("Configure Scenario"),
       runSimulation
     ))
@@ -50,15 +52,21 @@ final class FxMenuView extends FxView with Menu:
     new Button("Run Simulation"):
       style = enabledStyle
       delegate.setOnAction: _ =>
-        val owner = FxMenuView.this.scene.window()
-        Option(chooser.showOpenDialog(owner)).foreach: file =>
-          val _ = subject.onNext(MenuCommand.RunSimulation(os.Path(file)))
+        choose(scenarioChooser).foreach: file =>
+          val _ = subject.onNext(MenuCommand.RunSimulation(file))
 
-  private lazy val editWarehouse: Button =
-    new Button("Edit Warehouse"):
+  private lazy val newWarehouse: Button =
+    new Button("New Warehouse"):
       style = enabledStyle
       delegate.setOnAction: _ =>
         showNewWarehouseDialog()
+
+  private lazy val openWarehouse: Button =
+    new Button("Open Warehouse"):
+      style = enabledStyle
+      delegate.setOnAction: _ =>
+        choose(warehouseChooser).foreach: file =>
+          val _ = subject.onNext(MenuCommand.OpenWarehouse(file))
 
   /** Opens a small modal asking for the id/width/height of a new [[Warehouse]],
     * emitting [[MenuCommand.NewWarehouse]] on confirmation.
@@ -101,6 +109,23 @@ final class FxMenuView extends FxView with Menu:
       dialog.close()
 
     dialog.show()
+
+  private def chooser(
+      prompt: String,
+      kind: String,
+      initial: Option[os.Path] = Some(FileRepository.folderPath)
+  ): FileChooser =
+    new FileChooser:
+      delegate.setTitle(prompt)
+      extensionFilters += new FileChooser.ExtensionFilter(kind, "*.json")
+      initial
+        .filter(os.exists(_))
+        .foreach: path =>
+          initialDirectory = path.toIO
+
+  private def choose(chooser: FileChooser): Option[os.Path] =
+    val owner = FxMenuView.this.scene.window()
+    Option(chooser.showOpenDialog(owner)).map(os.Path(_))
 
   private def pending(text: String): Button =
     new Button(text):

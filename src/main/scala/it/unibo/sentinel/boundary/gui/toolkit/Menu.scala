@@ -20,6 +20,9 @@ enum MenuCommand:
     */
   case NewWarehouse(id: String, width: Int, height: Int)
 
+  /** */
+  case OpenWarehouse(warehouse: os.Path)
+
 /** Represents the menu of the application.
   */
 trait Menu extends Interactive[MenuCommand]:
