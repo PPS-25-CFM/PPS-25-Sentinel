@@ -8,8 +8,8 @@ import it.unibo.sentinel.core.warehouse.{
   Tile,
   Position
 }
-import it.unibo.sentinel.core.scenario.{Scenario, Spawn}
-import it.unibo.sentinel.core.scenario.RobotClass
+import it.unibo.sentinel.core.scenario.{Scenario, Spawn, RobotClass}
+import it.unibo.sentinel.core.robot.RobotId
 
 trait ScenarioEditorFixture:
   val warehouseId = WarehouseId("test")
@@ -29,14 +29,21 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
     val initial = ScenarioEditor.State(emptyScenario, None)
 
     "receives a PlaceRobot command" should:
+      val at = p1
+      val ofClass = RobotClass.Drone
+      val edited = ScenarioEditor(initial, Command.PlaceRobot(at, ofClass))
 
       "place the robot in the scenario" in:
-        val at = p1
-        val ofClass = RobotClass.Drone
-        val edited = ScenarioEditor(initial, Command.PlaceRobot(at, ofClass))
         inside(edited):
           case State(scenario, None) =>
             inside(scenario.spawns):
               case Seq(Spawn(_, pos, cls)) =>
                 pos shouldBe at
                 cls shouldBe ofClass
+
+      "compute the robot id automaticcaly" in:
+        inside(edited):
+          case State(scenario, None) =>
+            inside(scenario.spawns):
+              case Seq(Spawn(rid, _, _)) =>
+                rid shouldBe RobotId("R1")

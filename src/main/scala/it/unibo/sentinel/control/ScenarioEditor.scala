@@ -6,6 +6,7 @@ import it.unibo.sentinel.core.scenario.RobotClass
 import it.unibo.sentinel.core.scenario.Validation
 import it.unibo.sentinel.core.scenario.Spawn
 import it.unibo.sentinel.core.robot.RobotId
+import it.unibo.sentinel.core.robot.value
 
 object ScenarioEditor extends Editor:
 
@@ -24,10 +25,20 @@ object ScenarioEditor extends Editor:
 
   override def apply(state: State, command: Command): State = command match
     case PlaceRobot(at, ofClass) =>
-      val rid = RobotId("r1")
+      val current = state.scenario
+      val rid = current.freshRobotId
       val spawn = Spawn(rid, at, ofClass)
-      val withSpawn = state.scenario.place(spawn)
+      val withSpawn = current.place(spawn)
       withSpawn.fold(
-        fail => State(state.scenario, Some(fail)),
+        fail => State(current, Some(fail)),
         updated => State(updated, None)
       )
+
+  extension (sc: Scenario)
+    private def freshRobotId: RobotId =
+      val existingIds = sc.spawns.map(_.id)
+      val nextId = existingIds
+        .map(_.value.stripPrefix("R").toIntOption.getOrElse(0))
+        .maxOption
+        .getOrElse(0) + 1
+      RobotId(s"R$nextId")
