@@ -1,9 +1,9 @@
 package it.unibo.sentinel.boundary.launcher
 
-import it.unibo.sentinel.boundary.gui.toolkit.{MenuCommand, Toolkit}
-import it.unibo.sentinel.control.{Engine, WarehouseEditor}
+import it.unibo.sentinel.boundary.gui.toolkit.{EditorView, MenuCommand, Toolkit}
+import it.unibo.sentinel.control.{Editor, Engine, WarehouseEditor}
 import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.FileRepository
+import it.unibo.sentinel.control.serialization.{FileRepository, Repository}
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.scenario.{Scenario, value}
 import it.unibo.sentinel.core.simulation.Statistics.Report
@@ -86,20 +86,30 @@ final class Application(toolkit: Toolkit):
       _ <- view.dismissed
     yield ()
 
-  private def editWarehouse(initial: Warehouse, root: os.Path): Task[Unit] =
-    val view = toolkit.editor
+  private def edit(editor: Editor)(
+      view: toolkit.V & EditorView[editor.State, editor.Command],
+      initial: editor.State,
+      repository: Repository[String, editor.Model]
+  ): Task[Unit] =
     for
       _ <- window.show(view)
-      _ <- view.render(WarehouseEditor.State(initial))
+      _ <- view.render(initial)
       edited <-
-        view.commands
-          .scan(WarehouseEditor.State(initial))(WarehouseEditor.reduce)
+        editor
+          .execute(initial, view.commands)
           .mapEval(state => view.render(state).map(_ => state))
           .takeUntilEval(view.dismissed)
-          .lastOrElseL(WarehouseEditor.State(initial))
-      outcome = new FileRepository[Warehouse](root).save(edited.warehouse)
+          .lastOrElseL(initial)
+      outcome = repository.save(editor.model(edited))
       _ <- outcome.fold(menu.report, _ => Task.unit)
     yield ()
+
+  private def editWarehouse(initial: Warehouse, root: os.Path): Task[Unit] =
+    edit(WarehouseEditor)(
+      toolkit.editor,
+      WarehouseEditor.State(initial),
+      new FileRepository[Warehouse](root)
+    )
 
   private def loadScenario(scenario: os.Path): Either[Validation, Scenario] =
     given warehouses: FileRepository[Warehouse] =

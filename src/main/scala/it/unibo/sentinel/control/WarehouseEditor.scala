@@ -5,7 +5,10 @@ import it.unibo.sentinel.core.warehouse.{Area, Position, Tile, Warehouse}
 /** Interprets user editing commands as transformations of a [[Warehouse]] under
   * construction.
   */
-object WarehouseEditor:
+object WarehouseEditor extends Editor:
+  type Model = Warehouse
+
+  override def model(state: State): Model = state.warehouse
 
   /** What the user can do while editing a [[Warehouse]].
     */
@@ -49,7 +52,7 @@ object WarehouseEditor:
     * @return
     *   the [[State]] resulting from applying `command` to `state`.
     */
-  def reduce(state: State, command: Command): State = command match
+  def apply(state: State, command: Command): State = command match
     case Command.Select(at) =>
       state.copy(selection = Some(Area(at, at)))
     case Command.ExtendSelection(to) =>

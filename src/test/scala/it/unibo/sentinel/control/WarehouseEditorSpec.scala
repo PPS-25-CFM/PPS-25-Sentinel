@@ -24,12 +24,12 @@ class WarehouseEditorSpec extends UnitTest with WarehouseEditorFixture:
     "a cell is selected" should:
 
       "replace any previous selection with a single-cell area" in:
-        val selected = WarehouseEditor.reduce(initial, Command.Select(corner))
+        val selected = WarehouseEditor.apply(initial, Command.Select(corner))
         selected.selection.value shouldBe Area(corner, corner)
 
       "override a previously extended selection" in:
-        val extended = WarehouseEditor.reduce(
-          WarehouseEditor.reduce(initial, Command.ExtendSelection(opposite)),
+        val extended = WarehouseEditor.apply(
+          WarehouseEditor.apply(initial, Command.ExtendSelection(opposite)),
           Command.Select(corner)
         )
         extended.selection.value shouldBe Area(corner, corner)
@@ -38,28 +38,28 @@ class WarehouseEditorSpec extends UnitTest with WarehouseEditorFixture:
 
       "create a single-cell area if there was no prior selection" in:
         val extended =
-          WarehouseEditor.reduce(initial, Command.ExtendSelection(opposite))
+          WarehouseEditor.apply(initial, Command.ExtendSelection(opposite))
         extended.selection.value shouldBe Area(opposite, opposite)
 
       "create a rectangle between the previous corner and the new one" in:
-        val selected = WarehouseEditor.reduce(initial, Command.Select(corner))
+        val selected = WarehouseEditor.apply(initial, Command.Select(corner))
         val extended =
-          WarehouseEditor.reduce(selected, Command.ExtendSelection(opposite))
+          WarehouseEditor.apply(selected, Command.ExtendSelection(opposite))
         extended.selection.value shouldBe Area(corner, opposite)
 
     "a tile is applied" should:
 
       "paint every position of the current selection" in:
-        val selected = WarehouseEditor.reduce(initial, Command.Select(corner))
+        val selected = WarehouseEditor.apply(initial, Command.Select(corner))
         val extended =
-          WarehouseEditor.reduce(selected, Command.ExtendSelection(opposite))
+          WarehouseEditor.apply(selected, Command.ExtendSelection(opposite))
         val painted =
-          WarehouseEditor.reduce(extended, Command.Apply(Tile.Floor()))
+          WarehouseEditor.apply(extended, Command.Apply(Tile.Floor()))
         forAll(Area(corner, opposite).positions):
           painted.warehouse.tileAt(_).value shouldBe Tile.Floor()
 
       "leave the warehouse unchanged if there is no selection" in:
-        val painted = WarehouseEditor.reduce(
+        val painted = WarehouseEditor.apply(
           initial,
           Command.Apply(Tile.Shelf(Item.Computer))
         )
@@ -68,17 +68,17 @@ class WarehouseEditorSpec extends UnitTest with WarehouseEditorFixture:
     "a tile is removed" should:
 
       "clear every position of the current selection" in:
-        val selected = WarehouseEditor.reduce(initial, Command.Select(corner))
+        val selected = WarehouseEditor.apply(initial, Command.Select(corner))
         val extended =
-          WarehouseEditor.reduce(selected, Command.ExtendSelection(opposite))
+          WarehouseEditor.apply(selected, Command.ExtendSelection(opposite))
         val painted =
-          WarehouseEditor.reduce(extended, Command.Apply(Tile.Floor()))
-        val removed = WarehouseEditor.reduce(painted, Command.Remove)
+          WarehouseEditor.apply(extended, Command.Apply(Tile.Floor()))
+        val removed = WarehouseEditor.apply(painted, Command.Remove)
         forAll(Area(corner, opposite).positions):
           removed.warehouse.tileAt(_) shouldBe None
 
       "leave the warehouse unchanged if there is no selection" in:
-        val removed = WarehouseEditor.reduce(initial, Command.Remove)
+        val removed = WarehouseEditor.apply(initial, Command.Remove)
         removed.warehouse shouldBe initial.warehouse
 
     "a full paint-then-erase sequence is applied" should:
@@ -89,7 +89,7 @@ class WarehouseEditorSpec extends UnitTest with WarehouseEditorFixture:
           Command.ExtendSelection(opposite),
           Command.Apply(Tile.Shelf(Item.Computer)),
           Command.Remove
-        ).foldLeft(initial)(WarehouseEditor.reduce)
+        ).foldLeft(initial)(WarehouseEditor.apply)
 
         forAll(Area(corner, opposite).positions):
           result.warehouse.tileAt(_) shouldBe None
