@@ -10,6 +10,10 @@ import it.unibo.sentinel.core.warehouse.{
 }
 import it.unibo.sentinel.core.scenario.{Scenario, Spawn, RobotClass}
 import it.unibo.sentinel.core.robot.RobotId
+import it.unibo.sentinel.core.mission.{Task, Priority}
+import it.unibo.sentinel.core.simulation.Tick
+import it.unibo.sentinel.core.mission.MissionId
+import it.unibo.sentinel.core.item.Item
 
 trait ScenarioEditorFixture:
   val warehouseId = WarehouseId("test")
@@ -25,8 +29,9 @@ trait ScenarioEditorFixture:
 
 class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
   import ScenarioEditor.*
+  val initial = ScenarioEditor.State(emptyScenario, None)
+
   "A ScenarioEditor" when:
-    val initial = ScenarioEditor.State(emptyScenario, None)
 
     "receives a PlaceRobot command" should:
       val at = p1
@@ -49,10 +54,45 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
                 rid shouldBe RobotId("R1")
 
       "signal a failure when placing a robot in an invalid position and not change the scenario" in:
-
         val notFloor = Position(0, 0)
         val fail =
           ScenarioEditor(initial, Command.PlaceRobot(notFloor, ofClass))
+        inside(fail):
+          case State(scenario, fail) =>
+            scenario shouldBe initial.scenario
+            fail should not be empty
+
+    "receives a LoadMission command" should:
+      val task = Task.move(p1)
+      val deadline = Tick(10)
+      val priority = Priority.normal
+      val edited =
+        ScenarioEditor(initial, Command.LoadMission(task, deadline, priority))
+
+      "load the mission into the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            inside(scenario.missions):
+              case Seq(mission) =>
+                mission.task shouldBe task
+                mission.deadline shouldBe deadline
+                mission.priority shouldBe priority
+
+      "compute the mission id automaticcaly" in:
+        inside(edited):
+          case State(scenario, None) =>
+            inside(scenario.missions):
+              case Seq(mission) =>
+                mission.id shouldBe MissionId("M1")
+
+      "signal a failure when loading a mission with an invalid task and not change the scenario" in:
+        val item = Item.Computer
+        val invalidTask = Task.pick(item, Position(0, 0))
+        val fail =
+          ScenarioEditor(
+            initial,
+            Command.LoadMission(invalidTask, deadline, priority)
+          )
         inside(fail):
           case State(scenario, fail) =>
             scenario shouldBe initial.scenario
