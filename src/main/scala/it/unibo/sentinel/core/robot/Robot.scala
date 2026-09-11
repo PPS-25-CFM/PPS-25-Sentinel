@@ -111,6 +111,22 @@ trait Robot:
     */
   def drop(item: Item): Option[Item]
 
+/** Defines the speed of a [[Robot]] in terms of ticks per position.
+  */
+object Speed:
+  val fast: Tick = Tick.zero
+  val normal: Tick = Tick(1)
+  val slow: Tick = Tick(2)
+
+/** Defines a [[Robot]]'s movement pace
+  *
+  * @param speed
+  *   the number of ticks required per position
+  */
+trait Pace(speed: Tick) extends Robot:
+  abstract override def follow(path: Path): Unit =
+    super.follow(path.slowed(speed))
+
 /** [[Robot]] capable of accepting multiple [[Mission]]s using a queue.
   *
   * @param capacity
@@ -156,12 +172,15 @@ object Robot:
     */
   def drone(id: RobotId, capacity: Int = 1): Robot = new Drone(id)
     with Queued(capacity)
+    with Pace(Speed.fast)
 
   def lightCarrier(id: RobotId, capacity: Int = 1): Robot =
-    new Carrier(id, Weight.average) with Queued(capacity)
+    new Carrier(id, Weight.average)
+      with Queued(capacity)
+      with Pace(Speed.normal)
 
   def heavyCarrier(id: RobotId, capacity: Int = 1): Robot =
-    new Carrier(id, Weight.max) with Queued(capacity)
+    new Carrier(id, Weight.max) with Queued(capacity) with Pace(Speed.slow)
 
   /** Shared movement logic for all mobile robots.
     */
