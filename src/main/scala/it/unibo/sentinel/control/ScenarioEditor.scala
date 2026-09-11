@@ -28,11 +28,12 @@ object ScenarioEditor extends Editor:
       val current = state.scenario
       val rid = current.freshRobotId
       val spawn = Spawn(rid, at, ofClass)
-      val withSpawn = current.place(spawn)
-      withSpawn.fold(
-        fail => State(current, Some(fail)),
-        updated => State(updated, None)
-      )
+      current
+        .place(spawn)
+        .fold(
+          fail => State(current, Some(fail)),
+          updated => State(updated, None)
+        )
 
   extension (sc: Scenario)
     private def freshRobotId: RobotId =
