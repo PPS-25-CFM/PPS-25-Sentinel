@@ -140,7 +140,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
             scenario.collisionAvoidance shouldBe policy
 
     "receive a Reseed command" should:
-      val seed = 42l
+      val seed = 42L
       val edited = ScenarioEditor(initial, Command.Reseed(seed))
 
       "set the seed in the scenario" in:
