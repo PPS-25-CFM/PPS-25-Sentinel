@@ -111,14 +111,21 @@ trait Robot:
     */
   def drop(item: Item): Option[Item]
 
+/** Defines the speed of a [[Robot]] in terms of ticks per position.
+  */
 object Speed:
   val fast: Tick = Tick.zero
   val normal: Tick = Tick(1)
   val slow: Tick = Tick(2)
 
-trait Pace(pace: Tick) extends Robot:
+/** Defines a [[Robot]]'s movement pace
+  *
+  * @param speed
+  *   the number of ticks required per position
+  */
+trait Pace(speed: Tick) extends Robot:
   abstract override def follow(path: Path): Unit =
-    super.follow(path.slowed(pace))
+    super.follow(path.slowed(speed))
 
 /** [[Robot]] capable of accepting multiple [[Mission]]s using a queue.
   *
