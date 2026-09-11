@@ -12,6 +12,7 @@ import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.mission.Priority
 import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.mission.MissionId
+import it.unibo.sentinel.core.scenario.Policies
 
 object ScenarioEditor extends Editor:
 
@@ -23,6 +24,26 @@ object ScenarioEditor extends Editor:
     /** Load a [[Mission]] in the [[Scenario]].
       */
     case LoadMission(task: Task, deadline: Tick, priority: Priority)
+
+    /** Choose a routing policy for the [[Scenario]].
+      */
+    case ChooseRouting(policy: Policies.Routing)
+
+    /** Choose an assignment policy for the [[Scenario]].
+      */
+    case ChooseAssigmnment(policy: Policies.Assignment)
+
+    /** Choose a collision selection policy for the [[Scenario]].
+      */
+    case ChooseCollisionSelection(policy: Policies.CollisionSelection)
+
+    /** Choose a collision avoidance policy for the [[Scenario]].
+      */
+    case ChooseCollisionAvoidance(policy: Policies.CollisionAvoidance)
+
+    /** Reseed the random generator of the [[Scenario]].
+      */
+    case Reseed(seed: Long)
 
   final case class State(scenario: Scenario, fail: Option[Validation] = None)
 
@@ -41,6 +62,21 @@ object ScenarioEditor extends Editor:
       val mid = state.scenario.freshMissionId
       state.attempt:
         _.load(Mission(mid, task, deadline, priority))
+    case ChooseRouting(policy) =>
+      state.edit:
+        _.withRouting(policy)
+    case ChooseAssigmnment(policy) =>
+      state.edit:
+        _.withAssignment(policy)
+    case ChooseCollisionSelection(policy) =>
+      state.edit:
+        _.withCollisionSelection(policy)
+    case ChooseCollisionAvoidance(policy) =>
+      state.edit:
+        _.withCollisionAvoidance(policy)
+    case Reseed(seed) =>
+      state.edit:
+        _.withSeed(seed)
 
   extension (state: State)
 
@@ -49,6 +85,9 @@ object ScenarioEditor extends Editor:
         fail => State(state.scenario, Some(fail)),
         updated => State(updated, None)
       )
+
+    private def edit(f: Scenario => Scenario): State =
+      State(f(state.scenario))
 
   extension (sc: Scenario)
     private def freshRobotId: RobotId =

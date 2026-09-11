@@ -14,6 +14,9 @@ import it.unibo.sentinel.core.mission.{Task, Priority}
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.mission.MissionId
 import it.unibo.sentinel.core.item.Item
+import it.unibo.sentinel.core.scenario.Policies.{Routing, Assignment}
+import it.unibo.sentinel.core.scenario.Policies.CollisionSelection
+import it.unibo.sentinel.core.scenario.Policies.CollisionAvoidance
 
 trait ScenarioEditorFixture:
   val warehouseId = WarehouseId("test")
@@ -97,3 +100,50 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
           case State(scenario, fail) =>
             scenario shouldBe initial.scenario
             fail should not be empty
+
+    "receives a ChooseRouting command" should:
+      val policy = Routing.Distance
+      val edited = ScenarioEditor(initial, Command.ChooseRouting(policy))
+
+      "set the routing policy in the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            scenario.routing shouldBe policy
+
+    "receives a ChooseAssignment command" should:
+      val policy = Assignment.Nearest
+      val edited = ScenarioEditor(initial, Command.ChooseAssigmnment(policy))
+
+      "set the assignment policy in the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            scenario.assignment shouldBe policy
+
+    "receive a ChooseCollision Selection command" should:
+      val policy = CollisionSelection.Random
+      val edited =
+        ScenarioEditor(initial, Command.ChooseCollisionSelection(policy))
+
+      "set the collision selection policy in the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            scenario.collisionSelection shouldBe policy
+
+    "receive a ChooseCollision Avoidance action command" should:
+      val policy = CollisionAvoidance.Wait
+      val edited =
+        ScenarioEditor(initial, Command.ChooseCollisionAvoidance(policy))
+
+      "set the collision avoidance policy in the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            scenario.collisionAvoidance shouldBe policy
+
+    "receive a Reseed command" should:
+      val seed = 42l
+      val edited = ScenarioEditor(initial, Command.Reseed(seed))
+
+      "set the seed in the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            scenario.seed shouldBe seed
