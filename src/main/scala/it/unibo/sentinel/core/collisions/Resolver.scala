@@ -1,67 +1,61 @@
 package it.unibo.sentinel.core.collisions
 
-import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.robot.value
 import scala.annotation.tailrec
+import it.unibo.sentinel.core.scenario.Intent
 
 private case class Context(
-    movers: Seq[Placement],
+    movers: Seq[Intent],
     occupants: Map[Position, RobotId],
     stationaryCells: Set[Position]
 )
 
 private object Context:
-  def from(placements: Seq[Placement]): Context =
-    val ordered = placements.sortBy(_.robot.id.value)
-    val (movers, stationary) =
-      ordered.partition(p => p.intent.from != p.intent.to)
-    Context(
-      movers = movers,
-      occupants = ordered.map(p => p.intent.from -> p.intent.robotId).toMap,
-      stationaryCells = stationary.map(_.intent.from).toSet
-    )
+  def from(intents: Seq[Intent]): Context =
+    val ordered = intents.sortBy(_.robotId.value)
+    val (movers, stationary) = ordered.partition(i => i.from != i.to)
+    val occupants = ordered.map(i => i.from -> i.robotId).toMap
+    Context(movers, occupants, stationary.map(_.from).toSet)
 
-private final class Resolver(onYield: Placement => Action)
+private final class Resolver(onYield: Intent => Action)
     extends CollisionHandler:
 
   override def resolveCollisions(
-      placements: Seq[Placement]
+      intents: Seq[Intent]
   )(using selector: SelectionPolicy): Map[RobotId, Action] =
-    val Context(movers, occupants, stationaryCells) = Context.from(placements)
+    val Context(movers, occupants, stationaryCells) = Context.from(intents)
     val cellLosers = chooseCellLosers(movers, stationaryCells)
-    val cellWinners = movers.filterNot(p => cellLosers.contains(p.robot.id))
+    val cellWinners = movers.filterNot(i => cellLosers.contains(i.robotId))
     val swapLosers = chooseSwapLosers(cellWinners)
     val allLosers = cellLosers ++ swapLosers
-    val winners = cellWinners.map(_.robot.id).toSet -- swapLosers
+    val winners = cellWinners.map(_.robotId).toSet -- swapLosers
     val allWinners = resolveChainDependencies(winners, movers, occupants)
     assignActions(movers, allLosers, allWinners)
 
   /** @param movers
-    *   [[Placement]]s that want to move from a cell to another.
+    *   [[Intent]]s of robots attempting to change position.
     * @param stationaryCells
-    *   occupied [[Position]]s.
+    *   occupied [[Position]]s of non-moving robots.
     * @param selector
-    *   [[SelectionPolicy]] to determine the winner and the losers of the
-    *   collisions.
+    *   [[SelectionPolicy]] to resolve cell contentions.
     * @return
-    *   a `Set` of [[RobotId]]s of the [[Robot]]s that lost the contention of a
-    *   cell.
+    *   `Set` of [[RobotId]]s that lost contention for a cell.
     */
   private def chooseCellLosers(
-      movers: Seq[Placement],
+      movers: Seq[Intent],
       stationaryCells: Set[Position]
   )(using selector: SelectionPolicy): Set[RobotId] =
     movers
-      .groupBy(_.intent.to)
+      .groupBy(_.to)
       .toSeq
       .sortBy((position, _) => (position.x, position.y))
       .flatMap { (targetCell, candidates) =>
         val chosenWinner =
           if stationaryCells.contains(targetCell) then None
-          else selector.select(candidates.map(_.robot))
-        val ids = candidates.map(_.robot.id)
+          else selector.select(candidates)
+        val ids = candidates.map(_.robotId)
         chosenWinner match
           case Some(winnerId) => ids.filterNot(_ == winnerId)
           case None           => ids
@@ -69,82 +63,77 @@ private final class Resolver(onYield: Placement => Action)
       .toSet
 
   /** @param contenders
-    *   remaining [[Placement]]s that can move
+    *   remaining [[Intent]]s eligible to move.
     * @param selector
-    *   [[SelectionPolicy]] to determine the winner and the losers of the
-    *   collisions.
+    *   [[SelectionPolicy]] to resolve swap conflicts.
     * @return
-    *   a `Set` of [[RobotId]]s of the [[Robot]]s that lost in the attempted
-    *   swap.
+    *   `Set` of [[RobotId]]s that lost head-to-head swap contentions.
     */
   private def chooseSwapLosers(
-      contenders: Seq[Placement]
+      contenders: Seq[Intent]
   )(using selector: SelectionPolicy): Set[RobotId] =
-    val byOrigin = contenders.map(p => p.intent.from -> p).toMap
+    val byOrigin = contenders.map(i => i.from -> i).toMap
     val swapPairs = for
       first <- contenders
-      second <- byOrigin.get(first.intent.to)
+      second <- byOrigin.get(first.to)
       if isHeadToHeadSwap(first, second) && isCanonicalOrder(first, second)
     yield (first, second)
     swapPairs.flatMap { (p1, p2) =>
       val pair = Seq(p1, p2)
-      val chosenWinner = selector.select(pair.map(_.robot))
-      pair.filterNot(p => chosenWinner.contains(p.robot.id)).map(_.robot.id)
+      val chosenWinner = selector.select(pair)
+      pair.filterNot(i => chosenWinner.contains(i.robotId)).map(_.robotId)
     }.toSet
 
-  private def isHeadToHeadSwap(p1: Placement, p2: Placement): Boolean =
-    p2.intent.to == p1.intent.from
+  private def isHeadToHeadSwap(i1: Intent, i2: Intent): Boolean =
+    i2.to == i1.from
 
-  private def isCanonicalOrder(p1: Placement, p2: Placement): Boolean =
-    p1.robot.id.value < p2.robot.id.value
+  private def isCanonicalOrder(i1: Intent, i2: Intent): Boolean =
+    i1.robotId.value < i2.robotId.value
 
   /** @param winners
-    *   `Set` of [[RobotId]]s of the [[Robot]]s that won the collisions'
-    *   contests.
+    *   `Set` of [[RobotId]]s currently winning their movement contention.
     * @param movers
-    *   list of [[Placement]]s that want to move.
+    *   all movement [[Intent]]s.
     * @param occupants
-    *   `Map` that indicates which [[Position]]s are occupied by which
-    *   [[Placement]].
+    *   `Map` associating positions to occupying [[RobotId]]s.
     * @return
-    *   a `Set` of [[RobotId]]s of the [[Robot]]s that won the remaining
-    *   collisions.
+    *   `Set` of [[RobotId]]s capable of moving after resolving chain
+    *   dependencies.
     */
   @tailrec
   private def resolveChainDependencies(
       winners: Set[RobotId],
-      movers: Seq[Placement],
+      movers: Seq[Intent],
       occupants: Map[Position, RobotId]
   ): Set[RobotId] =
     val winningMovers = movers
-      .filter { p =>
-        winners.contains(p.robot.id) &&
-        occupants.get(p.intent.to).forall(winners.contains)
+      .filter { intent =>
+        winners.contains(intent.robotId) &&
+        occupants.get(intent.to).forall(winners.contains)
       }
-      .map(_.robot.id)
+      .map(_.robotId)
       .toSet
     if winningMovers == winners then winningMovers
     else resolveChainDependencies(winningMovers, movers, occupants)
 
   /** @param movers
-    *   list of [[Placement]]s that want to move.
+    *   all movement [[Intent]]s.
     * @param losers
-    *   losers of the collisions.
+    *   `Set` of [[RobotId]]s that lost their contention.
     * @param winners
-    *   winners of the collisions.
+    *   `Set` of [[RobotId]]s clear to move.
     * @return
-    *   a `Map` that indicates which [[Robot]] (represented by its id) has to do
-    *   what.
+    *   `Map` assigning the target [[Action]] to each [[RobotId]].
     */
   private def assignActions(
-      movers: Seq[Placement],
+      movers: Seq[Intent],
       losers: Set[RobotId],
       winners: Set[RobotId]
   ): Map[RobotId, Action] =
-    movers.map { placement =>
-      val id = placement.robot.id
+    movers.map { intent =>
+      val id = intent.robotId
       val action =
-        if losers.contains(id) then onYield(placement)
+        if losers.contains(id) then onYield(intent)
         else if winners.contains(id) then Action.Move
         else Action.Wait
       id -> action

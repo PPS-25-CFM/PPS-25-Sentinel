@@ -151,12 +151,12 @@ private[core] final class Environment private[core] (
       spot <- fleet.get(rid)
       robot = spot.robot
       from = spot.at
-      intent = spot.intent
+      next <- robot.next
       if robot.status == RobotStatus.Moving && robot.remaining == Tick.zero
     yield
       robot.step()
-      fleet += (rid -> spot.copy(at = intent.to))
-      Event.RobotMoved(rid, from, intent.to)
+      fleet += (rid -> spot.copy(at = next))
+      Event.RobotMoved(rid, from, next)
 
   /** @param rid
     * @return

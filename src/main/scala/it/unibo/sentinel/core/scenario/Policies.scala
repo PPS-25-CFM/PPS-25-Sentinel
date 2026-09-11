@@ -5,7 +5,6 @@ import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.assignment.Selector
 import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
-import it.unibo.sentinel.core.mission.Mission
 import scala.util.Random
 
 /** Represents the policies that govern the behavior of the simulation.
@@ -70,9 +69,7 @@ object Policies:
       * @return
       *   the [[SelectionPolicy]] for the given policy.
       */
-    def apply(rng: Random)(using
-        missionSupplier: => Seq[Mission]
-    ): SelectionPolicy =
+    def apply(rng: Random): SelectionPolicy =
       this match
         case Random   => SelectionPolicy.random(rng)
         case Deadline => SelectionPolicy.closestDeadline()

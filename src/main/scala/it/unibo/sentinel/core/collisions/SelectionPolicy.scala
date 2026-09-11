@@ -1,57 +1,43 @@
 package it.unibo.sentinel.core.collisions
 
 import scala.util.Random
-import it.unibo.sentinel.core.robot.Robot
 import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.mission.Mission
+import it.unibo.sentinel.core.scenario.Intent
 
-/** Policy that defines how to select/separate [[Robot]](s) that are colliding
+/** Policy that defines how to select a winning [[Robot]] among colliding
+  * intents.
   */
 trait SelectionPolicy:
 
-  /** @param robots
-    *   list of [[Robot]]s to select a few from
+  /** @param intents
+    *   list of conflicting [[Intent]]s to select from.
     * @return
-    *   an `Option` containing the id of the selected [[Robot]]
+    *   an `Option` containing the id of the selected [[Robot]].
     */
-  def select(robots: Seq[Robot]): Option[RobotId]
+  def select(intents: Seq[Intent]): Option[RobotId]
 
 object SelectionPolicy:
 
-  /** Policy that selects the [[Robot]](s) randomly
+  /** Policy that selects the winning [[Robot]] randomly.
     *
     * @param rng
-    *   the random generator used for the selection.
+    *   the random generator used for selection.
     */
-  def random(rng: Random): SelectionPolicy = robots =>
-    val ids = robots.map(_.id)
+  def random(rng: Random): SelectionPolicy = intents =>
+    val ids = intents.map(_.robotId)
     rng.shuffle(ids).headOption
 
-  /** Policy that selects the [[Robot]](s) based on who has the mission closest
-    * to failing.
-    *
-    * @param selections
-    *   number of [[Robot]]s to select.
-    * @param missions
-    *   list of [[Mission]]s to extract the deadline from.
+  /** Policy that selects the [[Robot]] whose mission is closest to its
+    * deadline.
     */
-  def closestDeadline()(using missions: => Seq[Mission]): SelectionPolicy =
-    selectByMissionProperty(_.deadline)
+  def closestDeadline(): SelectionPolicy = intents =>
+    val ordered =
+      intents.sortBy(_.mission.map(_.deadline.value).getOrElse(Int.MaxValue))
+    ordered.headOption.map(_.robotId)
 
-  def highestPriority()(using missions: => Seq[Mission]): SelectionPolicy =
-    selectByMissionProperty(_.priority, false)
-
-  private def selectByMissionProperty[A: Ordering](
-      extractProperty: Mission => A,
-      ascending: Boolean = true
-  )(using missions: => Seq[Mission]): SelectionPolicy = robots =>
-    val result = robots.flatMap { r =>
-      for
-        missionId <- r.mission
-        mission <- missions.find(_.id == missionId)
-      yield (r.id, extractProperty(mission))
-    }
-    val sorted =
-      if ascending then result.sortBy(_._2)
-      else result.sortBy(_._2)(using Ordering[A].reverse)
-    sorted.map(_._1).headOption
+  /** Policy that selects the [[Robot]] with the highest mission priority.
+    */
+  def highestPriority(): SelectionPolicy = intents =>
+    val ordered =
+      intents.sortBy(_.mission.map(_.priority.value).getOrElse(0)).reverse
+    ordered.headOption.map(_.robotId)

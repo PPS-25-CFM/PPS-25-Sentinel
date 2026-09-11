@@ -91,9 +91,7 @@ object Simulation:
     given Navigator = scenario.routing()
     given Selector = scenario.assignment(new Random(scenario.seed))
     given SelectionPolicy =
-      scenario.collisionSelection(new Random(scenario.seed))(using
-        scenario.missions
-      )
+      scenario.collisionSelection(new Random(scenario.seed))
     given CollisionHandler = scenario.collisionAvoidance()
     fromWorld(scenario.build)
 

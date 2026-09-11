@@ -15,13 +15,20 @@ import it.unibo.sentinel.core.simulation.Tick
 /** Represents the intention of a [[Robot]] to move to a specific [[Position]]
   *
   * @param robotId
-  *   the [[Robot]]'s id
+  *   the [[Robot]]'s id.
   * @param from
-  *   the [[Robot]]'s current position
+  *   the [[Robot]]'s current position.
   * @param to
-  *   the destination
+  *   the destination.
+  * @param mission
+  *   the [[Mission]] that the [[Robot]] is executing (if it has one).
   */
-case class Intent(robotId: RobotId, from: Position, to: Position)
+case class Intent(
+    robotId: RobotId,
+    from: Position,
+    to: Position,
+    mission: Option[Mission]
+)
 
 /** Represents a [[Robot]] placed in a [[Position]] in the [[Warehouse]].
   *
@@ -33,12 +40,11 @@ case class Intent(robotId: RobotId, from: Position, to: Position)
 final case class Placement(robot: Robot, at: Position):
 
   /** @return
-    *   an intent to where the robot wants to move
+    *   the [[Position]] that the [[Robot]] wants to move to this step.
     */
-  def intent: Intent =
-    (robot.next, robot.remaining) match
-      case (Some(to), Tick.zero) => Intent(robot.id, at, to)
-      case _                     => Intent(robot.id, at, at)
+  def next: Position = (robot.next, robot.remaining) match
+    case (Some(pos), Tick.zero) => pos
+    case _                      => at
 
 enum RobotClass:
   case Drone
