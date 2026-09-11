@@ -47,3 +47,13 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
             inside(scenario.spawns):
               case Seq(Spawn(rid, _, _)) =>
                 rid shouldBe RobotId("R1")
+
+      "signal a failure when placing a robot in an invalid position and not change the scenario" in:
+
+        val notFloor = Position(0, 0)
+        val fail =
+          ScenarioEditor(initial, Command.PlaceRobot(notFloor, ofClass))
+        inside(fail):
+          case State(scenario, fail) =>
+            scenario shouldBe initial.scenario
+            fail should not be empty
