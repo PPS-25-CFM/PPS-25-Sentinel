@@ -25,6 +25,14 @@ object ScenarioEditor extends Editor:
       */
     case LoadMission(task: Task, deadline: Tick, priority: Priority)
 
+    /** Remove a [[Spawn]] from the [[Scenario]].
+      */
+    case RemoveRobot(id: RobotId)
+
+    /** Unload a [[Mission]] from the [[Scenario]].
+      */
+    case UnloadMission(id: MissionId)
+
     /** Choose a routing policy for the [[Scenario]].
       */
     case ChooseRouting(policy: Policies.Routing)
@@ -62,6 +70,12 @@ object ScenarioEditor extends Editor:
       val mid = state.scenario.freshMissionId
       state.attempt:
         _.load(Mission(mid, task, deadline, priority))
+    case RemoveRobot(id) =>
+      state.edit:
+        _.remove(id)
+    case UnloadMission(id) =>
+      state.edit:
+        _.unload(id)
     case ChooseRouting(policy) =>
       state.edit:
         _.withRouting(policy)

@@ -101,6 +101,32 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
             scenario shouldBe initial.scenario
             fail should not be empty
 
+    "receives a RemoveRobot command" should:
+      val at = p1
+      val ofClass = RobotClass.Drone
+      val placed = ScenarioEditor(initial, Command.PlaceRobot(at, ofClass))
+      val id = RobotId("R1")
+      val edited = ScenarioEditor(placed, Command.RemoveRobot(id))
+
+      "remove the robot from the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            scenario.spawns shouldBe empty
+
+    "receives an UnloadMission command" should:
+      val task = Task.move(p1)
+      val deadline = Tick(10)
+      val priority = Priority.normal
+      val loaded =
+        ScenarioEditor(initial, Command.LoadMission(task, deadline, priority))
+      val id = MissionId("M1")
+      val edited = ScenarioEditor(loaded, Command.UnloadMission(id))
+
+      "unload the mission from the scenario" in:
+        inside(edited):
+          case State(scenario, None) =>
+            scenario.missions shouldBe empty
+
     "receives a ChooseRouting command" should:
       val policy = Routing.Distance
       val edited = ScenarioEditor(initial, Command.ChooseRouting(policy))

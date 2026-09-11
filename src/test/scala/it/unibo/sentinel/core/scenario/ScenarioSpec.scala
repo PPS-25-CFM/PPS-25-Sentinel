@@ -142,6 +142,37 @@ class ScenarioSpec extends UnitTest:
           yield s2
         result.left.value shouldBe MissionAlreadyExists(mission.id)
 
+    "remove a robot" should:
+
+      "return a new scenario without the removed robot" in:
+        val spawn =
+          Spawn(
+            id = RobotId("R1"),
+            at = Position(1, 1),
+            ofClass = RobotClass.Drone
+          )
+        val result = s0.place(spawn).value.remove(RobotId("R1"))
+        result.spawns shouldBe empty
+
+      "leave the scenario unchanged when the robot does not exist" in:
+        val result = s0.remove(RobotId("R1"))
+        result shouldBe s0
+
+    "unload a mission" should:
+
+      "return a new scenario without the unloaded mission" in:
+        val mission = Mission.relocate(
+          id = MissionId("M1"),
+          destination = Position(1, 1),
+          duration = Tick(10)
+        )
+        val result = s0.load(mission).value.unload(MissionId("M1"))
+        result.missions shouldBe empty
+
+      "leave the scenario unchanged when the mission does not exist" in:
+        val result = s0.unload(MissionId("M1"))
+        result shouldBe s0
+
     "load a deliver mission" should:
       val shelfPos = Position(2, 2)
       val bayPos = Position(3, 3)
