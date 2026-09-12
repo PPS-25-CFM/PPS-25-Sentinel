@@ -334,6 +334,8 @@ object Scenario:
         .toLeft(())
 
     private def checkAction(action: Action): Option[Validation] = action match
+      case Action.Move(to) if !warehouse.isTraversable(to) =>
+        Some(NotFloorTile(to))
       case Action.PickUp(target, at) =>
         warehouse.tileAt(at).collect { case Tile.Shelf(stored) => stored } match
           case Some(stored) if stored == target => None

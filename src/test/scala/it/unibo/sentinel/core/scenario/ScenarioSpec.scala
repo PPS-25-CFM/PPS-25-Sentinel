@@ -173,6 +173,45 @@ class ScenarioSpec extends UnitTest:
         val result = s0.unload(MissionId("M1"))
         result shouldBe s0
 
+    "load a relocate mission" should:
+
+      "reject movement to a non-traversable tile" in:
+        val shelf = Position(0, 0)
+        val wall = Position(0, 1)
+        val out = Position(-1, 0)
+
+        val scenarioWithShelf = Scenario.in(
+          warehouse.withTile(shelf)(Tile.Shelf(Item.Computer))
+        )
+
+        scenarioWithShelf.load(
+          Mission.relocate(MissionId("M-shelf"), shelf, Tick(10))
+        ) shouldBe Left(NotFloorTile(shelf))
+        s0.load(
+          Mission.relocate(MissionId("M-wall"), wall, Tick(10))
+        ) shouldBe Left(NotFloorTile(wall))
+        s0.load(
+          Mission.relocate(MissionId("M-oob"), out, Tick(10))
+        ) shouldBe Left(NotFloorTile(out))
+
+      "allow movement to a traversable tile" in:
+        val bay = Position(0, 0)
+        val scenarioWithBay =
+          Scenario.in(warehouse.withTile(bay)(Tile.LoadingBay()))
+
+        val floorMission =
+          Mission.relocate(MissionId("M-floor"), topCorner, Tick(10))
+        scenarioWithBay
+          .load(floorMission)
+          .value
+          .missions should contain only floorMission
+
+        val bayMission = Mission.relocate(MissionId("M-bay"), bay, Tick(10))
+        scenarioWithBay
+          .load(bayMission)
+          .value
+          .missions should contain only bayMission
+
     "load a deliver mission" should:
       val shelfPos = Position(2, 2)
       val bayPos = Position(3, 3)
