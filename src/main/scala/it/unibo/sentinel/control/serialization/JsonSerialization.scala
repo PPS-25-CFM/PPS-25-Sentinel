@@ -61,6 +61,7 @@ object JsonSerialization:
   given ReadWriter[MissionSchema] = macroRW
   given ReadWriter[Routing.Distance.type] = macroRW
   given ReadWriter[Routing.Time.type] = macroRW
+  given ReadWriter[Routing.Obstacles.type] = macroRW
   given ReadWriter[Routing] = macroRW
   given ReadWriter[Assignment.Nearest.type] = macroRW
   given ReadWriter[Assignment.Cycle.type] = macroRW
