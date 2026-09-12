@@ -13,9 +13,7 @@ class ObstaclesSpec extends UnitTest:
       "return 1 score" in new MetricFixture:
         when(warehouse.isTraversable(p)).thenReturn(true)
         when(warehouse.traversableNeighbors(p)).thenReturn(neighbors)
-
-        val expectedScore = Score(1)
-        metric.cost(p) shouldBe Some(expectedScore)
+        metric.cost(p) shouldBe Some(Score.unit)
 
     "retrieve the cost for a traversable tile with nearby obstacles" should:
 
@@ -24,7 +22,7 @@ class ObstaclesSpec extends UnitTest:
         when(warehouse.traversableNeighbors(p)).thenReturn(traversableNeighbors)
 
         val expectedScore =
-          Score(1 + (neighbors.size - traversableNeighbors.size))
+          Score.unit + Score(neighbors.size - traversableNeighbors.size)
         metric.cost(p) shouldBe Some(expectedScore)
 
     "retrieve the cost for a non traversable tile" should:

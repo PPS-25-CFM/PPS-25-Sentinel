@@ -9,10 +9,10 @@ class HopsSpec extends UnitTest:
 
     "retrieve the cost for a traversable tile" should:
 
-      "return 1 score" in new MetricFixture:
+      "return unit score" in new MetricFixture:
         when(warehouse.isTraversable(p)).thenReturn(true)
         val score = metric.cost(p).value
-        score shouldBe Score(1)
+        score shouldBe Score.unit
 
     "retrieve the cost for a non traversable tile" should:
 
