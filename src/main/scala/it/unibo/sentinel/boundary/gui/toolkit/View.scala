@@ -36,7 +36,11 @@ trait Interactive[C]:
     */
   final def commands: Observable[C] = sink
 
-/** A UI that can be dismissed.
+/** An UI that can render a model and produce user inputs over time.
+  */
+trait InteractiveView[M, C] extends View[M] with Interactive[C]
+
+/** An UI that can be dismissed.
   */
 trait Dismissable:
 

@@ -5,9 +5,8 @@ import it.unibo.sentinel.control.{ScenarioEditor, WarehouseEditor}
 /** A [[View]] for [[Editor]]s.
   */
 trait EditorView[State, Command]
-    extends View[State],
-      Interactive[Command],
-      Dismissable
+    extends InteractiveView[State, Command]
+    with Dismissable
 
 type WarehouseEditorView =
   EditorView[WarehouseEditor.State, WarehouseEditor.Command]

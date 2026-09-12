@@ -7,6 +7,5 @@ import it.unibo.sentinel.core.simulation.StepResult
   * running [[Simulation]] through [[Engine.Command]]s.
   */
 trait SimulationView
-    extends View[StepResult],
-      Interactive[Engine.Command],
-      Dismissable
+    extends InteractiveView[StepResult, Engine.Command]
+    with Dismissable
