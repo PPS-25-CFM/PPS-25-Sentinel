@@ -19,7 +19,7 @@ object Metric:
     */
   object Hops extends Metric:
     override def cost(to: Position)(using warehouse: Warehouse): Option[Score] =
-      Option.when(warehouse.isTraversable(to))(Score(1))
+      Option.when(warehouse.isTraversable(to))(Score.unit)
 
   /** Assigns a [[Score]] to every traversed position based on its traversal
     * cost.
@@ -27,3 +27,14 @@ object Metric:
   object Time extends Metric:
     override def cost(to: Position)(using warehouse: Warehouse): Option[Score] =
       for tick <- warehouse.traversalCost(to) yield Score(tick.value)
+
+  /** Assigns a [[Score]] to every traversed position based on the number of
+    * obstacles in the way.
+    */
+  object Obstacles extends Metric:
+    override def cost(to: Position)(using warehouse: Warehouse): Option[Score] =
+      val nearbyObstacles =
+        warehouse.neighbors(to).size - warehouse.traversableNeighbors(to).size
+      Option.when(warehouse.isTraversable(to))(
+        Score.unit + Score(nearbyObstacles)
+      )

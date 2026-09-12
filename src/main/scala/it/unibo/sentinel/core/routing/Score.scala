@@ -21,6 +21,11 @@ object Score:
     */
   val zero: Score = Score(0.0)
 
+  /** @return
+    *   a [[Score]] representing the unit value.
+    */
+  val unit: Score = Score(1.0)
+
   extension (score: Score)
     /** @return
       *   A [[Double]] representing the [[Score]].
