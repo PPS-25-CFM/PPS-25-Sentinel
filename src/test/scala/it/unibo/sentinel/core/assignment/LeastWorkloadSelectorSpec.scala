@@ -22,21 +22,21 @@ class LeastWorkloadSpec extends UnitTest with SelectorBehaviors:
 
   "A LeastWorkload selector" when:
 
-    behave like commonSelector(Selector.LeastWorkload())
+    behave like commonSelector(Selector.LeastWorkload)
 
     "selecting among available candidates" should:
 
       "choose the candidate with the lowest workload" in:
         val light = Placement(mockLoadedRobot(workload = 1), Position(1, 1))
         val heavy = Placement(mockLoadedRobot(workload = 3), Position(2, 2))
-        val selector = Selector.LeastWorkload()
+        val selector = Selector.LeastWorkload
 
         selector.choose(mission, Iterable(heavy, light)) shouldBe Some(light)
 
       "prefer an idle robot over a loaded one" in:
         val idle = Placement(mockLoadedRobot(workload = 0), Position(1, 1))
         val loaded = Placement(mockLoadedRobot(workload = 2), Position(2, 2))
-        val selector = Selector.LeastWorkload()
+        val selector = Selector.LeastWorkload
 
         selector.choose(mission, Iterable(loaded, idle)) shouldBe Some(idle)
 
@@ -45,7 +45,7 @@ class LeastWorkloadSpec extends UnitTest with SelectorBehaviors:
         val r2 = Robot.drone(RobotId("R2"))
         val p1 = Placement(r1, Position(1, 1))
         val p2 = Placement(r2, Position(2, 2))
-        val selector = Selector.LeastWorkload()
+        val selector = Selector.LeastWorkload
 
         selector
           .choose(mission, Iterable(p2, p1))
@@ -64,4 +64,4 @@ class LeastWorkloadSpec extends UnitTest with SelectorBehaviors:
         given Navigator = mock[Navigator]
         val policy: Policies.Assignment = Policies.Assignment.LeastWorkload
 
-        policy(new Random(0)) shouldBe a[Selector.LeastWorkload]
+        policy(new Random(0)) shouldBe Selector.LeastWorkload

@@ -50,7 +50,7 @@ object Selector:
     * @param navigator
     *   The spatial navigation routing engine used to compute distances.
     */
-  final case class Nearest(navigator: Navigator) extends Selector:
+  final class Nearest(navigator: Navigator) extends Selector:
 
     /** @param mission
       *   The mission whose destination is evaluated.
@@ -95,7 +95,7 @@ object Selector:
 
   /** A stateful selection strategy that cycles through available candidate.
     */
-  final case class CycleSelector() extends Selector:
+  final class Cycle extends Selector:
     private var cycle = Vector.empty[Placement]
 
     /** @param mission
@@ -123,7 +123,7 @@ object Selector:
   /** A workload-based selection strategy that assigns the mission to the
     * available candidate with the fewest assigned missions.
     */
-  final case class LeastWorkload() extends Selector:
+  object LeastWorkload extends Selector:
 
     /** @param mission
       *   The mission to be assigned.

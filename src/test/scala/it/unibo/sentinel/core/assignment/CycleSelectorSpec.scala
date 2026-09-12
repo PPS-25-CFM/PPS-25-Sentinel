@@ -22,13 +22,13 @@ class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
 
   "A CycleSelector" when:
 
-    behave like commonSelector(Selector.CycleSelector())
+    behave like commonSelector(Selector.Cycle())
 
     "assigning missions sequentially" should:
 
       "first cycle through unused candidates" in:
         val (p1, p2, _) = createCandidates()
-        val selector = Selector.CycleSelector()
+        val selector = Selector.Cycle()
 
         selector.choose(mission, Iterable(p1, p2)) shouldBe Some(p1)
         selector.choose(mission, Iterable(p1, p2)) shouldBe Some(p2)
@@ -36,7 +36,7 @@ class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
       "rotate back to the least recently used candidate once all have been used" in:
         val (p1, p2, _) = createCandidates()
         val candidates = Iterable(p1, p2)
-        val selector = Selector.CycleSelector()
+        val selector = Selector.Cycle()
 
         selector.choose(mission, candidates)
         selector.choose(mission, candidates)
@@ -46,7 +46,7 @@ class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
 
       "skip candidates that are unavailable when cycling" in:
         val (p1, p2, _) = createCandidates()
-        val selector = Selector.CycleSelector()
+        val selector = Selector.Cycle()
 
         selector.choose(mission, Iterable(p1, p2))
         selector.choose(mission, Iterable(p1, p2))
@@ -55,7 +55,7 @@ class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
 
       "preserve priority of a candidate when it becomes available again after being busy" in:
         val (p1, p2, p3) = createCandidates()
-        val selector = Selector.CycleSelector()
+        val selector = Selector.Cycle()
         val all = Iterable(p1, p2, p3)
         val withoutP1 = Iterable(p2, p3)
 
@@ -72,4 +72,4 @@ class CycleSelectorSpec extends UnitTest with SelectorBehaviors:
         given Navigator = mock[Navigator]
         val policy: Policies.Assignment = Policies.Assignment.Cycle
 
-        policy(new Random(0)) shouldBe a[Selector.CycleSelector]
+        policy(new Random(0)) shouldBe a[Selector.Cycle]
