@@ -1,22 +1,24 @@
 package it.unibo.sentinel.control
 
-import it.unibo.sentinel.core.scenario.Scenario
-import it.unibo.sentinel.core.warehouse.{Position, Tile}
-import it.unibo.sentinel.core.scenario.RobotClass
-import it.unibo.sentinel.core.scenario.Validation
-import it.unibo.sentinel.core.scenario.Spawn
-import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.robot.value
-import it.unibo.sentinel.core.mission.Task
+import it.unibo.sentinel.core.mission.{Mission, MissionId, Priority, Task}
+import it.unibo.sentinel.core.robot.{RobotId, value}
+import it.unibo.sentinel.core.scenario.{
+  Policies,
+  RobotClass,
+  Scenario,
+  Spawn,
+  Validation
+}
 import it.unibo.sentinel.core.simulation.Tick
-import it.unibo.sentinel.core.mission.Priority
-import it.unibo.sentinel.core.mission.Mission
-import it.unibo.sentinel.core.mission.MissionId
-import it.unibo.sentinel.core.scenario.Policies
+import it.unibo.sentinel.core.warehouse.{Position, Tile}
 
 /** Interprets scenario edits without creating robots or running a simulation.
   */
 object ScenarioEditor extends Editor:
+
+  type Model = Scenario
+
+  override def model(state: State): Model = state.scenario
 
   enum Command:
     /** Select a [[Position]] in the editor. */
@@ -32,9 +34,10 @@ object ScenarioEditor extends Editor:
     case LoadRelocation(to: Position, deadline: Tick, priority: Priority)
 
     /** Complete the pending delivery using the item stored on its shelf.
-      * Without an origin, this command leaves the state unchanged.
+      * Without a delivery whose destination has already been selected, this
+      * command leaves the state unchanged.
       */
-    case LoadDelivery(to: Position, deadline: Tick, priority: Priority)
+    case LoadDelivery(deadline: Tick, priority: Priority)
 
     /** Place a [[Spawn]] in the [[Scenario]].
       */
@@ -72,83 +75,139 @@ object ScenarioEditor extends Editor:
       */
     case Reseed(seed: Long)
 
-  /** A pending delivery contains only its origin; no partial mission is saved.
+  /** The current selection in the [[ScenarioEditor]].
+    */
+  enum Selection:
+    /** No selection is in progress.
+      */
+    case Empty
+
+    /** Selects a single cell in the [[Scenario]].
+      */
+    case Cell(at: Position)
+
+    /** Selects the delivery steps in the [[Scenario]].
+      */
+    case Delivery(from: Position, to: Option[Position])
+
+    /** Returns the [[Position]] that is currently highlighted, if any.
+      */
+    def highlighted: Option[Position] = this match
+      case Empty             => None
+      case Cell(at)          => Some(at)
+      case Delivery(from, _) => Some(from)
+
+    /** Returns the origin [[Position]] of the delivery, if any.
+      */
+    def origin: Option[Position] = this match
+      case Delivery(from, _) => Some(from)
+      case _                 => None
+
+  /** The state of an in-progress edit.
+    *
+    * @param scenario
+    *   the [[Scenario]] as edited so far.
+    * @param fail
+    *   the [[Validation]] rejecting the last command, if any.
+    * @param selection
+    *   what the user is currently pointing at or composing.
     */
   final case class State(
       scenario: Scenario,
       fail: Option[Validation] = None,
-      selection: Option[Position] = None,
-      deliveryOrigin: Option[Position] = None
+      selection: Selection = Selection.Empty
   )
-
-  type Model = Scenario
-
-  override def model(state: State): Model = state.scenario
 
   import Command.*
 
+  /** @param state
+    *   the current editing state.
+    * @param command
+    *   the command issued by the user.
+    * @return
+    *   the [[State]] resulting from applying `command` to `state`.
+    */
   override def apply(state: State, command: Command): State = command match
     case Select(at) =>
-      state.copy(
-        selection = Some(at),
-        fail = Option.when(
-          state.deliveryOrigin.isDefined && !state.scenario.warehouse
-            .isLoadingBay(at)
-        )(
-          Validation.NotLoadingBay(at)
-        )
-      )
+      state.selection match
+        case Selection.Delivery(from, _) =>
+          if state.scenario.warehouse.isLoadingBay(at) then
+            state.copy(
+              selection = Selection.Delivery(from, Some(at)),
+              fail = None
+            )
+          else
+            state.copy(
+              selection = Selection.Delivery(from, None),
+              fail = Some(Validation.NotLoadingBay(at))
+            )
+        case _ => state.copy(selection = Selection.Cell(at), fail = None)
+
     case BeginDelivery(from) =>
       if state.scenario.warehouse.isShelf(from) then
-        state.copy(
-          selection = Some(from),
-          deliveryOrigin = Some(from),
-          fail = None
-        )
+        state.copy(selection = Selection.Delivery(from, None), fail = None)
       else state.copy(fail = Some(Validation.NotShelfTile(from)))
-    case CancelDelivery => state.copy(deliveryOrigin = None, fail = None)
+
+    case CancelDelivery =>
+      state.selection match
+        case Selection.Delivery(from, _) =>
+          state.copy(selection = Selection.Cell(from), fail = None)
+        case _ => state.copy(fail = None)
+
     case LoadRelocation(to, deadline, priority) =>
       apply(state, LoadMission(Task.move(to), deadline, priority))
-    case LoadDelivery(to, deadline, priority) =>
-      state.deliveryOrigin.fold(state): from =>
-        state.scenario.warehouse.tileAt(from) match
-          case Some(Tile.Shelf(item)) =>
-            val loaded = apply(
-              state,
-              LoadMission(Task.pickAndDrop(item, from, to), deadline, priority)
-            )
-            if loaded.fail.isEmpty then loaded.copy(deliveryOrigin = None)
-            else loaded
-          case _ => state.copy(fail = Some(Validation.NotShelfTile(from)))
+
+    case LoadDelivery(deadline, priority) =>
+      state.selection match
+        case Selection.Delivery(from, Some(to)) =>
+          state.scenario.warehouse.tileAt(from) match
+            case Some(Tile.Shelf(item)) =>
+              val loaded = apply(
+                state,
+                LoadMission(
+                  Task.pickAndDrop(item, from, to),
+                  deadline,
+                  priority
+                )
+              )
+              if loaded.fail.isEmpty then
+                loaded.copy(selection = Selection.Cell(to))
+              else loaded
+            case _ => state.copy(fail = Some(Validation.NotShelfTile(from)))
+        case _ => state
+
     case PlaceRobot(at, ofClass) =>
-      val rid = state.scenario.freshRobotId
+      val id = freshRobotId(state.scenario)
       state.attempt:
-        _.place(Spawn(rid, at, ofClass))
+        _.place(Spawn(id, at, ofClass))
+
     case LoadMission(task, deadline, priority) =>
-      val mid = state.scenario.freshMissionId
+      val id = freshMissionId(state.scenario)
       state.attempt:
-        _.load(Mission(mid, task, deadline, priority))
+        _.load(
+          Mission(id, task, deadline, priority)
+        )
+
     case RemoveRobot(id) =>
-      state.edit:
-        _.remove(id)
+      state.edit(_.remove(id))
+
     case UnloadMission(id) =>
-      state.edit:
-        _.unload(id)
+      state.edit(_.unload(id))
+
     case ChooseRouting(policy) =>
-      state.edit:
-        _.withRouting(policy)
+      state.edit(_.withRouting(policy))
+
     case ChooseAssigmnment(policy) =>
-      state.edit:
-        _.withAssignment(policy)
+      state.edit(_.withAssignment(policy))
+
     case ChooseCollisionSelection(policy) =>
-      state.edit:
-        _.withCollisionSelection(policy)
+      state.edit(_.withCollisionSelection(policy))
+
     case ChooseCollisionAvoidance(policy) =>
-      state.edit:
-        _.withCollisionAvoidance(policy)
+      state.edit(_.withCollisionAvoidance(policy))
+
     case Reseed(seed) =>
-      state.edit:
-        _.withSeed(seed)
+      state.edit(_.withSeed(seed))
 
   extension (state: State)
 
@@ -161,18 +220,15 @@ object ScenarioEditor extends Editor:
     private def edit(f: Scenario => Scenario): State =
       state.copy(scenario = f(state.scenario), fail = None)
 
-  extension (sc: Scenario)
-    private def freshRobotId: RobotId =
-      val existingIds = sc.spawns.map(_.id.value)
-      RobotId(nextId("R", existingIds))
+  private def freshRobotId(scenario: Scenario): RobotId =
+    RobotId(nextId("R", scenario.spawns.map(_.id.value)))
 
-    private def freshMissionId: MissionId =
-      val existingIds = sc.missions.map(_.id.value)
-      MissionId(nextId("M", existingIds))
+  private def freshMissionId(scenario: Scenario): MissionId =
+    MissionId(nextId("M", scenario.missions.map(_.id.value)))
 
-    private def nextId(prefix: String, existingIds: Seq[String]): String =
-      val nextId = existingIds
-        .map(_.stripPrefix(prefix).toIntOption.getOrElse(0))
-        .maxOption
-        .getOrElse(0) + 1
-      s"$prefix$nextId"
+  private def nextId(prefix: String, existingIds: Seq[String]): String =
+    val next = existingIds
+      .flatMap(_.stripPrefix(prefix).toIntOption)
+      .maxOption
+      .getOrElse(0) + 1
+    s"$prefix$next"
