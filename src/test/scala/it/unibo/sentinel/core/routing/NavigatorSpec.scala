@@ -10,7 +10,8 @@ class NavigatorSpec extends UnitTest:
   "A Navigator" when:
     val metric = mock[Metric]()
     val unit = Score(1)
-    when(metric.cost(any[Position])(using any[Warehouse])).thenReturn(Some(unit))
+    when(metric.cost(any[Position])(using any[Warehouse]))
+      .thenReturn(Some(unit))
 
     "the destination is unreachable" should:
       given warehouse: Warehouse = mock[Warehouse]()
