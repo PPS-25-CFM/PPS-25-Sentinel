@@ -7,7 +7,7 @@ import it.unibo.sentinel.core.item.Item
   */
 enum Action:
 
-  /** @param target
+  /** @param to
     *   The target [[Position]] to reach.
     */
   case Move(to: Position)

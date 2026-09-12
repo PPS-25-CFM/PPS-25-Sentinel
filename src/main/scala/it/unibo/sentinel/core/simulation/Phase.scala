@@ -30,11 +30,7 @@ private[core] object Phase:
           mission <- world.mission(mid)
         yield mission
       action <- current.currentAction
-      destinations = action match
-        case Action.Move(to)      => Set(to)
-        case Action.Drop(_, at)   => Set(at)
-        case Action.PickUp(_, at) =>
-          world.warehouse.interactionPoints(at).toSet
+      destinations = destinationsOf(action, world.warehouse)
       if destinations.nonEmpty
       path <- navigator.path(spot.at, destinations)
       routed <- world.route(robot.id, path)
@@ -67,6 +63,15 @@ private[core] object Phase:
       if isSatisfied(world.warehouse, spot.at, action)
       performed <- world.perform(robot.id)
     yield performed
+
+  private def destinationsOf(
+      action: Action,
+      warehouse: Warehouse
+  ): Set[Position] =
+    action match
+      case Action.Move(to)      => Set(to)
+      case Action.Drop(_, at)   => Set(at)
+      case Action.PickUp(_, at) => warehouse.interactionPoints(at).toSet
 
   private def isSatisfied(
       warehouse: Warehouse,
