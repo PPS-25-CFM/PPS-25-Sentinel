@@ -72,13 +72,13 @@ object Engine:
 
     override def run(onStep: StepResult => Task[Unit]): Task[Report] =
       clock
+        .observeOn(scheduler)
         .map { case Tick(time) => history.lift(time) }
         .takeWhileInclusive(_ => !simulation.isOver)
         .collect { case Some(step) => step }
         .mapEval(onStep)
         .completedL
         .map(_ => simulation.statistics)
-        .executeOn(scheduler)
 
   private trait ControllableClock(
       commands: Observable[Command],
