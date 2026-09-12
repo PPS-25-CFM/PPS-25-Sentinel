@@ -44,9 +44,8 @@ trait Dismissable:
 
   protected def dismiss(): Unit =
     exit.trySuccess(())
-    
+
   /** @return
     *   a [[Task]] that completes when the UI is dismissed.
     */
   final def dismissed: Task[Unit] = Task.fromCancelablePromise(exit)
-
