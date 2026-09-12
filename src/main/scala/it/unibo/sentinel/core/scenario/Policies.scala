@@ -22,12 +22,17 @@ object Policies:
       */
     case Time
 
+    /** Routes are determined based on the presence of obstacles.
+      */
+    case Obstacles
+
     /** @return
       *   the [[Navigator]] for the given [[Routing]] policy.
       */
     def apply()(using Warehouse): Navigator = this match
-      case Distance => Navigator(Metric.Hops)
-      case Time     => Navigator(Metric.Time)
+      case Distance  => Navigator(Metric.Hops)
+      case Time      => Navigator(Metric.Time)
+      case Obstacles => Navigator(Metric.Obstacles)
 
   /** Assignment policies, i.e. how mission are assigned.
     */
