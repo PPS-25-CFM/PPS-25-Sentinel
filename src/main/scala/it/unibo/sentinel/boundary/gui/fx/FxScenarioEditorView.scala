@@ -17,9 +17,6 @@ import it.unibo.sentinel.core.scenario.{
 import it.unibo.sentinel.core.simulation.{RobotSnapshot, Tick}
 import it.unibo.sentinel.core.warehouse.{Area, Position, Tile, Warehouse}
 import monix.eval.Task
-import monix.execution.{CancelablePromise, Scheduler}
-import monix.reactive.Observable
-import monix.reactive.subjects.ConcurrentSubject
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.control.{
@@ -42,10 +39,7 @@ import scala.jdk.OptionConverters.*
 /** Configures a scenario through cell menus and an atomic pick-then-drop flow.
   */
 final class FxScenarioEditorView extends FxView with ScenarioEditorView:
-  import Scheduler.Implicits.global
 
-  private val exit = CancelablePromise[Unit]()
-  private val subject = ConcurrentSubject.publish[Command]
   private val root = new BorderPane
   private var panel = Option.empty[WarehousePanel]
   private var displayed = Option.empty[ScenarioEditor.State]
@@ -125,7 +119,7 @@ final class FxScenarioEditorView extends FxView with ScenarioEditorView:
   root.top = FxControls.toolbar(
     Seq(
       FxControls
-        .button("Save and return to menu", () => saveAndExit()),
+        .button("Save and return to menu", () => dismiss()),
       cancel
     ) ++ FxControls.zoomControls(
       () => panel.foreach(_.zoomIn()),
@@ -133,9 +127,6 @@ final class FxScenarioEditorView extends FxView with ScenarioEditorView:
       () => panel.foreach(_.zoomToFit())
     )
   )
-
-  override def commands: Observable[Command] = subject
-  override def dismissed: Task[Unit] = Task.fromCancelablePromise(exit)
 
   override lazy val scene: Scene =
     val s = FxControls.style(new Scene(root))
@@ -188,12 +179,6 @@ final class FxScenarioEditorView extends FxView with ScenarioEditorView:
       panel = Some(p)
       p
     }
-
-  private def emit(command: Command): Unit =
-    val _ = subject.onNext(command)
-
-  private def saveAndExit(): Unit =
-    val _ = exit.trySuccess(())
 
   private def select(at: Position): Unit =
     emit(Command.Select(at))

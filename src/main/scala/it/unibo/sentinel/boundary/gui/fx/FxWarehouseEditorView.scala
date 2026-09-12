@@ -9,9 +9,6 @@ import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.{Area, Position, Tile, Warehouse}
 import monix.eval.Task
-import monix.execution.{CancelablePromise, Scheduler}
-import monix.reactive.Observable
-import monix.reactive.subjects.ConcurrentSubject
 import scalafx.scene.Scene
 import scalafx.scene.control.{
   Alert,
@@ -28,27 +25,21 @@ import scalafx.scene.layout.BorderPane
 /** [[WarehouseEditorView]] implementation based on the fx library.
   */
 final class FxWarehouseEditorView extends FxView with WarehouseEditorView:
-  import Scheduler.Implicits.global
 
-  private val exit = CancelablePromise[Unit]()
-  private val subject = ConcurrentSubject.publish[Command]
   private val root = new BorderPane
   private var panel: Option[WarehousePanel] = None
   private var selection: Option[Area] = None
 
   root.styleClass += "warehouse-view"
-  root.top =
-    FxControls.toolbar(Seq(FxControls.backToMenu(exit)) ++ zoomControls)
+  root.top = FxControls.toolbar(
+    Seq(FxControls.backToMenu(() => dismiss())) ++ zoomControls
+  )
   root.bottom = new Label(
     "Click: select  ·  Shift+click: extend  ·  Right-click: edit  ·  Ctrl+scroll: zoom"
   ):
     styleClass += "warehouse-hint"
     wrapText = true
     minWidth = 0
-
-  override def commands: Observable[Command] = subject
-
-  override def dismissed: Task[Unit] = Task.fromCancelablePromise(exit)
 
   override lazy val scene: Scene = FxControls.style(new Scene(root))
 
@@ -70,9 +61,6 @@ final class FxWarehouseEditorView extends FxView with WarehouseEditorView:
       panel = Some(p)
       p
     }
-
-  private def emit(command: Command): Unit =
-    val _ = subject.onNext(command)
 
   private def zoomControls: Seq[scalafx.scene.control.Button] =
     FxControls.zoomControls(

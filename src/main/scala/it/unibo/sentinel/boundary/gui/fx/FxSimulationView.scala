@@ -12,9 +12,6 @@ import it.unibo.sentinel.core.mission.{Action, Mission, MissionStatus}
 import it.unibo.sentinel.core.simulation.{Event, Snapshot, StepResult}
 import it.unibo.sentinel.core.warehouse.{Tile, Warehouse}
 import monix.eval.Task
-import monix.execution.{CancelablePromise, Scheduler}
-import monix.reactive.Observable
-import monix.reactive.subjects.ConcurrentSubject
 import scalafx.Includes.{eventClosureWrapperWithParam, jfxKeyEvent2sfx}
 import scalafx.scene.Scene
 import scalafx.scene.control.{Button, SplitPane}
@@ -23,10 +20,7 @@ import scalafx.scene.layout.BorderPane
 
 /** */
 final class FxSimulationView extends FxView with SimulationView:
-  import Scheduler.Implicits.global
 
-  private val exit = CancelablePromise[Unit]()
-  private val subject = ConcurrentSubject.publish[Command]
   private val root = new BorderPane
   private var warehousePanel: Option[WarehousePanel] = None
   private val leftSidePanel = new SidePanel(Iterable.empty)
@@ -45,7 +39,7 @@ final class FxSimulationView extends FxView with SimulationView:
   root.styleClass += "warehouse-view"
   root.center = split
   root.top = FxControls.toolbar(
-    Seq(FxControls.backToMenu(exit)) ++ zoomControls ++ Seq(
+    Seq(FxControls.backToMenu(() => dismiss())) ++ zoomControls ++ Seq(
       FxControls.button("Pause (P)", () => emit(Command.Pause)),
       FxControls.button("Resume (R)", () => emit(Command.Resume)),
       FxControls.button("Previous (A)", () => emit(Command.Back)),
@@ -79,10 +73,6 @@ final class FxSimulationView extends FxView with SimulationView:
       split.delegate.setDividerPositions(positions*)
     }
 
-  override def commands: Observable[Command] = subject
-
-  override def dismissed: Task[Unit] = Task.fromCancelablePromise(exit)
-
   /** @return the JavaFX scene with key bindings. */
   override lazy val scene: Scene =
     val s = FxControls.style(new Scene(root))
@@ -94,12 +84,6 @@ final class FxSimulationView extends FxView with SimulationView:
         case KeyCode.D => emit(Command.Next)
         case _         => ()
     s
-
-  /** @param command
-    *   the command requested by the user.
-    */
-  private def emit(command: Command): Unit =
-    val _ = subject.onNext(command)
 
   /** @return the zoom controls, wired to the current panel once it exists. */
   private def zoomControls: Seq[Button] =

@@ -1,6 +1,5 @@
 package it.unibo.sentinel.boundary.gui.fx
 
-import monix.execution.CancelablePromise
 import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.control.Button
@@ -23,11 +22,8 @@ private[fx] object FxControls:
       stylesheet.foreach(url => stylesheets += url)
       delegate.setOnAction(_ => action())
 
-  def backToMenu(exit: CancelablePromise[Unit]): Button =
-    button("Back to menu", () => completeExit(exit))
-
-  private def completeExit(exit: CancelablePromise[Unit]): Unit =
-    val _ = exit.trySuccess(())
+  def backToMenu(dismiss: () => Unit): Button =
+    button("Back to menu", dismiss)
 
   /** Wrapping keeps every action reachable when the window is narrow. */
   def toolbar(controls: Seq[Node]): FlowPane =

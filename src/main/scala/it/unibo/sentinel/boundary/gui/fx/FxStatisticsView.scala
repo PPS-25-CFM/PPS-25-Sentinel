@@ -5,7 +5,6 @@ import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import it.unibo.sentinel.core.simulation.Statistics.Report
 import it.unibo.sentinel.core.robot.{RobotId, value}
 import monix.eval.Task
-import monix.execution.CancelablePromise
 import scalafx.geometry.Insets
 import scalafx.scene.Scene
 import scalafx.scene.control.{Label, ScrollPane}
@@ -13,10 +12,6 @@ import scalafx.scene.layout.{ColumnConstraints, GridPane, VBox}
 
 /** Presents the final report without accessing the running simulation. */
 final class FxStatisticsView extends FxView with StatisticsView:
-
-  private val exit = CancelablePromise[Unit]()
-
-  override def dismissed: Task[Unit] = Task.fromCancelablePromise(exit)
 
   private lazy val reportContent = new VBox:
     spacing = 24
@@ -30,7 +25,7 @@ final class FxStatisticsView extends FxView with StatisticsView:
 
   override def render(report: Report): Task[Unit] = onFx:
     reportContent.children = Seq(
-      FxControls.backToMenu(exit),
+      FxControls.backToMenu(() => dismiss()),
       label("Simulation completed", 28, "#F8FAFC"),
       label("Final statistics", 16, "#94A3B8"),
       section(

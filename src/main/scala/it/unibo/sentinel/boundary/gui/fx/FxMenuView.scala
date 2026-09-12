@@ -5,9 +5,6 @@ import it.unibo.sentinel.boundary.gui.toolkit.{MenuCommand, Menu}
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.FileRepository
 import monix.eval.Task
-import monix.execution.Scheduler
-import monix.reactive.Observable
-import monix.reactive.subjects.ConcurrentSubject
 import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Scene
@@ -19,15 +16,10 @@ import scala.jdk.OptionConverters.*
 
 /** */
 final class FxMenuView extends FxView with Menu:
-  import Scheduler.Implicits.global
-
-  private val subject = ConcurrentSubject.publish[MenuCommand]
 
   private val scenarioChooser = chooser("Choose a scenario", "Scenario")
 
   private val warehouseChooser = chooser("Choose a warehouse", "Warehouse")
-
-  override def commands: Observable[MenuCommand] = subject
 
   override lazy val scene: Scene = new Scene(new VBox:
     alignment = Pos.Center
@@ -55,7 +47,7 @@ final class FxMenuView extends FxView with Menu:
       style = enabledStyle
       delegate.setOnAction: _ =>
         choose(scenarioChooser).foreach: file =>
-          val _ = subject.onNext(MenuCommand.RunSimulation(file))
+          emit(MenuCommand.RunSimulation(file))
 
   private lazy val newWarehouse: Button =
     new Button("New Warehouse"):
@@ -68,7 +60,7 @@ final class FxMenuView extends FxView with Menu:
       style = enabledStyle
       delegate.setOnAction: _ =>
         choose(warehouseChooser).foreach: file =>
-          val _ = subject.onNext(MenuCommand.OpenWarehouse(file))
+          emit(MenuCommand.OpenWarehouse(file))
 
   private lazy val newScenario: Button =
     new Button("New Scenario"):
@@ -81,7 +73,7 @@ final class FxMenuView extends FxView with Menu:
       style = enabledStyle
       delegate.setOnAction: _ =>
         choose(scenarioChooser).foreach: file =>
-          val _ = subject.onNext(MenuCommand.OpenScenario(file))
+          emit(MenuCommand.OpenScenario(file))
 
   private def showNewScenarioDialog(warehouse: os.Path): Unit =
     val id = new TextField:
@@ -111,8 +103,7 @@ final class FxMenuView extends FxView with Menu:
         .foreach(_.setDisable(!available))
     }
     dialog.showAndWait().toScala.filter(_ == create).foreach { _ =>
-      val _ =
-        subject.onNext(MenuCommand.NewScenario(id.text.value.trim, warehouse))
+      emit(MenuCommand.NewScenario(id.text.value.trim, warehouse))
     }
 
   /** Opens a small modal asking for the id/width/height of a new [[Warehouse]],
@@ -146,7 +137,7 @@ final class FxMenuView extends FxView with Menu:
       children = Seq(idField, widthField, heightField, create))
 
     create.delegate.setOnAction: _ =>
-      val _ = subject.onNext(
+      emit(
         MenuCommand.NewWarehouse(
           idField.text.value.trim,
           widthField.text.value.toInt,
