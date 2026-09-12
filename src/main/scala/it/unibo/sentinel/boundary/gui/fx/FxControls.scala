@@ -1,23 +1,40 @@
 package it.unibo.sentinel.boundary.gui.fx
 
-import monix.execution.CancelablePromise
-import scalafx.geometry.{Insets, Pos}
+import scalafx.Includes.observableList2ObservableBuffer
+import scalafx.scene.{Node, Scene}
 import scalafx.scene.control.Button
-import scalafx.scene.layout.HBox
+import scalafx.scene.layout.FlowPane
 
-/** */
+/** Common controls for the warehouse views. */
 private[fx] object FxControls:
+  private val stylesheet = Option(
+    getClass.getResource("/it/unibo/sentinel/boundary/gui/warehouse.css")
+  )
+    .map(_.toExternalForm)
 
-  /** @param exit
-    */
-  def backToMenu(exit: CancelablePromise[Unit]): HBox =
-    val button = new Button("Back to menu"):
-      style = "-fx-background-color: #1E293B; -fx-text-fill: #F8FAFC;" +
-        " -fx-background-radius: 6; -fx-padding: 6 14 6 14;"
-      delegate.setOnAction: _ =>
-        val _ = exit.trySuccess(())
-    new HBox:
-      alignment = Pos.CenterLeft
-      padding = Insets(12)
-      style = "-fx-background-color: #0F172A;"
-      children = Seq(button)
+  def style(scene: Scene): Scene =
+    stylesheet.foreach(url => scene.stylesheets += url)
+    scene
+
+  def button(label: String, action: () => Unit): Button =
+    new Button(label):
+      styleClass += "warehouse-button"
+      stylesheet.foreach(url => stylesheets += url)
+      delegate.setOnAction(_ => action())
+
+  def backToMenu(dismiss: () => Unit): Button =
+    button("Back to menu", dismiss)
+
+  /** Wrapping keeps every action reachable when the window is narrow. */
+  def toolbar(controls: Seq[Node]): FlowPane =
+    new FlowPane:
+      styleClass += "warehouse-toolbar"
+      minWidth = 0
+      children = controls
+
+  def zoomControls(
+      zoomIn: () => Unit,
+      zoomOut: () => Unit,
+      zoomToFit: () => Unit
+  ): Seq[Button] =
+    Seq(button("−", zoomOut), button("+", zoomIn), button("Fit", zoomToFit))

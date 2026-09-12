@@ -28,6 +28,16 @@ trait Toolkit:
   /** Creates a view for the final simulation report. */
   def statistics: V & StatisticsView
 
+  /** Creates a [[View]] to edit a [[Warehouse]].
+    *
+    * @return
+    *   the [[WarehouseEditorView]].
+    */
+  def editor: V & WarehouseEditorView
+
+  /** Creates a view to configure a scenario's robots, missions and policies. */
+  def scenarioEditor: V & ScenarioEditorView
+
   /** Shuts down the application.
     *
     * @return

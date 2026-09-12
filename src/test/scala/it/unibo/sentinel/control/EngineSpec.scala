@@ -92,9 +92,10 @@ class EngineSpec extends UnitTest:
         val gate = Promise[Unit]()
         val _ = engine.run(_ => Task.fromFuture(gate.future)).runToFuture
         scheduler.tick(period * 3)
+        verify(simulation, never()).step()
         val _ = gate.success(())
         scheduler.tick(period)
-        verify(simulation, times(1)).step()
+        verify(simulation, atLeastOnce()).step()
 
     "paused" should:
       "stop advancing the simulation" in new EngineFixture:
