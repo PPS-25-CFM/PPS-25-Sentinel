@@ -15,6 +15,7 @@ import scalafx.scene.control.{Alert, Button, Label, TextField}
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.layout.VBox
 import scalafx.stage.{FileChooser, Stage}
+import scala.jdk.OptionConverters.*
 
 /** */
 final class FxMenuView extends FxView with Menu:
@@ -37,14 +38,15 @@ final class FxMenuView extends FxView with Menu:
       heading("Sentinel"),
       newWarehouse,
       openWarehouse,
-      pending("Configure Scenario"),
+      newScenario,
+      openScenario,
       runSimulation
     ))
 
   override def report(failure: Validation): Task[Unit] = onFx:
     val alert = new Alert(AlertType.Error):
-      delegate.setTitle("Scenario not loaded")
-      headerText = "The chosen scenario could not be loaded"
+      delegate.setTitle("Operation failed")
+      headerText = "The operation could not be completed"
       contentText = describe(failure)
     val _ = alert.showAndWait()
 
@@ -67,6 +69,51 @@ final class FxMenuView extends FxView with Menu:
       delegate.setOnAction: _ =>
         choose(warehouseChooser).foreach: file =>
           val _ = subject.onNext(MenuCommand.OpenWarehouse(file))
+
+  private lazy val newScenario: Button =
+    new Button("New Scenario"):
+      style = enabledStyle
+      delegate.setOnAction: _ =>
+        choose(warehouseChooser).foreach(showNewScenarioDialog)
+
+  private lazy val openScenario: Button =
+    new Button("Open Scenario"):
+      style = enabledStyle
+      delegate.setOnAction: _ =>
+        choose(scenarioChooser).foreach: file =>
+          val _ = subject.onNext(MenuCommand.OpenScenario(file))
+
+  private def showNewScenarioDialog(warehouse: os.Path): Unit =
+    val id = new TextField:
+      promptText = "Scenario id"
+    val hint = new Label("Choose a name for the scenario file.")
+    val dialog =
+      new javafx.scene.control.Dialog[javafx.scene.control.ButtonType]()
+    val create = javafx.scene.control.ButtonType.OK
+    dialog.initOwner(scene.window())
+    dialog.setTitle("New Scenario")
+    dialog.setHeaderText(s"Warehouse: ${warehouse.last}")
+    dialog.getDialogPane.getButtonTypes
+      .addAll(create, javafx.scene.control.ButtonType.CANCEL)
+    dialog.getDialogPane.setContent(new VBox(8, id, hint).delegate)
+    Option(dialog.getDialogPane.lookupButton(create))
+      .foreach(_.setDisable(true))
+    id.text.onChange { (_, _, _) =>
+      val name = id.text.value.trim
+      val valid = name.nonEmpty && !name.exists(c =>
+        c.isControl || "/\\:*?\"<>|".contains(c)
+      )
+      val available = valid && !os.exists(warehouse / os.up / s"$name.json")
+      hint.text = if !valid then "Enter a valid file name."
+      else if !available then "A file with this name already exists."
+      else s"Save as $name.json next to the warehouse."
+      Option(dialog.getDialogPane.lookupButton(create))
+        .foreach(_.setDisable(!available))
+    }
+    dialog.showAndWait().toScala.filter(_ == create).foreach { _ =>
+      val _ =
+        subject.onNext(MenuCommand.NewScenario(id.text.value.trim, warehouse))
+    }
 
   /** Opens a small modal asking for the id/width/height of a new [[Warehouse]],
     * emitting [[MenuCommand.NewWarehouse]] on confirmation.
@@ -127,11 +174,6 @@ final class FxMenuView extends FxView with Menu:
     val owner = FxMenuView.this.scene.window()
     Option(chooser.showOpenDialog(owner)).map(os.Path(_))
 
-  private def pending(text: String): Button =
-    new Button(text):
-      disable = true
-      style = disabledStyle
-
   private def heading(text: String): Label =
     new Label(text):
       style = "-fx-text-fill: #F8FAFC; -fx-font-size: 32px;"
@@ -150,8 +192,3 @@ final class FxMenuView extends FxView with Menu:
     "-fx-background-color: #1E293B; -fx-text-fill: #F8FAFC;" +
       " -fx-background-radius: 8; -fx-padding: 14 32 14 32;" +
       " -fx-font-size: 16px;"
-
-  private val disabledStyle: String =
-    "-fx-background-color: #1E293B; -fx-text-fill: #475569;" +
-      " -fx-background-radius: 8; -fx-padding: 14 32 14 32;" +
-      " -fx-font-size: 16px; -fx-opacity: 1;"

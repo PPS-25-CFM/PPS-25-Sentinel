@@ -1,11 +1,16 @@
 package it.unibo.sentinel.boundary.launcher
 
 import it.unibo.sentinel.boundary.gui.toolkit.{EditorView, MenuCommand, Toolkit}
-import it.unibo.sentinel.control.{Editor, Engine, WarehouseEditor}
+import it.unibo.sentinel.control.{
+  Editor,
+  Engine,
+  ScenarioEditor,
+  WarehouseEditor
+}
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.{FileRepository, Repository}
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
-import it.unibo.sentinel.core.scenario.{Scenario, value}
+import it.unibo.sentinel.core.scenario.{Scenario, ScenarioId, value}
 import it.unibo.sentinel.core.simulation.Statistics.Report
 import it.unibo.sentinel.core.simulation.{Simulation, SimulationId}
 import it.unibo.sentinel.core.warehouse.{Warehouse, WarehouseId}
@@ -57,6 +62,20 @@ final class Application(toolkit: Toolkit):
       loadWarehouse(warehouse).fold(
         menu.report,
         editWarehouse(_, warehouse / os.up)
+      )
+    case MenuCommand.NewScenario(id, warehouse) =>
+      val root = warehouse / os.up
+      if os.exists(root / s"$id.json") then
+        menu.report(Validation.FileAlreadyExists(s"$id.json"))
+      else
+        loadWarehouse(warehouse).fold(
+          menu.report,
+          w => editScenario(Scenario.in(w).withId(ScenarioId(id)), root)
+        )
+    case MenuCommand.OpenScenario(scenario) =>
+      loadScenario(scenario).fold(
+        menu.report,
+        editScenario(_, scenario / os.up)
       )
 
   private def simulate(scenario: Scenario): Task[Unit] =
@@ -111,10 +130,22 @@ final class Application(toolkit: Toolkit):
       new FileRepository[Warehouse](root)
     )
 
+  private def editScenario(initial: Scenario, root: os.Path): Task[Unit] =
+    given FileRepository[Warehouse] = new FileRepository[Warehouse](root)
+    edit(ScenarioEditor)(
+      toolkit.scenarioEditor,
+      ScenarioEditor.State(initial),
+      new FileRepository[Scenario](root)
+    )
+
   private def loadScenario(scenario: os.Path): Either[Validation, Scenario] =
-    given warehouses: FileRepository[Warehouse] =
-      new FileRepository[Warehouse]()
-    new FileRepository[Scenario](scenario / os.up).load(scenario.last)
+    def from(warehouseRoot: os.Path): Either[Validation, Scenario] =
+      given FileRepository[Warehouse] =
+        new FileRepository[Warehouse](warehouseRoot)
+      new FileRepository[Scenario](scenario / os.up).load(scenario.last)
+    from(scenario / os.up) match
+      case Left(_: Validation.FileNotFound) => from(FileRepository.folderPath)
+      case outcome                          => outcome
 
   private def loadWarehouse(warehouse: os.Path): Either[Validation, Warehouse] =
     new FileRepository[Warehouse](warehouse / os.up).load(warehouse.last)

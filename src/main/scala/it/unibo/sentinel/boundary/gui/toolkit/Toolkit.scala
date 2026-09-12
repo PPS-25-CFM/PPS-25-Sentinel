@@ -35,6 +35,9 @@ trait Toolkit:
     */
   def editor: V & WarehouseEditorView
 
+  /** Creates a view to configure a scenario's robots, missions and policies. */
+  def scenarioEditor: V & ScenarioEditorView
+
   /** Shuts down the application.
     *
     * @return

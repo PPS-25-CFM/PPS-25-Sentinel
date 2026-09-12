@@ -23,6 +23,14 @@ enum MenuCommand:
   /** */
   case OpenWarehouse(warehouse: os.Path)
 
+  /** Create a scenario with a file-safe identifier, referring to this
+    * warehouse.
+    */
+  case NewScenario(id: String, warehouse: os.Path)
+
+  /** Open a saved scenario for editing. */
+  case OpenScenario(scenario: os.Path)
+
 /** Represents the menu of the application.
   */
 trait Menu extends Interactive[MenuCommand]:
