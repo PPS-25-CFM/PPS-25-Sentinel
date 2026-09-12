@@ -43,7 +43,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "place the robot in the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             inside(scenario.spawns):
               case Seq(Spawn(_, pos, cls)) =>
                 pos shouldBe at
@@ -51,7 +51,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "compute the robot id automaticcaly" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             inside(scenario.spawns):
               case Seq(Spawn(rid, _, _)) =>
                 rid shouldBe RobotId("R1")
@@ -61,7 +61,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
         val fail =
           ScenarioEditor(initial, Command.PlaceRobot(notFloor, ofClass))
         inside(fail):
-          case State(scenario, fail) =>
+          case State(scenario, fail, _, _) =>
             scenario shouldBe initial.scenario
             fail should not be empty
 
@@ -74,7 +74,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "load the mission into the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             inside(scenario.missions):
               case Seq(mission) =>
                 mission.task shouldBe task
@@ -83,7 +83,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "compute the mission id automaticcaly" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             inside(scenario.missions):
               case Seq(mission) =>
                 mission.id shouldBe MissionId("M1")
@@ -97,7 +97,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
             Command.LoadMission(invalidTask, deadline, priority)
           )
         inside(fail):
-          case State(scenario, fail) =>
+          case State(scenario, fail, _, _) =>
             scenario shouldBe initial.scenario
             fail should not be empty
 
@@ -110,7 +110,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "remove the robot from the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             scenario.spawns shouldBe empty
 
     "receives an UnloadMission command" should:
@@ -124,7 +124,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "unload the mission from the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             scenario.missions shouldBe empty
 
     "receives a ChooseRouting command" should:
@@ -133,7 +133,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "set the routing policy in the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             scenario.routing shouldBe policy
 
     "receives a ChooseAssignment command" should:
@@ -142,7 +142,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "set the assignment policy in the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             scenario.assignment shouldBe policy
 
     "receive a ChooseCollision Selection command" should:
@@ -152,7 +152,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "set the collision selection policy in the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             scenario.collisionSelection shouldBe policy
 
     "receive a ChooseCollision Avoidance action command" should:
@@ -162,7 +162,7 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "set the collision avoidance policy in the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             scenario.collisionAvoidance shouldBe policy
 
     "receive a Reseed command" should:
@@ -171,5 +171,52 @@ class ScenarioEditorSpec extends UnitTest with ScenarioEditorFixture:
 
       "set the seed in the scenario" in:
         inside(edited):
-          case State(scenario, None) =>
+          case State(scenario, None, _, _) =>
             scenario.seed shouldBe seed
+
+    val shelf = Position(0, 0)
+    val bay = Position(0, 1)
+    val warehouseWithShelfAndBay = warehouse
+      .withTile(shelf)(Tile.Shelf(Item.Computer))
+      .withTile(bay)(Tile.LoadingBay())
+    val start = State(
+      Scenario.in(warehouseWithShelfAndBay)
+    )
+
+    "receive a BeginDelivery command" should:
+      val pending = ScenarioEditor(start, Command.BeginDelivery(shelf))
+
+      "remember the delivery origin and selection" in:
+        pending.selection shouldBe Some(shelf)
+        pending.deliveryOrigin shouldBe Some(shelf)
+        ScenarioEditor.model(pending) shouldBe start.scenario
+
+    "receive a LoadDelivery command" should:
+      val pending = ScenarioEditor(start, Command.BeginDelivery(shelf))
+      val selected = ScenarioEditor(pending, Command.Select(bay))
+      val tick = Tick(1)
+      val priority = Priority.normal
+
+      "load one pick-then-drop task using the shelf's item" in:
+        val loaded = ScenarioEditor(
+          selected,
+          Command.LoadDelivery(bay, tick, priority)
+        )
+        inside(loaded.scenario.missions):
+          case Seq(mission) =>
+            mission.task shouldBe Task.pickAndDrop(Item.Computer, shelf, bay)
+
+      "signal a failure when selecting a non-loading bay and rememeber the origin " in:
+        val notBay = Position(1, 1)
+        val selected = ScenarioEditor(pending, Command.Select(notBay))
+        val tick = Tick(1)
+        val priority = Priority.normal
+        val fail = ScenarioEditor(
+          selected,
+          Command.LoadDelivery(notBay, tick, priority)
+        )
+        inside(fail):
+          case State(scenario, fail, _, origin) =>
+            scenario shouldBe pending.scenario
+            fail should not be empty
+            origin shouldBe Some(shelf)
