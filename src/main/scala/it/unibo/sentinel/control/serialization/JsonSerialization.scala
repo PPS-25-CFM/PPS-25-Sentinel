@@ -2,7 +2,7 @@ package it.unibo.sentinel.control.serialization
 
 import it.unibo.sentinel.control.serialization.{Codec, Converter, Schema}
 import it.unibo.sentinel.control.serialization.Codec.Validation
-import upickle.default.{ReadWriter, read, write, macroRW}
+import upickle.default.{ReadWriter, read, write}
 import scala.util.Try
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.control.serialization.schemas.*
@@ -33,53 +33,26 @@ object JsonSerialization:
       Try(read[ModelSchema](input)).toEither.left.map: e =>
         Validation.Syntax(e.getMessage())
 
-  given ReadWriter[PositionSchema] = macroRW
-  given ReadWriter[ItemSchema.Computer] = macroRW
-  given ReadWriter[ItemSchema.Table] = macroRW
-  given ReadWriter[ItemSchema.Fridge] = macroRW
-  given ReadWriter[ItemSchema.Dishwasher] = macroRW
-  given ReadWriter[ItemSchema] = macroRW
-  given ReadWriter[TileSchema.Shelf] = macroRW
-  given ReadWriter[TileSchema.LoadingBay] = macroRW
-  given ReadWriter[TileSchema.Floor] = macroRW
-  given ReadWriter[TileSchema] = macroRW
-  given ReadWriter[WarehouseSchema] = macroRW
-  given ReadWriter[SpawnSchema] = macroRW
-  given ReadWriter[RobotClass.Drone.type] = macroRW
-  given ReadWriter[RobotClass.Carrier.type] = macroRW
-  given ReadWriter[RobotClass.HeavyCarrier.type] = macroRW
-  given ReadWriter[RobotClass] = macroRW
-  given ReadWriter[ActionSchema.PickUp] = macroRW
-  given ReadWriter[ActionSchema.Drop] = macroRW
-  given ReadWriter[ActionSchema.Move] = macroRW
-  given ReadWriter[ActionSchema] = macroRW
-  given ReadWriter[TaskSchema.Then] = macroRW
-  given ReadWriter[TaskSchema.Single] = macroRW
-  given ReadWriter[TaskSchema.Done.type] = macroRW
-  given ReadWriter[TaskSchema] = macroRW
-  given ReadWriter[MissionSchema] = macroRW
-  given ReadWriter[Routing.Distance.type] = macroRW
-  given ReadWriter[Routing.Time.type] = macroRW
-  given ReadWriter[Routing] = macroRW
-  given ReadWriter[Assignment.Nearest.type] = macroRW
-  given ReadWriter[Assignment.Cycle.type] = macroRW
-  given ReadWriter[Assignment.LeastWorkload.type] = macroRW
-  given assignmentRandom: ReadWriter[Assignment.Random.type] = macroRW
-  given ReadWriter[Assignment] = macroRW
-  given collisionRandom: ReadWriter[CollisionSelection.Random.type] = macroRW
-  given ReadWriter[CollisionSelection.Deadline.type] = macroRW
-  given ReadWriter[CollisionSelection.Priority.type] = macroRW
-  given ReadWriter[CollisionSelection] = macroRW
-  given ReadWriter[CollisionAvoidance.Wait.type] = macroRW
-  given ReadWriter[CollisionAvoidance.Reroute.type] = macroRW
-  given ReadWriter[CollisionAvoidance] = macroRW
-  given ReadWriter[ScenarioSchema] = macroRW
+  given ReadWriter[PositionSchema] = ReadWriter.derived
+  given ReadWriter[ItemSchema] = ReadWriter.derived
+  given ReadWriter[TileSchema] = ReadWriter.derived
+  given ReadWriter[WarehouseSchema] = ReadWriter.derived
+  given ReadWriter[SpawnSchema] = ReadWriter.derived
+  given ReadWriter[RobotClass] = ReadWriter.derived
+  given ReadWriter[ActionSchema] = ReadWriter.derived
+  given ReadWriter[TaskSchema] = ReadWriter.derived
+  given ReadWriter[MissionSchema] = ReadWriter.derived
+  given ReadWriter[Routing] = ReadWriter.derived
+  given ReadWriter[Assignment] = ReadWriter.derived
+  given ReadWriter[CollisionSelection] = ReadWriter.derived
+  given ReadWriter[CollisionAvoidance] = ReadWriter.derived
+  given ReadWriter[ScenarioSchema] = ReadWriter.derived
 
   given Converter[Mission, MissionSchema] = MissionConverter
   given Converter[Warehouse, WarehouseSchema] = WarehouseConverter
 
   given Codec[Warehouse] = new JsonCodec[Warehouse, WarehouseSchema]
 
-  given (
-    using warehouse: String => Either[Validation, Warehouse]
+  given (using
+      warehouse: String => Either[Validation, Warehouse]
   ): Codec[Scenario] = JsonCodec[Scenario, ScenarioSchema]
