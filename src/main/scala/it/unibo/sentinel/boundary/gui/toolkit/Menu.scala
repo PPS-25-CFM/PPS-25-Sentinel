@@ -1,6 +1,7 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
 import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.core.simulation.Tick
 import monix.eval.Task
 
 /** What the user can do in the menu.
@@ -8,8 +9,10 @@ import monix.eval.Task
 enum MenuCommand:
   /** @param scenario
     *   the path to the [[Scenario]] file to load and simulate.
+    * @param limit
+    *   the [[Tick]] at which the simulation ends, if it is bounded.
     */
-  case RunSimulation(scenario: os.Path)
+  case RunSimulation(scenario: os.Path, limit: Option[Tick])
 
   /** @param id
     *   the identifier of the new [[Warehouse]] to create and edit.

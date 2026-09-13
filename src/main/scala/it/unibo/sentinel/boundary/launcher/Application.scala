@@ -12,7 +12,7 @@ import it.unibo.sentinel.control.serialization.{FileRepository, Repository}
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.scenario.{Scenario, ScenarioId}
 import it.unibo.sentinel.core.simulation.Statistics.Report
-import it.unibo.sentinel.core.simulation.Simulation
+import it.unibo.sentinel.core.simulation.{Simulation, Tick}
 import it.unibo.sentinel.core.warehouse.{Warehouse, WarehouseId}
 import monix.eval.Task
 import monix.execution.Scheduler
@@ -47,8 +47,8 @@ final class Application(toolkit: Toolkit):
       .completedL
 
   private def handle(command: MenuCommand): Task[Unit] = command match
-    case MenuCommand.RunSimulation(scenario) =>
-      loadScenario(scenario).fold(menu.report, simulate)
+    case MenuCommand.RunSimulation(scenario, limit) =>
+      loadScenario(scenario).fold(menu.report, simulate(_, limit))
     case MenuCommand.NewWarehouse(id, width, height) =>
       Try(Warehouse.empty(WarehouseId(id), width, height)) match
         case Failure(_) =>
@@ -78,9 +78,9 @@ final class Application(toolkit: Toolkit):
         editScenario(_, scenario / os.up)
       )
 
-  private def simulate(scenario: Scenario): Task[Unit] =
+  private def simulate(scenario: Scenario, limit: Option[Tick]): Task[Unit] =
     val scheduler = Scheduler.singleThread("engine")
-    val sim = Simulation.of(scenario)
+    val sim = limit.fold(Simulation.of(scenario))(Simulation.of(scenario, _))
     Task(scheduler).bracket(engineOn(sim)): s =>
       Task(s.shutdown())
 

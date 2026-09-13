@@ -4,11 +4,12 @@ import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import it.unibo.sentinel.boundary.gui.toolkit.{MenuCommand, Menu}
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.FileRepository
+import it.unibo.sentinel.core.simulation.Tick
 import monix.eval.Task
 import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Scene
-import scalafx.scene.control.{Alert, Button, Label, TextField}
+import scalafx.scene.control.{Alert, Button, CheckBox, Label, TextField}
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.layout.VBox
 import scalafx.stage.{FileChooser, Stage}
@@ -46,8 +47,7 @@ final class FxMenuView extends FxView with Menu:
     new Button("Run Simulation"):
       style = enabledStyle
       delegate.setOnAction: _ =>
-        choose(scenarioChooser).foreach: file =>
-          emit(MenuCommand.RunSimulation(file))
+        choose(scenarioChooser).foreach(showRunSimulationDialog)
 
   private lazy val newWarehouse: Button =
     new Button("New Warehouse"):
@@ -74,6 +74,51 @@ final class FxMenuView extends FxView with Menu:
       delegate.setOnAction: _ =>
         choose(scenarioChooser).foreach: file =>
           emit(MenuCommand.OpenScenario(file))
+
+  /** Opens a small modal asking whether the run is bounded, emitting
+    * [[MenuCommand.RunSimulation]] on confirmation.
+    */
+  private def showRunSimulationDialog(scenario: os.Path): Unit =
+    val bounded = new CheckBox("Limit simulation ticks")
+    val ticks = new TextField:
+      promptText = "Ticks"
+      disable = true
+    val hint = new Label("The simulation ends when every mission is over.")
+    val dialog =
+      new javafx.scene.control.Dialog[javafx.scene.control.ButtonType]()
+    val run = javafx.scene.control.ButtonType.OK
+    dialog.initOwner(scene.window())
+    dialog.setTitle("Run Simulation")
+    dialog.setHeaderText(s"Scenario: ${scenario.last}")
+    dialog.getDialogPane.getButtonTypes
+      .addAll(run, javafx.scene.control.ButtonType.CANCEL)
+    dialog.getDialogPane.setContent(new VBox(8, bounded, ticks, hint).delegate)
+
+    def limit: Option[Tick] =
+      Option
+        .when(bounded.selected.value)(ticks.text.value.toIntOption)
+        .flatten
+        .filter(_ > 0)
+        .map(Tick(_))
+
+    def refresh(): Unit =
+      ticks.disable = !bounded.selected.value
+      hint.text =
+        if !bounded.selected.value then
+          "The simulation ends when every mission is over."
+        else
+          limit.fold("Enter a positive number of ticks.")(max =>
+            s"The simulation also ends at tick ${max.value}."
+          )
+      Option(dialog.getDialogPane.lookupButton(run))
+        .foreach(_.setDisable(bounded.selected.value && limit.isEmpty))
+
+    bounded.selected.onChange { (_, _, _) => refresh() }
+    ticks.text.onChange { (_, _, _) => refresh() }
+
+    dialog.showAndWait().toScala.filter(_ == run).foreach { _ =>
+      emit(MenuCommand.RunSimulation(scenario, limit))
+    }
 
   private def showNewScenarioDialog(warehouse: os.Path): Unit =
     val id = new TextField:
