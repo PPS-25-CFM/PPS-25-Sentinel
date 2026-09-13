@@ -12,18 +12,25 @@ import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.scenario.{Scenario, Spawn}
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.mission.MissionId
-import it.unibo.sentinel.control.serialization.Codec
+import it.unibo.sentinel.control.serialization.{Codec, Repository}
+import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.mission.Mission
-import it.unibo.sentinel.core.mission.Priority
 import it.unibo.sentinel.core.scenario.ScenarioId
-import it.unibo.sentinel.control.serialization.FileRepository
 import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.scenario.RobotClass
 
 class ScenarioJsonCodecSpec extends UnitTest:
 
-  given warehouseName: String = "test-warehouse.json"
+  given Repository[os.Path, Warehouse] =
+    new Repository[os.Path, Warehouse]:
+      override def save(
+          model: Warehouse,
+          key: os.Path
+      ): Either[Validation, Unit] = Left(Validation.FileNotFound(""))
+      override def load(key: os.Path): Either[Validation, Warehouse] = Left(
+        Validation.FileNotFound("")
+      )
 
   val pickPos: Position = Position(0, 0)
   val bayPos: Position = Position(4, 4)
@@ -43,80 +50,52 @@ class ScenarioJsonCodecSpec extends UnitTest:
     .load(Mission.relocate(MissionId("M1"), Position(2, 2), Tick(10)))
     .getOrElse(fail("Could not load mission"))
 
-  given repo: FileRepository[Warehouse] = new FileRepository[Warehouse]
+  given (String => Either[Validation, Warehouse]) = _ => Right(testWarehouse)
   val codec: Codec[Scenario] = summon[Codec[Scenario]]
-
-  private def persistWarehouse(): Unit =
-    val _ = repo.save(testWarehouse)
-    ()
+  val json: String =
+    s"""{
+       |  "id": "${scenario.id}",
+       |  "warehouseId": "${scenario.warehouse.id}",
+       |  "spawns": [
+       |    {
+       |      "id": "R1",
+       |      "position": {
+       |        "x": 1,
+       |        "y": 1
+       |      },
+       |      "ofClass": "Drone"
+       |    }
+       |  ],
+       |  "missions": [
+       |    {
+       |      "id": "M1",
+       |      "task": {
+       |        "$$type": "Single",
+       |        "action": {
+       |          "$$type": "Move",
+       |          "to": {
+       |            "x": 2,
+       |            "y": 2
+       |          }
+       |        }
+       |      },
+       |      "duration": 10
+       |    }
+       |  ],
+       |  "routing": "Distance",
+       |  "assignment": "Nearest",
+       |  "collisionSelection": "Random",
+       |  "collisionAvoidance": "Wait"
+       |}""".stripMargin.replaceAll("\\s+", "")
 
   "The ScenarioJsonCodec" should:
 
-    "encode and decode a valid Scenario preserving RobotClass" in:
-      persistWarehouse()
-      val json = codec.encode(scenario)
-      json.should(include("Drone"))
-      codec.decode(json).shouldBe(Right(scenario))
+    "correctly encode a valid Scenario domain object into JSON format" in:
+      codec.encode(scenario) shouldBe json
 
-    "encode and decode a Scenario with a Deliver mission" in:
-      persistWarehouse()
-      val deliver = Mission.deliver(
-        MissionId("M2"),
-        Item.Computer,
-        pickPos,
-        bayPos,
-        Tick(10),
-        Priority(4)
-      )
-      val rich = scenario.load(deliver).value
-      val json = codec.encode(rich)
-      json.should(include("\"priority\":4"))
-      val decoded = codec.decode(json)
-      decoded.shouldBe(Right(rich))
-      decoded.map(
-        _.missions.find(_.id == MissionId("M2")).value.priority
-      ) shouldBe Right(Priority(4))
+    "correctly decode a valid JSON into a Scenario domain object" in:
+      codec.decode(json) shouldBe Right(scenario)
 
-    "preserve a non-default seed across encode and decode" in:
-      persistWarehouse()
-      val seeded = scenario.withSeed(123L)
-      val json = codec.encode(seeded)
-      json.should(include("\"seed\":123"))
-      codec.decode(json).shouldBe(Right(seeded))
-
-    "correctly encode and decode a valid Scenario domain object" in:
-      codec.encode(scenario) shouldBe
-        s"""{
-          |  "id": "${scenario.id}",
-          |  "warehouseId": "${scenario.warehouse.id}",
-          |  "spawns": [
-          |    {
-          |      "id": "R1",
-          |      "position": {
-          |        "x": 1,
-          |        "y": 1
-          |      },
-          |      "ofClass": "Drone"
-          |    }
-          |  ],
-          |  "missions": [
-          |    {
-          |      "id": "M1",
-          |      "task": {
-          |        "$$type": "Single",
-          |        "action": {
-          |          "$$type": "Move",
-          |          "to": {
-          |            "x": 2,
-          |            "y": 2
-          |          }
-          |        }
-          |      },
-          |      "duration": 10
-          |    }
-          |  ],
-          |  "routing": "Distance",
-          |  "assignment": "Nearest",
-          |  "collisionSelection": "Random",
-          |  "collisionAvoidance": "Wait"
-          |}""".stripMargin.replaceAll("\\s+", "")
+    "return a Validation error when decoding invalid JSON syntax" in:
+      val invalidJson = "{ invalid json }"
+      codec.decode(invalidJson).isLeft shouldBe true

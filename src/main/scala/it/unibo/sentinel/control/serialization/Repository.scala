@@ -19,7 +19,7 @@ trait Repository[Key, M]:
     * @param key
     *   the key used to save the model.
     */
-  def save(model: M): Either[Validation, Unit]
+  def save(model: M, key: Key): Either[Validation, Unit]
 
   /** Loads a domain model instance associated with the specified key.
     *
@@ -39,43 +39,30 @@ object FileRepository:
 
 /** Repository that uses the file system to store and load data.
   */
-final class FileRepository[M: Codec](
-    root: os.Path = FileRepository.folderPath
-)(using
-    extension: String,
-    idExtractor: M => String
-) extends Repository[String, M]:
+final class FileRepository[M: Codec](extension: String) extends Repository[os.Path, M]:
 
-  override def save(model: M): Either[Validation, Unit] =
+  override def save(model: M, path: os.Path): Either[Validation, Unit] =
+    val correct = correctPath(path)
     val data = summon[Codec[M]].encode(model)
-    val fileName = s"${idExtractor(model)}$extension"
-    writeToFile(data, fileName)
+    tryOperation(os.write.over(correct, data)):
+      Validation.FileAlreadyExists(correct.toString)
 
-  override def load(fileName: String): Either[Validation, M] =
-    readFromFile(fileName).flatMap:
-      summon[Codec[M]].decode(_)
+  override def load(path: os.Path): Either[Validation, M] =
+    val correct = correctPath(path)
+    for
+      data <- readFile(correct)
+      result <- summon[Codec[M]].decode(data)
+    yield result
 
-  private def writeToFile(
-      data: String,
-      fileName: String
-  ): Either[Validation, Unit] =
-    operate(fileName) { path =>
-      os.makeDir.all(root)
-      os.write.over(path, data)
-    }(Validation.FileAlreadyExists.apply)
+  private def readFile(path: os.Path): Either[Validation, String] =
+    tryOperation(os.read(path)):
+      Validation.FileNotFound(path.toString)
 
-  private def readFromFile(fileName: String): Either[Validation, String] =
-    val correctName: String =
-      if fileName.endsWith(extension) then fileName else s"$fileName$extension"
-    operate(correctName)(path => os.read(path)):
-      Validation.FileNotFound.apply
-
-  private def operate[A](fileName: String)(operation: os.Path => A)(
-      validation: String => Validation
+  private def tryOperation[A](operation: => A)(
+      validation: Validation
   ): Either[Validation, A] =
-    val targetPath = root / fileName
-    Try {
-      operation(targetPath)
-    }.toEither.left.map { _ =>
-      validation(fileName)
-    }
+    Try(operation).toEither.left.map(_ => validation)
+
+  private def correctPath(path: os.Path): os.Path =
+    if path.ext == extension then path
+    else path / os.up / s"${path.last}.$extension"
