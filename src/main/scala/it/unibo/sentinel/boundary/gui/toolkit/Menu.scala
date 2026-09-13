@@ -1,6 +1,6 @@
 package it.unibo.sentinel.boundary.gui.toolkit
 
-import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 import it.unibo.sentinel.core.simulation.Tick
 import monix.eval.Task
 

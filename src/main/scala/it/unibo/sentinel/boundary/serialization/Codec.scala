@@ -1,4 +1,4 @@
-package it.unibo.sentinel.control.serialization
+package it.unibo.sentinel.boundary.serialization
 
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.warehouse.Tile

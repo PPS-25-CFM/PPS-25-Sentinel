@@ -1,4 +1,4 @@
-package it.unibo.sentinel.control.serialization.json
+package it.unibo.sentinel.boundary.serialization.json
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.warehouse.{
@@ -10,9 +10,9 @@ import it.unibo.sentinel.core.warehouse.{
 }
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.item.Item
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.Codec
-import it.unibo.sentinel.control.serialization.JsonSerialization.given
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.Codec
+import it.unibo.sentinel.boundary.serialization.JsonSerialization.given
 
 class WarehouseJsonCodecSpec extends UnitTest:
 

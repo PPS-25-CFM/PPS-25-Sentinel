@@ -1,8 +1,8 @@
-package it.unibo.sentinel.control.serialization
+package it.unibo.sentinel.boundary.serialization
 
 import it.unibo.sentinel.UnitTest
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.schemas.*
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.schemas.*
 import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.mission.MissionId

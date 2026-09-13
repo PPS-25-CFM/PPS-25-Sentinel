@@ -1,12 +1,12 @@
-package it.unibo.sentinel.control.serialization.schemas
+package it.unibo.sentinel.boundary.serialization.schemas
 
-import it.unibo.sentinel.control.serialization.Schema
+import it.unibo.sentinel.boundary.serialization.Schema
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.converters.PositionConverter
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.converters.PositionConverter
 import it.unibo.sentinel.core.warehouse.Tile
-import it.unibo.sentinel.control.serialization.Codec.validate
-import it.unibo.sentinel.control.serialization.validateAll
+import it.unibo.sentinel.boundary.serialization.Codec.validate
+import it.unibo.sentinel.boundary.serialization.validateAll
 
 /** Schema of a [[Tile]].
   */

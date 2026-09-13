@@ -1,17 +1,17 @@
-package it.unibo.sentinel.control.serialization.converters
+package it.unibo.sentinel.boundary.serialization.converters
 
-import it.unibo.sentinel.control.serialization.Converter
-import it.unibo.sentinel.control.serialization.schemas.ScenarioSchema
+import it.unibo.sentinel.boundary.serialization.Converter
+import it.unibo.sentinel.boundary.serialization.schemas.ScenarioSchema
 import it.unibo.sentinel.core.scenario.Spawn
-import it.unibo.sentinel.control.serialization.schemas.SpawnSchema
+import it.unibo.sentinel.boundary.serialization.schemas.SpawnSchema
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.robot.value
 import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.warehouse.value
 import it.unibo.sentinel.core.scenario.Scenario
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.schemas.MissionSchema
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.schemas.MissionSchema
 import it.unibo.sentinel.core.scenario.Validation as ScenarioValidation
 import it.unibo.sentinel.core.scenario.value
 import it.unibo.sentinel.core.scenario.ScenarioId

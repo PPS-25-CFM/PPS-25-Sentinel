@@ -1,8 +1,8 @@
-package it.unibo.sentinel.control.serialization.schemas
+package it.unibo.sentinel.boundary.serialization.schemas
 
 import it.unibo.sentinel.core.item.Item
-import it.unibo.sentinel.control.serialization.Schema
-import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.Schema
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 
 enum ItemSchema(weight: Double) extends Schema:
   case Computer(weight: Double) extends ItemSchema(weight)

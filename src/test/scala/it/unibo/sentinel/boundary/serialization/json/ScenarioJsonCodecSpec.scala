@@ -1,4 +1,4 @@
-package it.unibo.sentinel.control.serialization.json
+package it.unibo.sentinel.boundary.serialization.json
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.warehouse.{
@@ -12,9 +12,10 @@ import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.scenario.{Scenario, Spawn}
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.mission.MissionId
-import it.unibo.sentinel.control.serialization.{Codec, Repository}
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.JsonSerialization.given
+import it.unibo.sentinel.boundary.serialization.Codec
+import it.unibo.sentinel.boundary.persistence.Repository
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.scenario.ScenarioId
 import it.unibo.sentinel.core.item.Item

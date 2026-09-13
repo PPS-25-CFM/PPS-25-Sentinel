@@ -1,6 +1,6 @@
-package it.unibo.sentinel.control.serialization
+package it.unibo.sentinel.boundary.serialization
 
-import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 
 /** Converts between domain models and their corresponding serializable schemas.
   *
