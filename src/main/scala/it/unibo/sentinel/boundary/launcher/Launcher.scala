@@ -31,5 +31,5 @@ trait Configuration:
 object Launcher extends Configuration:
   def main(args: Array[String]): Unit =
     Application(FxToolkit)
-      .run()
+      .start()
       .runSyncUnsafe()

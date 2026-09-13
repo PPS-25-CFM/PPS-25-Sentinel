@@ -35,7 +35,7 @@ final class Application(toolkit: Toolkit)(using
 
   /** Starts the application, showing the menu and waiting for user input.
     */
-  def run(): Task[Unit] =
+  def start(): Task[Unit] =
     val session =
       for
         _ <- window.show(menu)
