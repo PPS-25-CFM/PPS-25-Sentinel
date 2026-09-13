@@ -32,7 +32,10 @@ final class FxWarehouseEditorView extends FxView with WarehouseEditorView:
 
   root.styleClass += "warehouse-view"
   root.top = FxControls.toolbar(
-    Seq(FxControls.backToMenu(() => dismiss())) ++ zoomControls
+    Seq(
+      FxControls
+        .button("Save and return to menu", () => dismiss())
+    ) ++ zoomControls
   )
   root.bottom = new Label(
     "Click: select  ·  Shift+click: extend  ·  Right-click: edit  ·  Ctrl+scroll: zoom"
