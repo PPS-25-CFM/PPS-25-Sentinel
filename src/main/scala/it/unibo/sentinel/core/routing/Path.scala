@@ -53,6 +53,16 @@ object Path:
       case step +: rest if step.cost == Tick.zero => rest
       case _                                      => path
 
+    /** @param by
+      *   the amount of [[Tick]]s to slow down the [[Path]].
+      * @return
+      *   a new [[Path]] where all [[Step]]s are slowed down by the given amount
+      *   of [[Tick]]s.
+      */
+    def slowed(by: Tick): Path = path match
+      case step +: rest => step.copy(cost = step.cost + by) +: rest.slowed(by)
+      case _            => path
+
     /** @return
       *   the final [[Position]] of the [[Path]].
       */
