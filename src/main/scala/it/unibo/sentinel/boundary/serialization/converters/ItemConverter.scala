@@ -1,9 +1,9 @@
-package it.unibo.sentinel.control.serialization.converters
+package it.unibo.sentinel.boundary.serialization.converters
 
-import _root_.it.unibo.sentinel.control.serialization.Converter
+import it.unibo.sentinel.boundary.serialization.Converter
 import it.unibo.sentinel.core.item.Item
-import it.unibo.sentinel.control.serialization.schemas.ItemSchema
-import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.schemas.ItemSchema
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 
 object ItemConverter extends Converter[Item, ItemSchema]:
 

@@ -1,16 +1,16 @@
-package it.unibo.sentinel.control.serialization.schemas
+package it.unibo.sentinel.boundary.serialization.schemas
 
-import it.unibo.sentinel.control.serialization.Schema
-import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.Schema
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.mission.MissionId
-import it.unibo.sentinel.control.serialization.converters.PositionConverter
+import it.unibo.sentinel.boundary.serialization.converters.PositionConverter
 import it.unibo.sentinel.core.scenario.Validation as DomainValidation
 import it.unibo.sentinel.core.scenario.Policies.Routing
 import it.unibo.sentinel.core.scenario.Policies.Assignment
 import it.unibo.sentinel.core.scenario.Policies.CollisionSelection
 import it.unibo.sentinel.core.scenario.Policies.CollisionAvoidance
-import it.unibo.sentinel.control.serialization.validateAll
+import it.unibo.sentinel.boundary.serialization.validateAll
 
 extension [A](seq: Seq[A])
   private def getFirstDuplicate: Option[A] =

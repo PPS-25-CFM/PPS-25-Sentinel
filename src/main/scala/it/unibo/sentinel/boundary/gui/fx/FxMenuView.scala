@@ -2,8 +2,8 @@ package it.unibo.sentinel.boundary.gui.fx
 
 import it.unibo.sentinel.boundary.gui.fx.FxUtils.onFx
 import it.unibo.sentinel.boundary.gui.toolkit.{MenuCommand, Menu}
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.FileRepository
+import it.unibo.sentinel.boundary.persistence.FileRepository
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 import it.unibo.sentinel.core.simulation.Tick
 import monix.eval.Task
 import scalafx.Includes.observableList2ObservableBuffer

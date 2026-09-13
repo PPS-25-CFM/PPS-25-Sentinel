@@ -1,4 +1,4 @@
-package it.unibo.sentinel.control.serialization
+package it.unibo.sentinel.boundary.serialization
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.item.Item
@@ -8,11 +8,11 @@ import it.unibo.sentinel.core.robot.value
 import it.unibo.sentinel.core.scenario.{RobotClass, Spawn}
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.{Position, Tile, Warehouse, WarehouseId}
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.converters.*
-import it.unibo.sentinel.control.serialization.converters.WarehouseConverter.given
-import it.unibo.sentinel.control.serialization.converters.ScenarioConverter.given
-import it.unibo.sentinel.control.serialization.schemas.*
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.converters.*
+import it.unibo.sentinel.boundary.serialization.converters.WarehouseConverter.given
+import it.unibo.sentinel.boundary.serialization.converters.ScenarioConverter.given
+import it.unibo.sentinel.boundary.serialization.schemas.*
 import it.unibo.sentinel.core.scenario.Scenario
 
 class ConvertersSpec extends UnitTest:

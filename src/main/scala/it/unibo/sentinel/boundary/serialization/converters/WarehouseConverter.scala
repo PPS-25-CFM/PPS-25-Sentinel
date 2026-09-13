@@ -1,9 +1,9 @@
-package it.unibo.sentinel.control.serialization.converters
+package it.unibo.sentinel.boundary.serialization.converters
 
-import it.unibo.sentinel.control.serialization.Converter
-import it.unibo.sentinel.control.serialization.schemas.TileSchema
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.schemas.WarehouseSchema
+import it.unibo.sentinel.boundary.serialization.Converter
+import it.unibo.sentinel.boundary.serialization.schemas.TileSchema
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.schemas.WarehouseSchema
 import it.unibo.sentinel.core.warehouse.Warehouse
 import it.unibo.sentinel.core.warehouse.Tile
 import it.unibo.sentinel.core.warehouse.value

@@ -1,14 +1,14 @@
-package it.unibo.sentinel.control.serialization
+package it.unibo.sentinel.boundary.serialization
 
-import it.unibo.sentinel.control.serialization.{Codec, Converter, Schema}
-import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.{Codec, Converter, Schema}
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 import upickle.default.{ReadWriter, read, write}
 import scala.util.Try
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.control.serialization.schemas.*
-import it.unibo.sentinel.control.serialization.converters.*
+import it.unibo.sentinel.boundary.serialization.schemas.*
+import it.unibo.sentinel.boundary.serialization.converters.*
 import it.unibo.sentinel.core.scenario.Scenario
-import it.unibo.sentinel.control.serialization.converters.ScenarioConverter.given
+import it.unibo.sentinel.boundary.serialization.converters.ScenarioConverter.given
 import it.unibo.sentinel.core.mission.Mission
 import it.unibo.sentinel.core.scenario.RobotClass
 import it.unibo.sentinel.core.scenario.Policies.*

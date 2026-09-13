@@ -1,12 +1,12 @@
-package it.unibo.sentinel.control.serialization.converters
+package it.unibo.sentinel.boundary.serialization.converters
 
-import it.unibo.sentinel.control.serialization.Converter
-import it.unibo.sentinel.control.serialization.schemas.MissionSchema
+import it.unibo.sentinel.boundary.serialization.Converter
+import it.unibo.sentinel.boundary.serialization.schemas.MissionSchema
 import it.unibo.sentinel.core.mission.{Mission, MissionId, Action, Task}
-import it.unibo.sentinel.control.serialization.schemas.TaskSchema
-import it.unibo.sentinel.control.serialization.schemas.ActionSchema
+import it.unibo.sentinel.boundary.serialization.schemas.TaskSchema
+import it.unibo.sentinel.boundary.serialization.schemas.ActionSchema
 import it.unibo.sentinel.core.simulation.Tick
-import it.unibo.sentinel.control.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
 import it.unibo.sentinel.core.mission.Priority
 
 object MissionConverter extends Converter[Mission, MissionSchema]:
