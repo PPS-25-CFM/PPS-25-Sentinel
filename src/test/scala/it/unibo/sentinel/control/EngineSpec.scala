@@ -17,25 +17,24 @@ import it.unibo.sentinel.core.simulation.{
   Snapshot
 }
 
-class EngineSpec extends UnitTest:
+trait EngineFixture:
+  val scheduler = TestScheduler()
+  given Scheduler = scheduler
+  val period = 1.second
+  val commands = ConcurrentSubject.publish[Command]
+  val simulation = mock[Simulation]()
+  val initial = StepResult(mock[Snapshot](), Seq.empty)
+  val second = StepResult(mock[Snapshot](), Seq.empty)
+  val expectedReport = mock[Statistics.Report]()
+  when(simulation.snapshot).thenReturn(initial.snapshot)
+  when(simulation.step()).thenReturn(second)
+  when(simulation.statistics).thenReturn(expectedReport)
+  val engine = Engine(simulation, period, commands)
 
-  protected trait EngineFixture:
-    val scheduler = TestScheduler()
-    given Scheduler = scheduler
-    val period = 1.second
-    val commands = ConcurrentSubject.publish[Command]
-    val simulation = mock[Simulation]()
-    val initial = StepResult(mock[Snapshot](), Seq.empty)
-    val second = StepResult(mock[Snapshot](), Seq.empty)
-    val expectedReport = mock[Statistics.Report]()
-    when(simulation.snapshot).thenReturn(initial.snapshot)
-    when(simulation.step()).thenReturn(second)
-    when(simulation.statistics).thenReturn(expectedReport)
-    val engine = Engine(simulation, period, commands)
+  def submit(command: Command): Unit =
+    val _ = commands.onNext(command)
 
-    def submit(command: Command): Unit =
-      val _ = commands.onNext(command)
-
+class EngineSpec extends UnitTest with EngineFixture:
   "An Engine" when:
 
     "not run" should:
