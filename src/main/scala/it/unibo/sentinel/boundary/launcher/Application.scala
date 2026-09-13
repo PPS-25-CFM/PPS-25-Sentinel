@@ -9,7 +9,6 @@ import it.unibo.sentinel.control.{
 }
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.{FileRepository, Repository}
-import it.unibo.sentinel.control.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.scenario.{Scenario, ScenarioId, value}
 import it.unibo.sentinel.core.simulation.Statistics.Report
 import it.unibo.sentinel.core.simulation.{Simulation, Tick}
@@ -25,21 +24,14 @@ import scala.util.{Try, Failure, Success}
   * @param toolkit
   *   the GUI [[Toolkit]] to use.
   */
-final class Application(toolkit: Toolkit):
+final class Application(toolkit: Toolkit)(using
+    warehouseRepo: Repository[os.Path, Warehouse],
+    scenarioRepo: Repository[os.Path, Scenario]
+):
 
   private val period: FiniteDuration = 1.second
   private val window = toolkit.window
   private val menu = toolkit.menu
-
-  private given warehouseRepo: Repository[os.Path, Warehouse] =
-    new FileRepository[Warehouse]("json")
-
-  private given (String => Either[Validation, Warehouse]) =
-    (warehouseId: String) =>
-      warehouseRepo.load(FileRepository.folderPath / warehouseId)
-
-  private val scenarioRepo: Repository[os.Path, Scenario] =
-    new FileRepository[Scenario]("json")
 
   /** Starts the application, showing the menu and waiting for user input.
     */
