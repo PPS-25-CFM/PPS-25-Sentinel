@@ -10,9 +10,9 @@ import it.unibo.sentinel.control.{
 import it.unibo.sentinel.control.serialization.Codec.Validation
 import it.unibo.sentinel.control.serialization.{FileRepository, Repository}
 import it.unibo.sentinel.control.serialization.JsonSerialization.given
-import it.unibo.sentinel.core.scenario.{Scenario, ScenarioId, value}
+import it.unibo.sentinel.core.scenario.{Scenario, ScenarioId}
 import it.unibo.sentinel.core.simulation.Statistics.Report
-import it.unibo.sentinel.core.simulation.{Simulation, SimulationId}
+import it.unibo.sentinel.core.simulation.Simulation
 import it.unibo.sentinel.core.warehouse.{Warehouse, WarehouseId}
 import monix.eval.Task
 import monix.execution.Scheduler
@@ -80,8 +80,7 @@ final class Application(toolkit: Toolkit):
 
   private def simulate(scenario: Scenario): Task[Unit] =
     val scheduler = Scheduler.singleThread("engine")
-    val id = SimulationId(scenario.id.value)
-    val sim = Simulation.of(id, scenario)
+    val sim = Simulation.of(scenario)
     Task(scheduler).bracket(engineOn(sim)): s =>
       Task(s.shutdown())
 

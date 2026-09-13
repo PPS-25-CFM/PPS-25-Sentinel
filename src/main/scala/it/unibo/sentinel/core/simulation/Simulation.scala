@@ -44,11 +44,6 @@ object SimulationId:
   */
 trait Simulation:
   /** @return
-    *   the ID of the simulation.
-    */
-  def id: SimulationId
-
-  /** @return
     *   the current time of the simulation
     */
   def time: Tick
@@ -103,9 +98,9 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   missions are over.
     */
-  def of(id: SimulationId, scenario: Scenario): Simulation =
+  def of(scenario: Scenario): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(id, scenario, world, Phase.all)
+      new BasicSimulation(scenario, world, Phase.all)
 
   /** @param scenario
     *   the [[Scenario]] to simulate.
@@ -115,9 +110,9 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   [[Mission]]s are or when the limit is reached.
     */
-  def of(id: SimulationId, scenario: Scenario, limit: Tick): Simulation =
+  def of(scenario: Scenario, limit: Tick): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(id, scenario, world, Phase.all) with TimeLimit(limit)
+      new BasicSimulation(scenario, world, Phase.all) with TimeLimit(limit)
 
   private abstract class AbstractSimulation extends Simulation:
 
@@ -131,7 +126,6 @@ object Simulation:
     def world: Environment
 
   private class BasicSimulation(
-      val id: SimulationId,
       scenario: Scenario,
       val world: Environment,
       phases: Seq[Phase]
