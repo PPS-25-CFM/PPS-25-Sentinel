@@ -39,7 +39,8 @@ object FileRepository:
 
 /** Repository that uses the file system to store and load data.
   */
-final class FileRepository[M: Codec](extension: String) extends Repository[os.Path, M]:
+final class FileRepository[M: Codec](extension: String)
+    extends Repository[os.Path, M]:
 
   override def save(model: M, path: os.Path): Either[Validation, Unit] =
     val correct = correctPath(path)

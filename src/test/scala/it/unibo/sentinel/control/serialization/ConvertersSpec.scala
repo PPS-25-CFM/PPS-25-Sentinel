@@ -186,9 +186,10 @@ class ConvertersSpec extends UnitTest:
   "A SpawnConverter" when:
 
     "converting a spawn" should:
-      
+
       "preserve RobotClass and position in SpawnSchema" in:
-        val spawn = Spawn(RobotId("R1"), Position(1, 1), RobotClass.HeavyCarrier)
+        val spawn =
+          Spawn(RobotId("R1"), Position(1, 1), RobotClass.HeavyCarrier)
         val schema =
           SpawnSchema("R1", PositionSchema(1, 1), RobotClass.HeavyCarrier)
         schema.id.shouldBe(spawn.id.value)
