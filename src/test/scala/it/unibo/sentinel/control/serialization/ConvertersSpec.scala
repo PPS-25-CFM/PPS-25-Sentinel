@@ -183,25 +183,24 @@ class ConvertersSpec extends UnitTest:
           )
         )
 
-  "A Spawn conversion" when:
-    "preserve RobotClass and position in SpawnSchema" in:
-      val spawn = Spawn(RobotId("R1"), Position(1, 1), RobotClass.HeavyCarrier)
-      val schema =
-        SpawnSchema("R1", PositionSchema(1, 1), RobotClass.HeavyCarrier)
-      schema.id.shouldBe(spawn.id.value)
-      schema.position.shouldBe(PositionConverter.toSchema(spawn.at))
-      schema.ofClass.shouldBe(spawn.ofClass)
+  "A SpawnConverter" when:
+
+    "converting a spawn" should:
+      
+      "preserve RobotClass and position in SpawnSchema" in:
+        val spawn = Spawn(RobotId("R1"), Position(1, 1), RobotClass.HeavyCarrier)
+        val schema =
+          SpawnSchema("R1", PositionSchema(1, 1), RobotClass.HeavyCarrier)
+        schema.id.shouldBe(spawn.id.value)
+        schema.position.shouldBe(PositionConverter.toSchema(spawn.at))
+        schema.ofClass.shouldBe(spawn.ofClass)
 
   "A ScenarioConverter" when:
     val warehouse: Warehouse = Warehouse
       .empty(WarehouseId("W"), 3, 3)
       .withTile(Position(1, 1))(Tile.Floor(Tick.unit))
 
-    given Repository[String, Warehouse] with
-      override def save(model: Warehouse): Either[Validation, Unit] = Right(())
-      override def load(key: String): Either[Validation, Warehouse] =
-        Right(warehouse)
-
+    given (String => Either[Validation, Warehouse]) = _ => Right(warehouse)
     val converter: Converter[Scenario, ScenarioSchema] =
       summon[Converter[Scenario, ScenarioSchema]]
 
