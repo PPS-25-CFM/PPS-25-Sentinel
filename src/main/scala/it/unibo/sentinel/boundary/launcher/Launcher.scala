@@ -2,12 +2,12 @@ package it.unibo.sentinel.boundary.launcher
 
 import it.unibo.sentinel.boundary.gui.fx.FxToolkit
 import monix.execution.Scheduler.Implicits.global
-import it.unibo.sentinel.control.serialization.Repository
+import it.unibo.sentinel.boundary.persistence.Repository
 import it.unibo.sentinel.core.warehouse.Warehouse
-import it.unibo.sentinel.control.serialization.FileRepository
+import it.unibo.sentinel.boundary.persistence.FileRepository
 import it.unibo.sentinel.core.scenario.Scenario
-import it.unibo.sentinel.control.serialization.Codec.Validation
-import it.unibo.sentinel.control.serialization.JsonSerialization.given
+import it.unibo.sentinel.boundary.serialization.Codec.Validation
+import it.unibo.sentinel.boundary.serialization.JsonSerialization.given
 
 trait Configuration:
   val extension = "json"

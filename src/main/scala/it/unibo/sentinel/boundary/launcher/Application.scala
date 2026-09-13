@@ -9,7 +9,6 @@ import it.unibo.sentinel.control.{
 }
 import it.unibo.sentinel.boundary.serialization.Codec.Validation
 import it.unibo.sentinel.boundary.persistence.{FileRepository, Repository}
-import it.unibo.sentinel.boundary.serialization.JsonSerialization.given
 import it.unibo.sentinel.core.scenario.{Scenario, ScenarioId, value}
 import it.unibo.sentinel.core.simulation.Statistics.Report
 import it.unibo.sentinel.core.simulation.{Simulation, Tick}
