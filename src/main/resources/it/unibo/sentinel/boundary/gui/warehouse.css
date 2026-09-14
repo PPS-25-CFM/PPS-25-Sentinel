@@ -18,6 +18,17 @@
 }
 .warehouse-button:hover { -fx-background-color: #334155; }
 .warehouse-button:focused { -fx-border-color: #38BDF8; -fx-border-radius: 6; }
+.simulation-tick {
+    -fx-background-color: #155E75;
+    -fx-text-fill: #F8FAFC;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Monospaced";
+    -fx-background-radius: 6;
+    -fx-padding: 4 14;
+    -fx-min-width: 110px;
+    -fx-alignment: center;
+}
 .warehouse-hint { -fx-text-fill: #CBD5E1; -fx-padding: 8 12; }
 .warehouse-viewport { -fx-background-color: #CBD5E1; }
 .warehouse-view .split-pane { -fx-background-color: transparent; -fx-padding: 0; }

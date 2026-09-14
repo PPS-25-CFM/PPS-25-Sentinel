@@ -14,7 +14,7 @@ import it.unibo.sentinel.core.warehouse.{Tile, Warehouse}
 import monix.eval.Task
 import scalafx.Includes.{eventClosureWrapperWithParam, jfxKeyEvent2sfx}
 import scalafx.scene.Scene
-import scalafx.scene.control.{Button, SplitPane}
+import scalafx.scene.control.{Button, Label, SplitPane}
 import scalafx.scene.input.{KeyCode, KeyEvent}
 import scalafx.scene.layout.BorderPane
 
@@ -25,6 +25,8 @@ final class FxSimulationView extends FxView with SimulationView:
   private var warehousePanel: Option[WarehousePanel] = None
   private val leftSidePanel = new SidePanel(Iterable.empty)
   private val rightSidePanel = new SidePanel(Iterable.empty)
+  private val tickLabel = new Label("Tick 0"):
+    styleClass += "simulation-tick"
 
   private val split = new SplitPane:
     minWidth = 0
@@ -39,7 +41,10 @@ final class FxSimulationView extends FxView with SimulationView:
   root.styleClass += "warehouse-view"
   root.center = split
   root.top = FxControls.toolbar(
-    Seq(FxControls.backToMenu(() => dismiss())) ++ zoomControls ++ Seq(
+    Seq(
+      FxControls.backToMenu(() => dismiss()),
+      tickLabel
+    ) ++ zoomControls ++ Seq(
       FxControls.button("Pause (P)", () => emit(Command.Pause)),
       FxControls.button("Resume (R)", () => emit(Command.Resume)),
       FxControls.button("Previous (A)", () => emit(Command.Back)),
@@ -107,6 +112,7 @@ final class FxSimulationView extends FxView with SimulationView:
         }
         panel.updateWarehouse(model.snapshot.warehouse)
         panel.updateRobots(model.snapshot.robots)
+        tickLabel.text = s"Tick ${model.at.value}"
         leftSidePanel.updateData(missions)
         rightSidePanel.updateData(details)
         panel.redraw()
