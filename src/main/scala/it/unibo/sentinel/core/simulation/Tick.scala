@@ -53,5 +53,12 @@ object Tick:
       */
     def -(n: Int): Tick = Math.max(tick - n, 0)
 
+    /** @param other
+      *   the [[Tick]] to add.
+      * @return
+      *   a new [[Tick]] that is the sum of the current and the other [[Tick]].
+      */
+    def +(other: Tick): Tick = tick + other
+
   given Ordering[Tick] = Ordering.Int
   export scala.math.Ordering.Implicits.given
