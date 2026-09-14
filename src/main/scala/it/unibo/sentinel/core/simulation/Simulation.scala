@@ -8,12 +8,14 @@ import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
 import scala.util.Random
 
-/** @param snapshot
+/** @param at
+  *   the [[Tick]] reached after the step.
+  * @param snapshot
   *   the snapshot of the simulation after the step.
   * @param events
   *   the events that occurred during the step.
   */
-final case class StepResult(snapshot: Snapshot, events: Seq[Event])
+final case class StepResult(at: Tick, snapshot: Snapshot, events: Seq[Event])
 
 /** The history of the simulation as a sequence of pairs of events and the tick
   * at which they occurred.
@@ -141,7 +143,7 @@ object Simulation:
       val events = phases.flatMap(_.apply(world))
       recordEvents(events, currentTime)
       currentTime = currentTime.next
-      StepResult(snapshot = world.snapshot, events = events)
+      StepResult(at = currentTime, snapshot = world.snapshot, events = events)
 
     def isOver: Boolean = world.missions.forall(_.isOver)
 
@@ -156,7 +158,7 @@ object Simulation:
       then
         val lastEvents = world.end
         recordEvents(lastEvents, now)
-        StepResult(
+        stepResult.copy(
           snapshot = world.snapshot,
           events = stepResult.events ++ lastEvents
         )
