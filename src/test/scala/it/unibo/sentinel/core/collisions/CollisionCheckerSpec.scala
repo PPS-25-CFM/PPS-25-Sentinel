@@ -24,7 +24,13 @@ trait CollisionCheckerFixture:
   val p5 = Placement(r5, Position(4, 4))
 
   protected def toIntent(placement: Placement): Intent =
-    Intent(placement.robot.id, placement.at, placement.next, None, RobotStatus.Moving)
+    Intent(
+      placement.robot.id,
+      placement.at,
+      placement.next,
+      None,
+      RobotStatus.Moving
+    )
 
   protected def singleStep(target: Position): Path =
     Path(Step(target, Tick.zero))

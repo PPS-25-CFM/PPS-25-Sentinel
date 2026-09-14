@@ -55,7 +55,13 @@ private[core] object Phase:
   private def calculateIntents(world: Environment): Seq[Intent] =
     world.placements.map: placement =>
       val mission = placement.robot.mission.flatMap(world.mission)
-      Intent(placement.robot.id, placement.at, placement.next, mission, placement.robot.status)
+      Intent(
+        placement.robot.id,
+        placement.at,
+        placement.next,
+        mission,
+        placement.robot.status
+      )
 
   def moving: Phase = world =>
     for

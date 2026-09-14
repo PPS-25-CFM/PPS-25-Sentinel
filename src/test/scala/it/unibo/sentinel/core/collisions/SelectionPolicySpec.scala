@@ -17,19 +17,19 @@ trait SelectionPolicyFixture:
   val count = 5
   val missions: Seq[Mission] = (1 to count).map { i =>
     Mission.relocate(
-      MissionId(s"M$i"), 
-      Position(i, i), 
-      Tick(i), 
+      MissionId(s"M$i"),
+      Position(i, i),
+      Tick(i),
       Priority(i)
     )
   }
   val intents: Seq[Intent] = missions.zipWithIndex.map { case (mission, idx) =>
     val id = idx + 1
     Intent(
-      RobotId(s"R$id"), 
-      Position(0, idx), 
+      RobotId(s"R$id"),
+      Position(0, idx),
       Position(idx, idx),
-      Some(mission), 
+      Some(mission),
       RobotStatus.Moving
     )
   }
