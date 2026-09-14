@@ -14,7 +14,8 @@ import it.unibo.sentinel.core.simulation.{
   Simulation,
   Statistics,
   StepResult,
-  Snapshot
+  Snapshot,
+  Tick
 }
 
 trait EngineFixture:
@@ -23,8 +24,8 @@ trait EngineFixture:
   val period = 1.second
   val commands = ConcurrentSubject.publish[Command]
   val simulation = mock[Simulation]()
-  val initial = StepResult(mock[Snapshot](), Seq.empty)
-  val second = StepResult(mock[Snapshot](), Seq.empty)
+  val initial = StepResult(Tick.zero, mock[Snapshot](), Seq.empty)
+  val second = StepResult(Tick(1), mock[Snapshot](), Seq.empty)
   val expectedReport = mock[Statistics.Report]()
   when(simulation.snapshot).thenReturn(initial.snapshot)
   when(simulation.step()).thenReturn(second)
@@ -160,6 +161,7 @@ class EngineSpec extends UnitTest with EngineFixture:
         verify(simulation, times(1)).step()
 
     "terminated" should:
+
       "produce the report of the completed simulation" in new EngineFixture:
         when(simulation.isOver).thenReturn(false, true)
         val running = engine.run(_ => Task.unit).runToFuture
