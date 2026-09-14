@@ -8,7 +8,8 @@ import monix.reactive.Observable
 import scala.concurrent.duration.FiniteDuration
 import cats.implicits.*
 
-/** */
+/** A function that observes the result of a simulation [[StepObserver]].
+  */
 type StepObserver = StepResult => Task[Unit]
 
 /** Advances a simulation periodically and hands each result to an observer.
