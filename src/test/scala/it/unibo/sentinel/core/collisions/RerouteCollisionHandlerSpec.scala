@@ -5,11 +5,11 @@ import it.unibo.sentinel.core.item.Item
 import it.unibo.sentinel.core.mission.{Mission, MissionId, Priority}
 import it.unibo.sentinel.core.robot.{RobotId, value}
 import it.unibo.sentinel.core.routing.{Navigator, Path, Step}
-import it.unibo.sentinel.core.scenario.Intent
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.*
 import org.mockito.ArgumentMatchers.*
 import org.mockito.Mockito.*
+import it.unibo.sentinel.core.robot.RobotStatus
 
 class RerouteCollisionHandlerSpec
     extends UnitTest
@@ -53,7 +53,7 @@ class RerouteCollisionHandlerSpec
       pick: Position,
       drop: Position
   ): Intent =
-    Intent(id, from, pick, Some(deliveryMission(id.value, pick, drop)))
+    Intent(id, from, pick, Some(deliveryMission(id.value, pick, drop)), RobotStatus.Moving)
 
   private def dropIntent(
       id: RobotId,
@@ -61,7 +61,7 @@ class RerouteCollisionHandlerSpec
       to: Position,
       drop: Position
   ): Intent =
-    Intent(id, from, to, Some(deliveryMission(id.value, from, drop)))
+    Intent(id, from, to, Some(deliveryMission(id.value, from, drop)), RobotStatus.Moving)
 
   "A CollisionHandler with reroute" when:
 

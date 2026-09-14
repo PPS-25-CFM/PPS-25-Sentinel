@@ -2,7 +2,6 @@ package it.unibo.sentinel.core.collisions
 
 import scala.util.Random
 import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.scenario.Intent
 
 /** Policy that defines how to select a winning [[Robot]] among colliding
   * intents.

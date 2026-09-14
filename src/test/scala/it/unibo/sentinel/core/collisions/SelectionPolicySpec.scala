@@ -3,32 +3,36 @@ package it.unibo.sentinel.core.collisions
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.{Mission, MissionId, Priority}
 import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.scenario.Intent
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.Position
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import scala.util.Random
+import it.unibo.sentinel.core.robot.RobotStatus
 
 trait SelectionPolicyFixture:
   self: UnitTest =>
 
-  val missions: Seq[Mission] = Seq(
-    Mission.relocate(MissionId("M1"), Position(1, 1), Tick(1), Priority(1)),
-    Mission.relocate(MissionId("M2"), Position(2, 2), Tick(2), Priority(2)),
-    Mission.relocate(MissionId("M3"), Position(3, 3), Tick(3), Priority(3)),
-    Mission.relocate(MissionId("M4"), Position(4, 4), Tick(4), Priority(4)),
-    Mission.relocate(MissionId("M5"), Position(5, 5), Tick(5), Priority(5))
-  )
-
-  val intents: Seq[Intent] = Seq(
-    Intent(RobotId("R1"), Position(0, 0), Position(1, 1), Some(missions(0))),
-    Intent(RobotId("R2"), Position(0, 1), Position(2, 2), Some(missions(1))),
-    Intent(RobotId("R3"), Position(0, 2), Position(3, 3), Some(missions(2))),
-    Intent(RobotId("R4"), Position(0, 3), Position(4, 4), Some(missions(3))),
-    Intent(RobotId("R5"), Position(0, 4), Position(5, 5), Some(missions(4)))
-  )
+  val count = 5
+  val missions: Seq[Mission] = (1 to count).map { i =>
+    Mission.relocate(
+      MissionId(s"M$i"), 
+      Position(i, i), 
+      Tick(i), 
+      Priority(i)
+    )
+  }
+  val intents: Seq[Intent] = missions.zipWithIndex.map { case (mission, idx) =>
+    val id = idx + 1
+    Intent(
+      RobotId(s"R$id"), 
+      Position(0, idx), 
+      Position(idx, idx),
+      Some(mission), 
+      RobotStatus.Moving
+    )
+  }
 
 class SelectionPolicySpec
     extends UnitTest

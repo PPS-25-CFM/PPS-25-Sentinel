@@ -12,24 +12,6 @@ import it.unibo.sentinel.core.scenario.Policies.CollisionSelection
 import scala.collection.immutable.ListMap
 import it.unibo.sentinel.core.simulation.Tick
 
-/** Represents the intention of a [[Robot]] to move to a specific [[Position]]
-  *
-  * @param robotId
-  *   the [[Robot]]'s id.
-  * @param from
-  *   the [[Robot]]'s current position.
-  * @param to
-  *   the destination.
-  * @param mission
-  *   the [[Mission]] that the [[Robot]] is executing (if it has one).
-  */
-case class Intent(
-    robotId: RobotId,
-    from: Position,
-    to: Position,
-    mission: Option[Mission]
-)
-
 /** Represents a [[Robot]] placed in a [[Position]] in the [[Warehouse]].
   *
   * @param robot

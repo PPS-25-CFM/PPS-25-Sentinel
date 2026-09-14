@@ -6,7 +6,7 @@ import it.unibo.sentinel.core.routing.{Path, Step}
 import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.Position
-import it.unibo.sentinel.core.scenario.Intent
+import it.unibo.sentinel.core.robot.RobotStatus
 
 trait CollisionCheckerFixture:
   self: UnitTest =>
@@ -24,7 +24,7 @@ trait CollisionCheckerFixture:
   val p5 = Placement(r5, Position(4, 4))
 
   protected def toIntent(placement: Placement): Intent =
-    Intent(placement.robot.id, placement.at, placement.next, None)
+    Intent(placement.robot.id, placement.at, placement.next, None, RobotStatus.Moving)
 
   protected def singleStep(target: Position): Path =
     Path(Step(target, Tick.zero))

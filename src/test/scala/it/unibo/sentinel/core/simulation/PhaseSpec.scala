@@ -18,7 +18,7 @@ import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.routing.Step
 import scala.util.Random
 import it.unibo.sentinel.core.collisions.Action
-import it.unibo.sentinel.core.scenario.Intent
+import it.unibo.sentinel.core.collisions.Intent
 import it.unibo.sentinel.core.robot.RobotId
 
 class PhaseSpec

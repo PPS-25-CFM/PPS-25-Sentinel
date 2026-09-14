@@ -3,9 +3,9 @@ package it.unibo.sentinel.core.collisions
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.mission.{Mission, MissionId, Priority}
 import it.unibo.sentinel.core.robot.{RobotId, value}
-import it.unibo.sentinel.core.scenario.Intent
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.robot.RobotStatus
 
 trait CollisionHandlerBehavior:
   this: UnitTest =>
@@ -21,10 +21,10 @@ trait CollisionHandlerBehavior:
     Mission.relocate(MissionId(s"m-$id"), target, Tick(10), Priority.normal)
 
   protected def moveIntent(id: RobotId, from: Position, to: Position): Intent =
-    Intent(id, from, to, Some(moveMission(id.value, to)))
+    Intent(id, from, to, Some(moveMission(id.value, to)), RobotStatus.Moving)
 
   protected def stationaryIntent(id: RobotId, pos: Position): Intent =
-    Intent(id, pos, pos, None)
+    Intent(id, pos, pos, None, RobotStatus.Moving)
 
   def baseHandler(handler: CollisionHandler): Unit =
 

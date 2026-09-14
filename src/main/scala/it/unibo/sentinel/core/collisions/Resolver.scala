@@ -4,7 +4,6 @@ import it.unibo.sentinel.core.robot.RobotId
 import it.unibo.sentinel.core.warehouse.Position
 import it.unibo.sentinel.core.robot.value
 import scala.annotation.tailrec
-import it.unibo.sentinel.core.scenario.Intent
 
 private case class Context(
     movers: Seq[Intent],

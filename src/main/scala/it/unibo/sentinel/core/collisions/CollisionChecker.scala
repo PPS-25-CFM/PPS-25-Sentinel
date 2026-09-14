@@ -1,8 +1,28 @@
 package it.unibo.sentinel.core.collisions
 
 import it.unibo.sentinel.core.robot.RobotId
-import it.unibo.sentinel.core.scenario.Intent
 import it.unibo.sentinel.core.warehouse.Position
+import it.unibo.sentinel.core.mission.Mission
+import it.unibo.sentinel.core.robot.RobotStatus
+
+/** Represents the intention of a [[Robot]] to move to a specific [[Position]]
+  *
+  * @param robotId
+  *   the [[Robot]]'s id.
+  * @param from
+  *   the [[Robot]]'s current position.
+  * @param to
+  *   the destination.
+  * @param mission
+  *   the [[Mission]] that the [[Robot]] is executing (if it has one).
+  */
+case class Intent(
+    robotId: RobotId,
+    from: Position,
+    to: Position,
+    mission: Option[Mission],
+    status: RobotStatus
+)
 
 case class IndirectCollision(target: Position, robots: Seq[RobotId])
 case class DirectCollision(robot1: RobotId, robot2: RobotId)
