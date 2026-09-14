@@ -1,12 +1,12 @@
 Product Backlog Item;Sprint Task;Volunteer;Initial Estimate Effort;1;2;2;4;5;6
-PB-24;Develop the menu view and controller, with a routing mechanism that allows to change the view to render in the window;Andrea;5;;;;;;
+PB-24;Develop the menu view and controller, with a routing mechanism that allows to change the view to render in the window;Andrea;5;3;1;DONE;-;-;-
 PB-24;Develop the WarehouseView;Andrea;8;;;;;;
 PB-24;Develop the WarehouseManager (the GUI controller);Andrea;5;;;;;;
 PB-25;Develop the ScenarioView;;8;;;;;;
 PB-25;Develop the ScenarioManager (the GUI controller);;5;;;;;;
 PB-25;Add a seed to replicate simulations over a scenario;;5;;;;;;
-PB-20;Develop a selector which choose the robot with lowest workload;Leonardo;3;;;;;;
+PB-20;Develop a selector which choose the robot with lowest workload;Leonardo;3;1;DONE;-;-;-;-
 PB-23;Add routing action;Mattia;2;DONE;-;-;-;-;-
-PB-23;Create collision handler which uses re-routing action;Mattia;5;2;DONE;-;-;-;-
+PB-23;Create collision handler which uses re-routing action;Mattia;5;3;1;DONE;-;-;-
 PB-29;Add Obstacles metrics;Andrea;2;;;;;;
-PB-30;Develop a selector which choose a random robots;Leonardo;2;;;;;;
+PB-30;Develop a selector which choose a random robots;Leonardo;2;DONE;-;-;-;-;

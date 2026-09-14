@@ -17,8 +17,9 @@ import it.unibo.sentinel.core.collisions.CollisionHandler
 import it.unibo.sentinel.core.routing.Path
 import it.unibo.sentinel.core.routing.Step
 import scala.util.Random
-import it.unibo.sentinel.core.scenario.Placement
 import it.unibo.sentinel.core.collisions.Action
+import it.unibo.sentinel.core.scenario.Intent
+import it.unibo.sentinel.core.robot.RobotId
 
 class PhaseSpec
     extends UnitTest
@@ -28,10 +29,7 @@ class PhaseSpec
   given Warehouse = warehouse
   given navigator: Navigator = scenario.routing()
   given selector: Selector = scenario.assignment(new Random(scenario.seed))
-  given SelectionPolicy =
-    scenario.collisionSelection(new Random(scenario.seed))(using
-      scenario.missions
-    )
+  given SelectionPolicy = scenario.collisionSelection(new Random(scenario.seed))
   given CollisionHandler = scenario.collisionAvoidance()
 
   /*
@@ -125,14 +123,17 @@ class PhaseSpec
         val blockEvents = Phase.collisionHandling(world)
         blockEvents should matchPattern { case Seq(Event.RobotBlocked(_, _)) =>
         }
+
         val blockedRobotId = blockEvents.headOption match
           case Some(Event.RobotBlocked(rid, _)) => rid
           case _ => fail("Expected RobotBlocked event")
+
         val customHandler: CollisionHandler = new CollisionHandler:
-          override def resolveCollisions(placements: Seq[Placement])(using
-              SelectionPolicy
-          ) =
+          override def resolveCollisions(intents: Seq[Intent])(using
+              selector: SelectionPolicy
+          ): Map[RobotId, Action] =
             Map(blockedRobotId -> Action.Move)
+
         val unblockEvents = Phase.collisionHandling(using customHandler)(world)
         unblockEvents should contain(Event.RobotUnblocked(blockedRobotId))
         world.robot(blockedRobotId).value.status shouldBe RobotStatus.Moving
@@ -145,10 +146,11 @@ class PhaseSpec
         Phase.expiring(world)
         val newPath = Path(Step(Position(2, 1), Tick.unit), Step(p3, Tick.unit))
         val rerouteHandler: CollisionHandler = new CollisionHandler:
-          override def resolveCollisions(placements: Seq[Placement])(using
-              SelectionPolicy
-          ) =
+          override def resolveCollisions(intents: Seq[Intent])(using
+              selector: SelectionPolicy
+          ): Map[RobotId, Action] =
             Map(r1 -> Action.Reroute(newPath))
+
         val events = Phase.collisionHandling(using rerouteHandler)(world)
         events should contain(Event.RobotRouted(r1, newPath.positions))
         world.robot(r1).value.path shouldBe Some(newPath)
@@ -160,9 +162,11 @@ class PhaseSpec
         world.route(r1, Path(Step(p3, Tick.unit)))
         Phase.expiring(world)
         val noOpHandler: CollisionHandler = new CollisionHandler:
-          override def resolveCollisions(placements: Seq[Placement])(using
-              SelectionPolicy
-          ) = Map(r1 -> Action.Move)
+          override def resolveCollisions(intents: Seq[Intent])(using
+              selector: SelectionPolicy
+          ): Map[RobotId, Action] =
+            Map(r1 -> Action.Move)
+
         val events = Phase.collisionHandling(using noOpHandler)(world)
         events shouldBe empty
 
