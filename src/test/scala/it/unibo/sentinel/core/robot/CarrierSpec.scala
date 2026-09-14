@@ -2,29 +2,20 @@ package it.unibo.sentinel.core.robot
 
 import it.unibo.sentinel.UnitTest
 import it.unibo.sentinel.core.item.Item
-import it.unibo.sentinel.core.mission.{Mission, MissionId}
-import it.unibo.sentinel.core.simulation.Tick
-import it.unibo.sentinel.core.warehouse.Position
 
 class CarrierSpec
     extends UnitTest
     with RobotFixture
     with RobotBehavior
-    with CarrierBehavior:
+    with CarrierBehavior
+    with PaceBehavior
+    with QueuedBehavior:
 
   "A LightCarrier" when:
     behave like baseRobot(Robot.lightCarrier(robotId), Speed.normal)
+    behave like pacedRobot(Robot.lightCarrier(robotId), Speed.normal)
+    behave like queuedRobot(Robot.lightCarrier(robotId, _), Capacity.large)
     behave like baseCarrier(Robot.lightCarrier(robotId))
-
-    "accepting missions" should:
-      "accept up to capacity missions" in:
-        val capacity = 3
-        val robot = Robot.lightCarrier(robotId, capacity)
-        for i <- 0 until capacity do
-          val m = Mission.relocate(MissionId(s"M$i"), Position(9, 9), Tick(10))
-          robot.canAccept(m) shouldBe true
-          robot.accept(m)
-        robot.canAccept(mission2) shouldBe false
 
     "managing its load limit" should:
       "pick an item that exactly fills maxLoad" in:
@@ -45,6 +36,8 @@ class CarrierSpec
 
   "A HeavyCarrier" when:
     behave like baseRobot(Robot.heavyCarrier(robotId), Speed.slow)
+    behave like pacedRobot(Robot.heavyCarrier(robotId), Speed.slow)
+    behave like queuedRobot(Robot.heavyCarrier(robotId, _), Capacity.small)
     behave like baseCarrier(Robot.heavyCarrier(robotId))
 
     "managing its load limit" should:

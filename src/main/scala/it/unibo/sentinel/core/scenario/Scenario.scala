@@ -61,11 +61,11 @@ final case class Spawn(id: RobotId, at: Position, ofClass: RobotClass):
     *   the [[Placement]] of the [[Robot]] to spawn in the [[Warehouse]].
     */
   def toPlacement: Placement = ofClass match
-    case RobotClass.Drone   => Placement(Robot.drone(id, 3), at)
+    case RobotClass.Drone   => Placement(Robot.drone(id), at)
     case RobotClass.Carrier =>
-      Placement(Robot.lightCarrier(id, 5), at)
+      Placement(Robot.lightCarrier(id), at)
     case RobotClass.HeavyCarrier =>
-      Placement(Robot.heavyCarrier(id, 1), at)
+      Placement(Robot.heavyCarrier(id), at)
 
 enum Validation:
   /** @param position

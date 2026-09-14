@@ -6,7 +6,12 @@ import it.unibo.sentinel.core.mission.{Mission, MissionId}
 import it.unibo.sentinel.core.simulation.Tick
 import it.unibo.sentinel.core.warehouse.Position
 
-class DroneSpec extends UnitTest with RobotFixture with RobotBehavior:
+class DroneSpec
+    extends UnitTest
+    with RobotFixture
+    with RobotBehavior
+    with PaceBehavior
+    with QueuedBehavior:
 
   private val deliverId = MissionId("D1")
   private val deliver: Mission =
@@ -20,6 +25,8 @@ class DroneSpec extends UnitTest with RobotFixture with RobotBehavior:
 
   "A Drone" when:
     behave like baseRobot(Robot.drone(robotId), Speed.fast)
+    behave like pacedRobot(Robot.drone(robotId), Speed.fast)
+    behave like queuedRobot(Robot.drone(robotId, _), Capacity.small)
 
     "accepting missions" should:
       "accept a relocation mission" in:

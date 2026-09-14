@@ -19,6 +19,9 @@ trait CarrierBehavior extends RobotFixture:
       Tick(10)
     )
 
+  private def saturateToUncarriable(robot: Robot): Unit =
+    while robot.pick(Item.Computer) do ()
+
   def baseCarrier(build: => Robot): Unit =
 
     "accepting missions" should:
@@ -29,24 +32,29 @@ trait CarrierBehavior extends RobotFixture:
         robot.accept(mission1)
         robot.mission shouldBe Some(m1)
 
-      "accept a delivery mission when empty" in:
+      "accept a delivery mission if it can carry the item" in:
         val robot = build
         robot.canAccept(deliver) shouldBe true
         robot.accept(deliver)
         robot.mission shouldBe Some(deliverId)
 
-      "reject a new mission when the queue is full" in:
+      "reject a delivery mission if it cannot carry the item" in:
         val robot = build
-        robot.accept(mission1)
-        robot.canAccept(mission2) shouldBe false
-        robot.accept(mission2)
-        robot.mission shouldBe Some(m1)
+        saturateToUncarriable(robot)
+        robot.canAccept(deliver) shouldBe false
+        robot.accept(deliver)
+        robot.mission shouldBe None
 
     "managing its bag" should:
 
       "pick an item that fits" in:
         val robot = build
         robot.pick(Item.Computer) shouldBe true
+
+      "reject an item that would exceed maxLoad" in:
+        val robot = build
+        saturateToUncarriable(robot)
+        robot.pick(Item.Computer) shouldBe false
 
       "drop a carried item" in:
         val robot = build
@@ -64,15 +72,3 @@ trait CarrierBehavior extends RobotFixture:
         robot.drop(Item.Computer) shouldBe Some(Item.Computer)
         robot.drop(Item.Computer) shouldBe Some(Item.Computer)
         robot.drop(Item.Computer) shouldBe None
-
-    "clearing its route" should:
-
-      "forget the path but keep the mission" in:
-        val robot = build
-        robot.accept(mission1)
-        robot.follow(path)
-        robot.status shouldBe RobotStatus.Moving
-        robot.clearRoute()
-        robot.path shouldBe None
-        robot.mission shouldBe Some(m1)
-        robot.status shouldBe RobotStatus.Ready

@@ -109,6 +109,18 @@ trait RobotBehavior extends RobotFixture:
         robot.step()
         robot.next shouldBe currentNext
 
+    "clearing its route" should:
+
+      "forget the path but keep the mission" in:
+        val robot = build
+        robot.accept(mission1)
+        robot.follow(path)
+        robot.status shouldBe RobotStatus.Moving
+        robot.clearRoute()
+        robot.path shouldBe None
+        robot.mission shouldBe Some(m1)
+        robot.status shouldBe RobotStatus.Ready
+
     "releasing its mission" should:
       val robot = build
       robot.accept(mission1)
@@ -135,3 +147,26 @@ trait RobotBehavior extends RobotFixture:
         val initialRemaining = robot.remaining
         robot.tick()
         robot.remaining shouldBe initialRemaining.previous
+
+    "resuming a paused robot" should:
+
+      "return to moving" in:
+        val robot = build
+        robot.follow(path)
+        robot.pause()
+        robot.status shouldBe RobotStatus.Waiting
+        robot.resume()
+        robot.status shouldBe RobotStatus.Moving
+
+    "releasing a waiting robot" should:
+
+      "return to idle forgetting mission and path" in:
+        val robot = build
+        robot.accept(mission1)
+        robot.follow(path)
+        robot.pause()
+        robot.status shouldBe RobotStatus.Waiting
+        robot.release()
+        robot.status shouldBe RobotStatus.Idle
+        robot.mission shouldBe None
+        robot.path shouldBe None
