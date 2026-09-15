@@ -48,7 +48,7 @@ class ControllableClockSpec extends UnitTest:
 
     "paused" should:
 
-      "repeat the current tick and stop advancing" in new ClockFixture:
+      "stop advancing" in new ClockFixture:
         start()
         scheduler.tick(period)
         submit(Pause)
@@ -56,6 +56,7 @@ class ControllableClockSpec extends UnitTest:
         ticks shouldBe Seq(t0, t1)
 
     "resumed" should:
+
       "advance again every period" in new ClockFixture:
         start()
         scheduler.tick()
@@ -82,6 +83,7 @@ class ControllableClockSpec extends UnitTest:
         ticks shouldBe Seq(t0)
 
     "moved one step forward" should:
+
       "emit the next tick and stop advancing" in new ClockFixture:
         start()
         scheduler.tick()
