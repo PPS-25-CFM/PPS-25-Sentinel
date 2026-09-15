@@ -527,11 +527,72 @@ Per uniformare la struttura dei test e favorire uno stile di scrittura più dich
 
 ## Note di sviluppo
 
-- Utilizzo di *Type classes*:
-- Utilizzo di *Abstract Data Types*:
-- Utilizzo di *Module types*:
-- Utilizzo di *Context bounds*:
-- Utilizzo di *For-comprehension*:
+### Cecchini Andrea
+
+#### Utilizzo del pattern *Strategy*
+- [`Navigator`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/routing/Navigator.scala#L99-L130), [`Metric`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/routing/Metric.scala)
+- [`Adjacency`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/warehouse/Warehouse.scala#L7-L27), [`Warehouse`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/warehouse/Warehouse.scala#L212-L213)
+
+#### Utilizzo di `Observable` e `Task`
+- [`Engine`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/control/Engine.scala#L65-L109)
+- [`Editor`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/control/Editor.scala), [`ScenarioEditor`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/control/ScenarioEditor.scala), [`WarehouseEditor`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/control/WarehouseEditor.scala)
+
+#### Utilizzo di *self-type*
+- [`ReactiveEngine`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/control/Engine.scala#L68)
+
+#### Utilizzo di `LazyList`
+- [`ReactiveEngine`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/control/Engine.scala#L70-L75)
+
+#### Utilizzo di *stackable traits*
+- [`TimeLimit`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/simulation/Simulation.scala#L150-L167), [`Simulation`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/simulation/Simulation.scala#L115)
+
+#### Utilizzo di *opaque types*
+- [`Score`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/routing/Score.scala#L5)
+- [`Tick`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/simulation/Tick.scala)
+
+### Forti Mattia
+
+#### Utilizzo di *type classes*
+- [`Converter`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/boundary/serialization/Converter.scala#L17-L25), [`JsonCodec`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/boundary/serialization/JsonSerialization.scala#L18-L20)
+
+#### Utilizzo di *module types*
+- [`CollisionChecker`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/collisions/CollisionChecker.scala#L32-L72)
+- [Tutti i converter](https://github.com/PPS-25-CFM/PPS-25-Sentinel/tree/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/boundary/serialization/converters)
+
+#### Utilizzo di *context bounds*
+- [`JsonCodec`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/boundary/serialization/JsonSerialization.scala#L18)
+- [`FileRepository`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/boundary/persistence/FileRepository.scala#L15)
+
+#### Utilizzo di *for-comprehension*
+- [`MissionSchema`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/boundary/serialization/schemas/MissionSchema.scala#L36)
+- [`Phase`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/simulation/Phase.scala#L45-L48)
+- [`Resolver`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/collisions/Resolver.scala#L75-L79)
+
+#### Utilizzo del pattern *adapter* con libreria *upickle*
+- [`JsonCodec`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/boundary/serialization/JsonSerialization.scala#L18-L54)
+
+### Marcaccio Leonardo
+
+#### Utilizzo di *opaque types*
+- [`Workload`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/robot/Workload.scala)
+- [`Priority`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/mission/Priority.scala)
+- [`Weight`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/item/Weight.scala)
+
+#### Utilizzo di *Algebraic Data Types*
+- [`Task`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/mission/Task.scala), [`Action`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/mission/Action.scala)
+
+#### Utilizzo del pattern *Fine State Machine*
+- [`Mission`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/mission/Mission.scala#L24-L126)
+- [`BaseRobot`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/robot/Robot.scala#L205-L246)
+
+#### Utilizzo di *stackable traits*
+- [`Queued`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/robot/Robot.scala#L148-L181), [`Pace`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/robot/Robot.scala#L127-L129), [`Robot`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/robot/Robot.scala#L191-L201)
+
+#### Applicazione del principio di *Interface Segregation*
+- [`Tile`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/warehouse/Tile.scala#L29)
+
+#### Utilizzo di *alias* con `export`
+- [`Mission`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/4afe2fdf224b0c4e007f896033c1af153269605b/src/main/scala/it/unibo/sentinel/core/mission/Mission.scala#L33)
 
 <!-- Chapter: Commenti finali -->
 .align {end} 

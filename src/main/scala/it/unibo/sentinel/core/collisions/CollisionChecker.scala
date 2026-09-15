@@ -24,7 +24,25 @@ case class Intent(
     status: RobotStatus
 )
 
+/** Represents an indirect collision, meaning when two or more robots want to
+  * move to the same position.
+  *
+  * @param target
+  *   [[Position]] the [[Robot]]s want to move to.
+  * @param robots
+  *   the [[Robot]]s involved in the collision
+  */
 case class IndirectCollision(target: Position, robots: Seq[RobotId])
+
+/** Represents a direct collision, meaning when a [[Robot]] wants to move on a
+  * position occupied by another one, or when two [[Robot]]s want to switch
+  * places (order doesn't matter).
+  *
+  * @param robot1
+  *   the first [[Robot]].
+  * @param robot2
+  *   the second [[Robot]].
+  */
 case class DirectCollision(robot1: RobotId, robot2: RobotId)
 
 /** Used to check for collisions between [[Robot]]s

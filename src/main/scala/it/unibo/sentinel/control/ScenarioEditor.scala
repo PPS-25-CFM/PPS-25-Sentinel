@@ -120,13 +120,6 @@ object ScenarioEditor extends Editor:
 
   import Command.*
 
-  /** @param state
-    *   the current editing state.
-    * @param command
-    *   the command issued by the user.
-    * @return
-    *   the [[State]] resulting from applying `command` to `state`.
-    */
   override def apply(state: State, command: Command): State = command match
     case Select(at) =>
       state.selection match

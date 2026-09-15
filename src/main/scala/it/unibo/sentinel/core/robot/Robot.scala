@@ -192,11 +192,27 @@ object Robot:
     with Queued(capacity)
     with Pace(Speed.fast)
 
+  /** @param id
+    *   the robot's identifier
+    * @param capacity
+    *   max number of missions the robot can queue
+    * @return
+    *   a new carrier with the given id, no missions, idle status and the
+    *   ability to carry average-weighted items.
+    */
   def lightCarrier(id: RobotId, capacity: Int = Capacity.large): Robot =
     new Carrier(id, Weight.average)
       with Queued(capacity)
       with Pace(Speed.normal)
 
+  /** @param id
+    *   the robot's identifier
+    * @param capacity
+    *   max number of missions the robot can queue
+    * @return
+    *   a new carrier with the given id, no missions, idle status and the
+    *   ability to carry the heaviest items.
+    */
   def heavyCarrier(id: RobotId, capacity: Int = Capacity.single): Robot =
     new Carrier(id, Weight.max) with Queued(capacity) with Pace(Speed.slow)
 

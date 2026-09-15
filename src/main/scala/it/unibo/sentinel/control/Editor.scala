@@ -38,8 +38,11 @@ trait Editor:
   def apply(state: State, command: Command): State
 
   /** @param initial
+    *   the initial [[State]] of the editor.
     * @param commands
+    *   an [[Observable]] of [[Command]]s.
     * @return
+    *   an [[Observable]] of [[Editor]]' [[State]].
     */
   def execute(
       initial: State,

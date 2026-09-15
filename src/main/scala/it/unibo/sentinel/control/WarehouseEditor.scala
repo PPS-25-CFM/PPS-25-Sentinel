@@ -45,14 +45,7 @@ object WarehouseEditor extends Editor:
     */
   final case class State(warehouse: Warehouse, selection: Option[Area] = None)
 
-  /** @param state
-    *   the current editing state.
-    * @param command
-    *   the command issued by the user.
-    * @return
-    *   the [[State]] resulting from applying `command` to `state`.
-    */
-  def apply(state: State, command: Command): State = command match
+  override def apply(state: State, command: Command): State = command match
     case Command.Select(at) =>
       state.copy(selection = Some(Area(at, at)))
     case Command.ExtendSelection(to) =>
