@@ -1,15 +1,15 @@
-Product Backlog Item;Sprint Task;Volunteer;Initial Estimate Effort;1;2;2;4;5;6
-PB-16;Model shelf and loading-zone tiles;Leonardo;3;DONE;-;-;-;-;-
-PB-16;Model warehouse items and their placement/removal;Leonardo;5;3;DONE;-;-;-;-
-PB-17;Add optional robot bags with capacity in order to pick and drop items from the environment;Leonardo;8;8;8;5;3;3;DONE
-PB-17;Extend tasks and actions to support pickup/drop operations;Leonardo;8;8;8;5;3;3;DONE
-PB-27;Collect metrics and generate the seven required final statistics;Andrea;5;5;5;5;5;3;DONE
-PB-28;Define JSON codecs and abstractions to save in files;Mattia;8;5;3;1;DONE;-;-
-PB-24;Implement the warehouse editor;;13;13;13;13;13;13;13
-PB-25;Implement the scenario editor;;13;13;13;13;13;13;13
-PB-09;let the user select the scenario to simulate from the stored ones;Andrea;5;5;5;5;5;5;5
-PB-26;Implement a controllable engine;Andrea;8;8;5;DONE;-;-;-
-PB-26;Add pause, previous, next and resume controls to the simulation view;Andrea;3;3;3;DONE;-;-;-
-PB-18;Implement collision avoidance based on higher-priority missions;Mattia;5;5;5;5;5;2;DONE
-PB-22;Implement collision avoidance based on least remaining mission time;Mattia;3;3;3;3;3;DONE;-
-PB-18;Add priority to mission;Leonardo;2;2;2;2;2;2;DONE
+Product Backlog Item,Sprint Task,Volunteer,Initial Estimate Effort,1,2,2,4,5,6
+PB-16,Model shelf and loading-zone tiles,Leonardo,3,DONE,-,-,-,-,-
+PB-16,Model warehouse items and their placement/removal,Leonardo,5,3,DONE,-,-,-,-
+PB-17,Add optional robot bags with capacity in order to pick and drop items from the environment,Leonardo,8,8,8,5,3,3,DONE
+PB-17,Extend tasks and actions to support pickup/drop operations,Leonardo,8,8,8,5,3,3,DONE
+PB-27,Collect metrics and generate the seven required final statistics,Andrea,5,5,5,5,5,3,DONE
+PB-28,Define JSON codecs and abstractions to save in files,Mattia,8,5,3,1,DONE,-,-
+PB-24,Implement the warehouse editor,,13,13,13,13,13,13,13
+PB-25,Implement the scenario editor,,13,13,13,13,13,13,13
+PB-09,let the user select the scenario to simulate from the stored ones,Andrea,5,5,5,5,5,5,5
+PB-26,Implement a controllable engine,Andrea,8,8,5,DONE,-,-,-
+PB-26,"Add pause, previous, next and resume controls to the simulation view",Andrea,3,3,3,DONE,-,-,-
+PB-18,Implement collision avoidance based on higher-priority missions,Mattia,5,5,5,5,5,2,DONE
+PB-22,Implement collision avoidance based on least remaining mission time,Mattia,3,3,3,3,3,DONE,-
+PB-18,Add priority to mission,Leonardo,2,2,2,2,2,2,DONE

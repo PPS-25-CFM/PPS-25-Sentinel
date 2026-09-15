@@ -8,12 +8,14 @@ import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.collisions.CollisionHandler
 import scala.util.Random
 
-/** @param snapshot
+/** @param at
+  *   the [[Tick]] reached after the step.
+  * @param snapshot
   *   the snapshot of the simulation after the step.
   * @param events
   *   the events that occurred during the step.
   */
-final case class StepResult(snapshot: Snapshot, events: Seq[Event])
+final case class StepResult(at: Tick, snapshot: Snapshot, events: Seq[Event])
 
 /** The history of the simulation as a sequence of pairs of events and the tick
   * at which they occurred.
@@ -43,11 +45,6 @@ object SimulationId:
   * scenario at each tick.
   */
 trait Simulation:
-  /** @return
-    *   the ID of the simulation.
-    */
-  def id: SimulationId
-
   /** @return
     *   the current time of the simulation
     */
@@ -91,9 +88,7 @@ object Simulation:
     given Navigator = scenario.routing()
     given Selector = scenario.assignment(new Random(scenario.seed))
     given SelectionPolicy =
-      scenario.collisionSelection(new Random(scenario.seed))(using
-        scenario.missions
-      )
+      scenario.collisionSelection(new Random(scenario.seed))
     given CollisionHandler = scenario.collisionAvoidance()
     fromWorld(scenario.build)
 
@@ -103,9 +98,9 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   missions are over.
     */
-  def of(id: SimulationId, scenario: Scenario): Simulation =
+  def of(scenario: Scenario): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(id, scenario, world, Phase.all)
+      new BasicSimulation(scenario, world, Phase.all)
 
   /** @param scenario
     *   the [[Scenario]] to simulate.
@@ -115,9 +110,9 @@ object Simulation:
     *   a [[Simulation]] of the given [[Scenario]] that ends when all the
     *   [[Mission]]s are or when the limit is reached.
     */
-  def of(id: SimulationId, scenario: Scenario, limit: Tick): Simulation =
+  def of(scenario: Scenario, limit: Tick): Simulation =
     withContext(scenario): world =>
-      new BasicSimulation(id, scenario, world, Phase.all) with TimeLimit(limit)
+      new BasicSimulation(scenario, world, Phase.all) with TimeLimit(limit)
 
   private abstract class AbstractSimulation extends Simulation:
 
@@ -128,10 +123,9 @@ object Simulation:
 
     def history: History = recorded
 
-    def world: Environment
+    protected def world: Environment
 
   private class BasicSimulation(
-      val id: SimulationId,
       scenario: Scenario,
       val world: Environment,
       phases: Seq[Phase]
@@ -149,13 +143,12 @@ object Simulation:
       val events = phases.flatMap(_.apply(world))
       recordEvents(events, currentTime)
       currentTime = currentTime.next
-      StepResult(snapshot = world.snapshot, events = events)
+      StepResult(at = currentTime, snapshot = world.snapshot, events = events)
 
     def isOver: Boolean = world.missions.forall(_.isOver)
 
   private trait TimeLimit(max: Tick) extends AbstractSimulation:
-    private def limitReached: Boolean =
-      summon[Ordering[Tick]].gteq(time, max)
+    private def limitReached: Boolean = time >= max
 
     abstract override def step(): StepResult =
       val now = time
@@ -164,7 +157,7 @@ object Simulation:
       then
         val lastEvents = world.end
         recordEvents(lastEvents, now)
-        StepResult(
+        stepResult.copy(
           snapshot = world.snapshot,
           events = stepResult.events ++ lastEvents
         )

@@ -26,136 +26,477 @@
 
 ## Descrizione requisiti
 
-**Sentinel** è un sistema di simulazione che consente di modellare e analizzare il comportamento di **magazzini** virtuali gestiti da **flotte di robot autonomi**.
-Per ciascun magazzino l'utente può configurare uno o più _scenari_ operativi, specificando i robot disponibili e l'insieme delle _missioni_ che questi devono portare a termine, oltre alle politiche gestionali che regolano l'assegnazione delle missioni ai robot, il calcolo dei loro percorsi e la risoluzione dei conflitti che possono sorgere fra loro.
-Ogni scenario può essere eseguito attraverso una o più _simulazioni_: al termine di ciascuna, il sistema produce un _report_ con le statistiche sulle prestazioni ottenute, permettendo di confrontare i risultati di configurazioni alternative dello stesso magazzino, così da individuare quella più efficace rispetto agli obiettivi prefissati.
+**Sentinel** è un sistema di simulazione che consente di modellare **magazzini** virtuali gestiti da flotte di **robot**
+autonomi e di analizzarne il comportamento durante l’esecuzione di attività di spostamento e trasporto di merci.
 
-Gli obiettivi principali del sistema sono i seguenti:
-- consentire la definizione di scenari di magazzino personalizzabili in termini di:
-    - flotta di robot e missioni da completare;
-    - diverse politiche configurabili per l'assegnazione delle missioni, per il calcolo dei percorsi dei robot e per la gestione dei conflitti fra essi;
-- simulare l'esecuzione di uno scenario, gestendo nel tempo l'avanzamento delle missioni e degli spostamenti dei robot;
-- produrre, al termine di ogni simulazione, un report con le statistiche di prestazione, per consentire il confronto fra configurazioni differenti dello stesso scenario.
+Per ciascun magazzino l'utente può configurare uno o più *scenari* operativi, specificando i robot disponibili e
+l'insieme delle *missioni* che questi devono portare a termine, oltre alle politiche gestionali che regolano
+l'assegnazione delle missioni ai robot, il calcolo dei loro percorsi e la risoluzione dei conflitti che possono sorgere
+fra loro.
+
+Durante la *simulazione*, l’utente può osservare l’evoluzione dello scenario e controllarne l’avanzamento.
+Al termine, un *report* descrive i risultati dell’esecuzione mediante indicatori relativi al completamento delle missioni,
+ai tempi, alle distanze percorse e all’utilizzo dei robot.
+
+### Requisiti di business
+
+- **RB-01** *Modellazione di configurazioni alternative*: il sistema deve consentire all'utente di rappresentare
+magazzini
+diversi e di definire, per uno stesso magazzino, scenari con flotte, missioni e politiche gestionali diverse.
+- **RB-02** *Osservazione del comportamento*: Il sistema deve consentire di esaminare come le missioni vengono assegnate
+ed eseguite e come le interazioni tra robo influenzano l'avanzamento della simulazione.
+- **RB-03** *Valutazione dei risultati*: Il sistema deve fornire indicatori quantitativi che permettano all’utente di
+confrontare gli esiti di scenari differenti.
+
+Il risultato atteso è la possibilità di svolgere un ciclo completo di configurazione, simulazione e valutazione.
+L’individuazione della configurazione preferibile spetta all’utente, sulla base degli indicatori rilevanti per il
+proprio confronto.
 
 ### Requisiti funzionali
 
-- Il sistema deve permettere di configurare un magazzino come una griglia di celle, distinguendo tra ostacoli, scaffali, celle di percorso (specificando il costo di attraversamento) e zone di carico.
-- Il sistema deve permettere di definire la flotta di robot di uno scenario, specificando per ciascuno la posizione iniziale e la capacità di carico.
-- Il sistema deve permettere di definire le missioni di uno scenario, di tipo spostamento, prelievo o deposito, ciascuna con una propria priorità e scadenza.
-- Il sistema deve assegnare le missioni ai robot secondo la politica configurata per lo scenario (vicinanza, ciclica, carico di lavoro o casuale).
-- Il sistema deve consentire di calcolare i percorsi dei robot minimizzando la metrica prescelta (tempo oppure distanza).
-- Il sistema deve risolvere i conflitti tra robot che competono per la stessa cella, secondo la politica di gestione configurata, combinando un'azione (attesa o ricalcolo) con un criterio di selezione (casuale, priorità o tempo rimanente).
-- Il sistema deve tracciare, durante la simulazione, lo stato di ciascuna missione (in attesa, assegnata, in esecuzione, completata, fallita) e di ciascun robot (in attesa, pronto, in movimento, arrivato).
-- Il sistema deve permettere di specificare un limite massimo di tempo per la simulazione, interrompendone l'esecuzione qualora tale limite venga raggiunto anche in assenza del completamento di tutte le missioni.
-- Al termine della simulazione, il sistema deve produrre un report contenente: numero di missioni completate, tempo totale, distanza totale percorsa, tempo medio e distanza media per missione, robot più utilizzato e robot meno utilizzato.
-- Il sistema deve permettere di poter salvare e caricare il magazzino e gli scenari da eseguire in file esterni, così da poterli riutilizzare in esecuzioni successive.
+#### Utente
+
+- **RFU-01** *Creazione del magazzino*: l'utente deve poter creare un magazzino specificandone l'identificatore e
+dimensioni e configurare le celle come *pavimenti*, *scaffali* o *zone di carico*. Deve poter applicare modifiche a
+singole celle o ad aree rettangolari e rimuovere le celle selezionate. La rimozione di una cella comporta l'automatica
+invalidazione degli scenari che su tale cella avevano predisposto robot o missioni.
+
+- **RFU-02** *Costi di attraversamento*: l'utente deve poter specificare un costo temporale _non negativo_ per le celle
+su cui è possibile transitare.
+
+- **RFU-03** *Configurazione di un magazzino attraverso diversi scenari*: l'utente deve avere la possibilità di
+configurare più scenari operativi di uno stesso magazzino.
+
+- **RFU-04** *Configurazione della flotta*: l'utente deve poter aggiungere e rimuovere robot dallo scenario. Per ciascun
+robot deve poter scegliere la tipologia (*drone*, *carrier* ed *heavy carrier*) e la loro posizione iniziale.
+
+- **RFU-05** *Configurazione delle missioni*: l'utente deve poter aggiungere e rimuovere missioni di spostamento e di
+consegna. Deve poter specificare la destinazione dello spostamento oppure lo scaffale di origine e la zona di carico
+della consegna, oltre a scadenza e priorità.
+
+- **RFU-06** *Scelta delle politica di calcolo del percorso*: l'utente deve poter scegliere quale metrica minimizzare
+(distanza, tempo e numero di ostacoli) per calcolare il percorso ottimale di un robot verso la destinazione.
+
+- **RFU-07** *Scelta della politica di assegnazione delle missioni*: l'utente deve poter scegliere quale politica di
+assegnazione utilizzare nello scenario (vicinanza, ciclica, casuale e al robot con meno carico di lavoro) per gestire
+come le missioni vengono allocate ai robot.
+
+- **RFU-08** *Scelta della politica di gestione delle collisioni*: l'utente deve poter scegliere quale politica di
+gestione per le collisioni adottare, combinando un'azione (attesa, ricalcolo del percorso) con un criterio di selezione
+che decide quali robot _non_ eseguono l'azione (casuale, priorità, tempo rimanente).
+
+- **RFU-09** *Riutilizzo delle configurazioni*: l'utente deve poter salvare e riaprire magazzini e scenari dal file
+system.
+
+- **RFU-10** *Avvio della simulazione*: l'utente deve poter avviare una simulazione scegliendo quale scenario eseguire
+e impostare facoltivamente un limite massimo di passi di esecuzione.
+
+- **RFU-11** *Osservazione della simulazione*: l'utente deve poter consultare l'esecuzione della simulazione, osservando
+i comportamenti dei robot, quali percorsi vengono scelti, lo stato delle missioni e gli eventi accaduti al passo
+precedente.
+
+- **RFU-12** *Controllo della simulazione*: durante una simulazione, l'utente deve poter sposendere e riprendere
+l'avanzamento automatico, avanzare di un passo e consultare il passo precedente.
+
+- **RFU-13** *Consultazione dei risultati*: Alla conclusione dell'esecuzione, il sistema deve presentare il report
+contenente le statistiche e l'utente può consultarle.
+
+- **RFU-14** *Interruzione volontaria*: in qualsiasi momento l'utente deve poter ritornare al menu principale.
+
+#### Sistema
+
+- **RFS-01** *Validità del posizionamento*: i robot devono essere collocati inizialmente su celle attraversabili.
+Due robot non possono condividere la posizione iniziale e i loro identificatori devono essere distinti all’interno dello
+scenario. Un inserimento non valido deve essere rifiutato senza modificare lo scenario.
+
+- **RFS-02** *Validità delle missioni*: gli identificatori delle missioni devono essere distinti all’interno dello
+scenario. La destinazione di uno spostamento deve essere attraversabile; una consegna deve riferirsi all’oggetto
+associato allo scaffale di origine e avere come destinazione una zona di carico.
+La priorità deve essere un intero compreso tra 1 e 10, con valori maggiori corrispondenti a priorità superiori.
+
+- **RFS-03** *Capacità dei robot*: i droni devono accettare esclusivamente missioni di spostamento.
+I trasportatori (carrier) devono poter accettar anche missioni di trasporto merce e consentire il prelievo di un oggetto
+solo quando il carico risultante non supera la loro capacità. Le missioni assegnate a ciascun robot devono essere
+eseguite nell'ordine della relativa coda. Le caratteristiche di ogni classe di robot sono:
+    - *Drone*: nessuna capacità di carico, 3 missioni massimo assegnabili contemporaneamente e sono veloci
+    (non devono attendere nessuna unità temporale oltre al costo della prossima cella).
+    - *Carrier*: possono caricare al massimo 50 unità di peso, possono accettare fino a 5 missioni contemporaneamente ma
+    sono più lenti dei droni (devono attendere 1 passo in più per ogni cella rispetto ad un drone).
+    - *Heavy Carrier*: possono caricare al massimo 200 unità di peso ma possono accettare solo 1 missione alla volta e
+    sono molto lenti (devono attendere 2 passi in più per ogni cella rispetto al drone)
+
+- **RFS-04** *Assegnazione delle missioni*: il sistema deve scegliere tra i robot che possono accettare la missione
+secondo la politica configurata: vicinanza, selezione ciclica, minor carico di lavoro oppure selezione casuale.
+In assenza di un candidato, la missione deve rimanere in attesa, continuando a essere soggetta alla propria scadenza.
+Il carico di lavoro è il numero di missioni assegnate, inclusa quella corrente. Se un robot non ha abbastanza capacità
+di carico per trasportare un oggetto, allora il robot non può accettare la missione.
+
+- **RFS-05** *Calcolo dei percorsi*: i percorsi devono attraversare esclusivamente celle consentite e raggiungere la
+destinazione dell’azione corrente. Per il prelievo, la destinazione deve essere un punto di interazione dello scaffale.
+Ogni metrica permette di ottenere un percorso ottimale:
+Le metriche disponibili devono considerare rispettivamente il numero di passi (*distanza*), la somma dei costi temporali
+(*tempo*) oppure una penalizzazione della vicinanza agli ostacoli (*ostacoli*).
+
+- **RFS-06** *Gestione dei conflitti*: il sistema deve gestire sia i tentativi di raggiungere la stessa cella sia i
+tentativi di scambio reciproco di posizione. Nei conflitti in cui è possibile scegliere una precedenza, il criterio
+deve essere casuale, basato sulla priorità più alta oppure sulla scadenza più vicina. I robot che cedono devono
+attendere o cercare un percorso alternativo, secondo la politica configurata; se il percorso alternativo non è
+disponibile, devono attendere.
+
+- **RFS-07** *Esecuzione delle missioni*: una missione di spostamento deve completarsi quando il robot raggiunge la
+destinazione. Una consegna deve completarsi dopo il prelievo e il successivo deposito dell’oggetto.
+
+- **RFS-08** *Scadenze*:  la scadenza deve rappresentare il numero di tick rimanenti dalla creazione della missione.
+A ogni passo il sistema deve aggiornare le scadenze prima di eseguire le nuove azioni.
+Una missione il cui tempo è esaurito deve fallire.˙
+
+- **RFS-09** *Stati delle missioni*: il sistema deve distinguere missioni in attesa di assegnazione, assegnate,
+completate e fallite. Una missione rimane assegnata fino a che non raggiunge uno stato terminale.
+Completamento e fallimento sono stati terminali.
+
+- **RFS-10** *Stati dei robot*: il sistema deve distinguere robot inattivi, pronti a svolgere una missione, in movimento
+ e temporaneamente in attesa a causa di un conflitto.
+
+- **RFS-11** *Terminazione*: una simulazione deve terminare quando tutte le missioni hanno raggiunto uno stato terminale
+oppure quando viene raggiunto il limite temporale impostato. Al raggiungimento del limite, le missioni ancora attive
+devono essere dichiarate fallite.
+
+- **RFS-12** *Navigazione temporale*: l’arretramento deve consentire di consultare gli stati già prodotti.
+Il successivo avanzamento deve ripresentare la storia disponibile e proseguire la simulazione quando raggiunge l’ultimo
+stato calcolato.
+
+- **RFS-13** *Criterio di vicinanza*: i vicini di una cella sono le celle poste in alto, in basso, a sinistra e a destra di essa.
+Le celle diagonali non sono considerate vicine.
+
+- **RFS-13** *Statistiche*: le statistiche devono includere:
+    - Durata della simulazione
+    - Numero di robot che compongono la flotta
+    - Numero di missioni totali, completate e fallite
+    - Percentuale di missioni completate su totale
+    - Produttività complessiva, intesa come il rapporto tra il numero di missioni completate e il numero di passi eseguiti
+    - Produttività per robot intesa come produttività complessiva divisa per il numero di robot presenti nello scenario.
+    - Tempo medio trascorso dall'assegnazione al completamento delle missioni
+    - Tempo massimo trascorso dall'assegnazione al completamento delle missioni
+    - Distanza totale percorsa
+    - Distanza per missione completata, intesa come rapporto tra la distanza totale percorsa e il numero di missioni completate.
+    - Robot più utilizzati, intesi come quelli a cui sono state assegnate più missioni
+    - Robot meno utilizzati, intesi come quelli a cui sono state assegnate meno missioni
 
 ### Requisiti non funzionali
 
-- Il sistema deve essere multipiattaforma, eseguibile su sistemi Windows, Linux e macOs.
-- Il sistema deve essere sviluppato in linguaggio Scala.
-- Il sistema deve avere una copertura di test superiore al 70% del codice sorgente.
+- **RNF-01** *Portabilità*: l'applicazione deve essere eseguibile su sistemi *Windows*, *Linux* e *macOs*.
+
+### Requisiti di implementazione
+
+- **RI-01** *Linguaggio di programmazione*: il sistema deve essere sviluppato in linguaggio *Scala*.
+- **RI-02** *Copertura dei test*: il sistema deve avere una copertura di test superiore al 70% del codice sorgente.
 
 ## Modello del dominio
 
-Il **magazzino** virtuale è modellato come una griglia bidimensionale di _celle_, dove ogni cella rappresenta una porzione discreta di spazio.
+Il **magazzino** virtuale (Figura .ref {warehouse}) è modellato come una griglia bidimensionale di _celle_, dove ogni cella rappresenta una porzione discreta di spazio.
 Ogni cella appartiene a una delle seguenti tipologie:
-- _Ostacolo_: celle non attraversabili che rappresentano strutture fisse.
-- _Scaffale_: cella non attraversabile ma interagibile. I robot possono fermarsi presso di essa per prelevare o depositare merce.
-- _Percorso_: cella libera su cui i robot possono transitare.
-- _Zona di carico_: cella di percorso speciale dedicata alle operazioni di carico e scarico merce.
+- _Pavimento_: cella libera su cui i robot possono transitare.
+- _Scaffale_: cella non attraversabile ma interagibile presso dei punti di interazione adiacenti. I robot possono quindi fermarsi presso di essa per prelevare la merce.
+- _Zona di carico_: cella di percorso speciale dedicata alle operazioni di scarico merce.
 
-Ogni cella di percorso ha un _costo_ associato, che rappresenta il tempo necessario per attraversarla.
+Ogni cella attraversabile ha un _costo_ associato, che rappresenta il tempo necessario per attraversarla.
 
-Una **missione** rappresenta un'attività assegnabile ai robot all'interno del magazzino.
+![warehouse](diagrams/warehouse.svg "Diagramma UML del magazzino"){#warehouse}
+
+Una **missione** (Figura .ref {mission}) rappresenta un'attività assegnabile ai robot all'interno del magazzino.
 Ogni missione è definita da:
-- _Tipologia_: una missione può essere di tipo:
+- _Obbiettivo_:
     - _spostamento_: il robot deve recarsi verso un punto specifico del magazzino.
-    - _prelievo_: il robot deve prelevare un oggetto da uno scaffale o da una zona di carico.
-    - _deposito_: il robot deve trasportare un oggetto verso uno scaffale o una zona di carico.
-- _Priorità_: un valore numerico, da 1 a 10, che indica l'importanza della missione rispetto alle altre.
+    - _prelievo_: il robot deve prelevare un oggetto da uno scaffale.
+    - _deposito_: il robot deve trasportare un oggetto verso una zona di carico.
+- _Priorità_: un valore numerico, da 1 a 10, che indica l'importanza della missione rispetto alle altre, dove 1 è il minimo e 10 è il massimo.
 - _Scadenza_: numero di unità temporali di simulazione rimanenti entro cui completare la missione.
-- _Stato_: il ciclo di vita di una missione attraversa questi stati:
+- _Stato_: il ciclo di vita di una missione attraversa i seguenti stati:
     - _in attesa_ di essere assegnata.
     - _assegnata_ ad un robot.
-    - _in esecuzione_ da parte del robot.
     - _completata_ con successo.
     - _fallita_ perché non completata entro la scadenza.
 
+![mission](diagrams/mission.svg "Diagramma UML della missione"){#mission}
+
 Un **robot** è un agente mobile autonomo che opera all'interno del magazzino per eseguire missioni. Ogni robot è definito da:
 - _Posizione_: cella del magazzino in cui si trova attualmente.
-- _Capacità di carico_: peso massimo trasportabile, espresso in unità di peso.
 - _Stato_: un robot può trovarsi in uno dei seguenti stati:
-    - _in attesa_ di una nuova missione.
+    - _inattivo_, ovvero in attesa di una nuova missione.
     - _pronto_ ad eseguire una missione assegnata.
     - _in movimento_ lungo un percorso.
-    - _arrivato_ a destinazione, pronto per completare la missione.
+    - _in attesa_ che il percorso bloccato diventi nuovamente transitabile.
+- _Classe_: esistono tre tipologie di robot:
+    - _Drone_: movimento veloce ma incapace di trasportare oggetti.
+    - _Trasportatore leggero_: media velocità e capace di trasportare oggetti leggeri.
+    - _Trasportatore pesante_: lento e capace di trasportare qualsiasi oggetto.
 
-I robot possono essere dotati di una _coda_ con la quale memorizzare nuove missioni anche mentre ne stanno eseguendo una.
-Al contrario, i robot privi di questa funzione non possono ricevere nuovi compiti finché non completano quello in corso.
+I robot sono dotati di una _coda_ con la quale memorizzare nuove missioni anche mentre ne stanno eseguendo una. I robot che hanno una coda piena non possono accettare altre missioni finché non completano quella in corso.
 
 Uno **scenario** è una configurazione operativa completa del magazzino e definisce tutti gli elementi necessari per eseguire una simulazione. Ogni scenario specifica:
 
-- l'elenco dei robot presenti, ciascuno con la propria posizione iniziale e capacità di carico;
+- l'elenco dei robot presenti, ciascuno con la propria posizione iniziale e classe di appartenenza;
 - l'insieme delle missioni da completare durante la simulazione.
 - le politiche gestionali che determinano il comportamento del sistema:
   - assegnazione delle missioni
   - assegnazione dei percorsi
   - gestione dei conflitti tra robot
 
-Tra le politiche di assegnazione delle missioni si distinguono:
+Tra le politiche di assegnazione delle missioni (Figura .ref {assignment})  si distinguono:
 - _Vicinanza_: la missione viene assegnata al robot più vicino al punto di origine della missione.
 - _Ciclica_: le missioni vengono assegnate ai robot in ordine ciclico, indipendentemente dalla loro posizione.
 - _Carico di lavoro_: le missioni vengono assegnate al robot con il minor numero di missioni in coda.
 - _Casuale_: le missioni vengono assegnate ad un robot scelto casualmente tra quelli disponibili.
 
-Il sistema offre diverse strategie per il calcolo del percorso ottimale, ciascuna pensata per minimizzare una specifica metrica nel tragitto tra la posizione attuale del robot e la destinazione.
+![assignment](diagrams/assignment.svg "Diagramma UML della componente di assegnazione delle missioni"){#assignment}
+
+Il sistema offre diverse strategie per il calcolo del percorso ottimale (Figura .ref {routing}), ciascuna pensata per minimizzare una specifica metrica nel tragitto tra la posizione attuale del robot e la destinazione.
 
 Tra le metriche disponibili si distinguono:
-- Salti: individua il percorso con il minor numero di celle da attraversare, a prescindere dai relativi costi.
-- Tempo: individua il percorso più rapido considerando i costi di attraversamento delle singole celle.
+- _Distanza_: individua il percorso con il minor numero di celle da attraversare, a prescindere dai relativi costi.
+- _Tempo_: individua il percorso più rapido considerando i costi di attraversamento delle singole celle.
+- _Ostacoli_: individua il percorso che transita vicino al minor numero di ostacoli, per evitare collisioni irrisolvibili.
 
-Infine, si distinguono le diverse politiche di gestione dei conflitti tra robot.
-I conflitti si verificano quando due o più robot competono per la stessa cella. Ogni politica di gestione specifica come risolverli, combinando un'azione con un criterio di selezione.
+![routing](diagrams/routing.svg "Diagramma UML della componente di routing"){#routing}
 
-Azioni:
-- Attesa: uno dei robot coinvolti si ferma e attende che l'altro liberi la cella.
-- Ricalcolo: uno dei robot coinvolti ricalcola il proprio percorso trattando la cella di conflitto come un ostacolo temporaneo.
+Infine, si distinguono le diverse politiche di gestione dei conflitti tra robot. I conflitti si verificano in due casi:
+- _collisione indiretta_: quando due o più robot vogliono muoversi nella stessa cella.
+- _collisione diretta_: quando un robot vuole muoversi nella cella occupata da un robot stazionario o quando due robot vogliono scambiarsi di posto.
 
-Criteri di selezione:
-- Casuale: il robot che cede è scelto casualmente.
-- Priorità: cede il robot con priorità più bassa.
-- Tempo rimanente: cede il robot con più tempo rimanente per completare la missione.
+Ogni politica di gestione specifica come risolverli, combinando un'azione con un criterio di selezione. Dai robot coinvolti in una collisione ne viene scelto uno che potrà muoversi (se possibile), mentre gli altri dovranno eseguire un'azione sostitutiva (Figura .ref {action}):
+- _Attesa_: vengono bloccati finché la cella non sarà nuovamente libera.
+- _Ricalcolo del percorso_: Ricalcolano il percorso (se esiste) evitando la cella in cui si sarebbero dovuti muovere, in quanto verrà occupata da un altro robot.
+
+![action](diagrams/action.svg "Diagramma UML delle azioni"){#action}
+
+Criteri di selezione (Figura .ref {collisionselection}):
+- _Casuale_: il robot che vince è scelto casualmente.
+- _Priorità_: vince il robot con la missione di priorità più alta.
+- _Tempo rimanente_: vince il robot con la missione più vicina allo scadere del tempo.
+
+![collisionselection](diagrams/collisionselection.svg "Diagramma UML dei criteri di selezione"){#collisionselection}
 
 Per **simulazione** si intende una particolare esecuzione di uno scenario.
-In genere, una simulazione termina quando tutte le missioni sono state completate.
-È possibile, tuttavia, specificare il limite massimo di tempo, causando l'interruzione prematura dell'esecuzione.
+In genere, una simulazione termina quando tutte le missioni hanno terminato la loro esecuzione. È possibile, tuttavia, specificare il limite massimo di tempo, causando l'interruzione prematura dell'esecuzione.
 
-A fine della simulazione, il sistema produce le statistiche sulle prestazioni dello scenario, includendo:
+A fine della simulazione il sistema produce le statistiche sulle prestazioni dello scenario, includendo:
 
 - Numero di _missioni completate_
-- _Tempo totale_
-- _Distanza totale_ percorsa
-- _Tempo medio_ per missione
-- _Distanza media_ per missione
-- Robot _più utilizzato_
-- Robot _meno utilizzato_
+- _Tempo totale_: numero di unità di tempo trascorse dall'inizio alla fine della simulazione.
+- _Numero di robot_
+- _Numero di missioni_
+- _Numero di missioni completate e fallite_
+- _Distanza totale percorsa_: numero di celle percorse da tutti i robot durante la simulazione.
+- _Numero di blocchi_: quante volte un robot è stato bloccato.
+- _Tempo di completamento medio e massimo_: definisce la media del tempo impiegato per completare ciascuna missione e la durata della missione con il tempo di esecuzione più elevato.
+- _Robot più usato_: il robot a cui sono state assegnate più missioni.
+- _Robot meno usato_: il robot a cui sono state assegnate meno missioni.
 
+In Figura .ref {domain} viene mostrato il diagramma UML del dominio applicativo semplificato.
 
+![domain](diagrams/domain.svg "Diagramma UML del dominio"){#domain}
 
 <!-- Chapter: Design  -->
 .align {end} 
     # Design
 
 ## Architettura del sistema
+In .ref {architecture-diagram} è rappresentato lo schema UML dell’architettura del simulatore.
 
-.image {diagrams/architecture.svg} label:{diagramma architetturale.} 
+L'architettura di Sentinel segue il pattern _Model-View-Controller_ (MVC) e organizza il sistema in tre livelli principali: `core`, `control` e `boundary`. 
+
+Il package `core` costituisce il _model_ dell’applicazione: rappresenta magazzini, robot, missioni e scenari e
+definisce le regole della simulazione, comprese le politiche di assegnazione, calcolo dei percorsi e gestione
+dei conflitti. L’avanzamento del dominio avviene per passi discreti, indipendentemente dalla frequenza con
+cui vengono eseguiti e dalla loro rappresentazione grafica.
+
+Il package `control` comprende i _controller_, che interpretano i comandi dell’utente e coordinano le operazioni
+sul modello. Gli `Editor` gestiscono la costruzione e la modifica di `Warehouse` e `Scenario`, mentre l’`Engine`
+regola l’esecuzione temporale di `Simulation`, consentendo di sospenderla, riprenderla e consultarne i
+passi.
+
+Il package `boundary` raccoglie le componenti di interazione con l’esterno. Nell’interfaccia grafica, il ruolo
+di view è suddiviso tra `View`, responsabile della presentazione dello stato, e `Interactive`, che raccoglie i
+comandi dell’utente. Il `Toolkit` fornisce la finestra e le viste necessarie attraverso contratti indipendenti
+dallo specifico framework grafico.
+
+Per integrare le interazioni dell’utente, l’esecuzione temporizzata e gli aggiornamenti dell’interfaccia, il
+progetto sfrutta le astrazioni funzionali e reattive fornite da `Monix`. Tali astrazioni sono principalmente due:
+`Observable`, che rappresenta flussi di eventi o stati, e `Task`, che descrive operazioni differibili ed
+eseguibili in modo asincrono.
+
+Il collegamento tra le componenti è affidato ad `Application`, che compone i `Task` per coordinare il ciclo di vita
+dell’applicazione. Questa composizione permette di organizzare la navigazione tra le viste, sequenziare le
+operazioni e gestire il completamento o l’interruzione delle attività, garantendo il rilascio delle risorse.
+
+Durante la modifica di `Warehouse` o di `Scenario`, `Application` collega il flusso di comandi proveniente da `Interactive` verso `Editor`. Quest'ultimo li interpreta e restituisce un `Observable` contenente gli aggiornamenti di stato, a cui la `View` si sottoscrive per aggiornare la grafica.
+
+Durante la simulazione, `Application` inoltra invece i comandi ad `Engine`, fornendogli la funzione di rendering da invocare ogni volta che un nuovo passo di simulazione (`StepResult`) è disponibile nel flusso (`Observable[StepResult]`).
+ 
+Il `Task` di esecuzione della simulazione viene coordinato con quello dedicato all'attesa della chiusura della vista: al completamento della simulazione, il `Report` generato viene mostrato all'interno della vista delle statistiche, se invece l'utente ritorna al menu principale prima delle conclusione, il `Report` non verrà generato.
+
+![Diagramma architetturale](diagrams/architecture.svg "Schema UML dell’architettura di Sentinel. Le interfacce `Editor` ed `Engine` rappresentano i _controller_ dell'applicazione: ricevono i comandi provenienti dall’interfaccia `Interactive` e coordinano le operazioni sul modello. La View osserva i cambiamenti di stato nell'applicazione e li riflette nell’interfaccia utente. `Interactive` e `View` costituiscono quindi la _view_ del sistema, mentre `Editor` e `Engine` fungono da intermediari tra quest’ultimo e il dominio applicativo. `Application` ha il compito di coordinare l'intero processo applicativo.") {#architecture-diagram}
 
 ## Design in dettaglio
+
+### Metriche intercambiabili
+
+![metriche intercambiabili](diagrams/metrics.svg "Schema UML dell'applicazione del pattern *Strategy* per la definizione di metriche intercambiabili."){#routing-strategy}
+
+**Problema** Il calcolo dei percorsi deve supportare criteri di ottimizzazione differenti, selezionabili nella
+configurazione dello scenario. Occorre consentire questa variazione evitando di duplicare la logica di ricerca
+per ciascun criterio.
+
+\
+**Soluzione** Per risolvere il problema, è stato utilizzato il pattern *Strategy* per definire diverse metriche di
+ottimizzazione (Figura .ref {routing-strategy}).  Il modulo di routing affida a `Navigator` la ricerca del percorso e richiede, passata come strategia,
+la metrica (`Metric`) per ottenere il *costo* (`Score`) da minimizzare.
+
+### Motore e timer della simulazione
+
+![motore e timer della simulazione](diagrams/engine.svg "Schema UML di `ReactiveEngine`, che utilizza i tick forniti da `Timer` per gestire l’avanzamento della simulazione."){#engine}
+
+**Problema** L'esecuzione della simulazione deve supportare l'avanzamento periodico, la pausa e la navigazione
+tra i passi. Occorre separare la gestione dei risultati dalla logica di temporizzazione e interpretazione dei comandi,
+consentendo di verificare i due comportamenti in modo indipendente.
+
+\
+**Soluzione** Per risolvere il problema, è stata utilizzata la composizione tramite *mixin* (Figura .ref {engine}).
+`ReactiveEngine` *richiede* il contratto `Timer`, che espone il flusso temporale della simulazione (`Observable[Tick]`).
+Il motore sfrutta tale flusso come indice per accedere ai risultati della simulazione, i quali vengono calcolati su
+richiesta e memorizzati per future ri-consultazioni, per poi notificarli all'osservatore.
+`ControllableClock` implementa `Timer`, traducendo il trascorrere del tempo e i comandi dell'utente nei tick da
+emettere.
+Questa separazione permette di testare il motore fornendo sequenze di tick controllate (fornendo un implementazione
+fittizia del `Timer`) e di verificare autonomamente la temporizzazione e la gestione dei comandi.
+
+### Simulazione e limite di tempo
+
+![simulazione e limite di tempo](diagrams/simulation.svg "Schema UML che rappresenta il design della simulazione con un limite di tempo.") {#time-limit}
+
+**Problema** La simulazione deve poter terminare quando tutte le missioni sono concluse oppure al raggiungimento di un
+limite massimo di tick. Occorre aggiungere questo vincolo opzionale senza duplicare la logica di avanzamento
+della simulazione.
+
+\
+**Soluzione** Per risolvere il problema, è stata utilizzata la composizione tramite *stackable trait*
+(Figura .ref {time-limit}).
+`TimeLimit`, quando composto con un'implementazione di `Simulation`, ne estende il comportamento di avanzamento,
+verificando se il limite di tick è stato raggiunto e, in tal caso, terminando la simulazione.
+È stata aggiunta la classe `AbstractSimulation` per condividere la registrazione degli eventi e l'accesso all'ambiente
+della simulazione tra le diverse implementazioni.
+
+### Calcolo delle celle di adiacenza
+
+![Calcolo delle celle di adiacenza di una posizione nel magazzino](diagrams/adjacency.svg "Schema UML dell'applicazione del pattern *Strategy* per il calcolo delle celle di adiacenza.") {#adjacency}
+
+**Problema** Il calcolo delle celle adiacenti dipende dal requisito con cui si considerano vicine due posizioni.
+Occorre rendere facile modificare il significato di *vicino* in caso di cambiamenti nei requisiti.
+
+\
+**Soluzione** Per risolvere il problema è stato utilizzato il pattern *Strategy* (Figura .ref {adjacency}), fornendo
+`Adjacency` come *strategia contestuale* ad `Warehouse` durante il calcolo dei vicini.
+
+### Collisioni
+
+#### Pianificazione delle collisioni
+![collisions_output](diagrams/collisions-01.svg "Rappresentazione UML dell'applicazione del pattern *Command* per la definizione delle azioni da compiere")
+
+**Problema**: Mantenere il principio di singola responsabilità (SRP), riservando al solo modulo di simulazione l'aggiornamento dello stato dei robot. Di conseguenza, la fase di gestione delle collisioni deve limitarsi a determinare chi debba eseguire un'azione e quale azione compiere.\
+**Soluzione**: Seguendo il pattern *Command*, sono state create una serie di `Action` (comandi), che definiscono cosa un robot devrà fare in una fase futura. Il `CollisionHandler` è la componente che ha il compito di assegnare una `Action` ad ogni robot durante la risoluzione delle collisioni, comportandosi quindi da agente pianificatore e senza cambiare lo stato della simulazione.
+
+#### Configurazione delle collisioni
+![collisions_configuration](diagrams/collisions-02.svg "Rappresentazione UML dell'applicazione del pattern *Separation of mechanism and policy* per gestire molteplici configurazioni.")
+
+**Problema**: La gestione delle collisioni deve essere facilmente configurabile, separando i concetti di *chi* deve fare e di *cosa* deve essere fatto.\
+**Soluzione**: La `SelectionPolicy` è la componente che si occupa di scegliere chi vince (e chi perde) nelle dispute per una posizione. Il `CollisionHandler`, dopo aver ottenuto il risultato di una scelta della `SelectionPolicy`, definisce un'azione da compiere per ogni robot coinvolto nella collisione. In questo modo, avendo $ n $ `CollisionHandler` e $ m $ `SelectionPolicy`, è possibile ottenere $ n \times m $ gestioni di collisioni diverse.
+
+#### Riusabilità dei risolutori
+![collisions_reusability](diagrams/collisions-03.svg "Rappresentazione UML dell'applicazione del pattern *Behavior Parameterization* al `Resolver`.")
+
+**Problema**: `CollisionHandler` diversi eseguono le stesse operazioni di controllo delle collisioni, ma producono output (`Action`) differenti. Sarebbe quindi utile avere un risolutore base da poter poi raffinare.\
+**Soluzione**: Il `Resolver` è un `CollisionHandler` generico che permette di definire come calcolare il risultato (`Action`) finale per tutti i robot coinvolti nelle collisioni tramite un metodo `onYield` applicato al singolo robot che non è stato scelto come vincitore della collisione.
+
+### Serializzazione
+
+#### Codifica/decodifica dei modelli di dominio
+![codec](diagrams/codec.svg "Rappresentazione UML dell'applicazione del pattern *Codec* con *Interface Segregation Principle*.")
+
+**Problema**: Si vuole creare un modo per salvare e caricare i modelli di dominio in/da uno storage esterno.\
+**Soluzione**: È stato implementato un `Codec`, che rappresenta l'unione di un `Encoder` e di un `Decoder`. Il `Codec` è quindi in grado di codificare e decodificare i modelli di dominio tramite l'utilizzo dei `Converter`. L'implementazione segue l'*Interface Segregation Principle* e il pattern *Codec*.
+
+#### Serializzazione dei modelli di dominio
+![codec](diagrams/converter.svg "Rappresentazione UML dell'applicazione del pattern *Data Mapper*.")
+
+**Problema**: Definire un meccanismo robusto per la serializzazione e deserializzazione delle entità appartenenti al modello di dominio.\
+**Soluzione**: È stata progettata l'interfaccia `Schema`, una struttura di base che stabilisce il contratto per la validazione dei dati. Per le componenti più complesse sono stati definiti schemi dedicati che ne mappano la struttura su tipi primitivi, facilitando le operazioni di I/O. Infine, per garantire l'aderenza al principio *DRY* e mantenere un'architettura pulita, è stato introdotto il componente `Converter`. Questo agisce secondo il pattern *Data Mapper*, fornendo i metodi bidirezionali per la conversione tra modello di dominio e `Schema`.
+
+#### Codifica e decodifica json
+![codec](diagrams/jsoncodec.svg "Rappresentazione UML dell'applicazione del pattern *Adapter* per adattare un `Converter` e un sistema di serializzazione esterno dentro l'interfaccia `Codec`.")
+
+**Problema**: Si vuole creare un sistema in grado di convertire modelli di dominio in stringhe in formato json e viceversa.\
+**Soluzione**: È stato creato un `JsonCodec` che permette di leggere e scrivere in formato json, trasformando i modelli di dominio in stringhe grazie all'utilizzo dei `Converter`, che vengono usati in due modalità:
+- Lettura: una stringa in input viene trasformata in uno `Schema`, che a sua volta viene convertito nel rispettivo modello di dominio.
+- Scrittura: un modello di dominio viene convertito in uno `Schema` e poi trasformato in una stringa.
+
+### Persistenza
+
+#### Lettura/scrittura dei dati su storage
+![repository](diagrams/repository.svg "Rappresentazione UML dell'applicazione del pattern *Bridge* per separare l'utilizzo del file system dalla serializzazione (che dipende dal `Codec`).")
+
+**Problema**: Si vuole creare un sistema in grado di leggere e scrivere dati in uno storage.\
+**Soluzione**: È stata creata l'interfaccia `Repository`, che rappresenta un punto di accesso ad uno storage (database, file system, etc.) con metodi di scrittura e lettura. Nel caso di *Sentinel* è stato scelto di utilizzare file json sul file system.
 
 <!-- Chapter: Sviluppo  -->
 .align {end} 
     # Sviluppo
+
+## Test automatizzati
+Per garantire il corretto funzionamento del progetto e prevenire regressioni, è stata sviluppata una suite di test automatizzati basata su [scalatest](https://www.scalatest.org).
+
+Per uniformare la struttura dei test e favorire uno stile di scrittura più dichiarativo e leggibile, è stata definita una classe base `UnitTest` che racchiude le configurazioni comuni e le utility di supporto. Inoltre, per isolare i componenti da testare e simulare dipendenze complesse senza dover ricorrere a dati reali di inizializzazione, è stato integrato [mockito](https://github.com/scalatest/scalatestplus-mockito).
+
+L'obiettivo prefissato in fase di progettazione era il raggiungimento di una copertura del codice (code coverage) pari ad almeno il 70%; la suite di test implementata ha permesso di superare questo target, attestandosi su un valore finale del 93%.
+
+## Note di sviluppo
+
+- Utilizzo di *Type classes*:
+    - [`Converter`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/boundary/serialization/Converter.scala) (trait)
+- Utilizzo di *Abstract Data Types*:
+    - [`RobotId`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/core/robot/RobotId.scala)
+- Utilizzo di *Module types*:
+    - [`CollisionChecker`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/core/collisions/CollisionChecker.scala)
+    - [Tutti i `Converter`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/tree/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/boundary/serialization/converters) (implementazioni)
+- Utilizzo di *Context bounds*:
+    - [`JsonCodec`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/boundary/serialization/JsonSerialization.scala#L18)
+    - [`FileRepository`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/boundary/persistence/FileRepository.scala#L15)
+- Utilizzo di *For-comprehension*:
+    - [`MissionSchema`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/boundary/serialization/schemas/MissionSchema.scala)
+    - [`Phase`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/core/simulation/Phase.scala)
+    - [`Resolver`](https://github.com/PPS-25-CFM/PPS-25-Sentinel/blob/34fa31ee2b28e2990bffb1cafb0d092e32910ffb/src/main/scala/it/unibo/sentinel/core/collisions/Resolver.scala#L75)
+
+<!-- Chapter: Commenti finali -->
+.align {end} 
+    # Metodologia di sviluppo
+Per la gestione del progetto è stato adottato il framework agile *Scrum*. Il carico di lavoro complessivo è stato strutturato su 4 settimane da 15 ore ciascuna (per ogni membro), precedute da due giornate dedicate ad una breve pianificazione iniziale e alla configurazione del repository.
+
+Sono stati eseguiti brevi *meeting* giornalieri ogni mattina, con eventuali *meeting* aggiuntivi su richiesta durante la giornata per chiarimenti riguardanti dominio, scoperte di bug e/o semplici richieste di approvazione di *pull request*.
+
+All'inizio di ogni settimana è stato definito lo Sprint Backlog settimanale, individuando un obiettivo di release chiaro e dividento i task tra i componenti del team.
+
+## Workflow e gestione della repository
+La gestione delle versioni sul repository *GitHub* ha seguito il modello di *GitFlow*.
+
+La repository è stata inizializzata a partire da un template sviluppato dal team, già integrato con sistemi di *Continuous Integration (CI)* e versionamento automatico. Per lo sviluppo delle singole funzionalità, ciascun membro ha operato sulla propria *fork* del progetto.
+
+La pipeline di *CI*, configurata tramite [sbt](https://www.scala-sbt.org), esegue controlli automatici a ogni *push* o *pull request* verso i branch *main* e *develop*. In particolare, vengono verificati:
+- Errori di compilazione
+- Errori di stile usando [scalafmt](https://scalameta.org/scalafmt/)
+- Test coverage usando [sbt-scoverage](https://github.com/scoverage/sbt-scoverage) con upload dei report su [codecov](https://about.codecov.io)
+
+Inoltre, a ogni *push* sul branch *main*, un bot automatizzato aggiorna la versione del progetto nel file `build.sbt` (generando il relativo commit) e crea gli archivi `.jar` della nuova release.
+
+Per garantire la qualità del codice e favorire il confronto sulle scelte implementative, ogni *pull request* ha richiesto l'approvazione di almeno un revisore distinto dall'autore. Le *pull request* verso il branch *develop* sono state integrate tramite `squash and merge`, in modo da mantenere una cronologia dei commit lineare e pulita; al contrario, l'integrazione su *main* è avvenuta tramite `merge` standard, preservando la cronologia di develop fondamentale per il calcolo automatico della nuova versione.
 
 <!-- Chapter: Commenti finali -->
 .align {end} 

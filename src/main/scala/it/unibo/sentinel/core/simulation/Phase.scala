@@ -7,6 +7,7 @@ import it.unibo.sentinel.core.collisions.CollisionHandler
 import it.unibo.sentinel.core.collisions.SelectionPolicy
 import it.unibo.sentinel.core.mission.Action
 import it.unibo.sentinel.core.warehouse.{Position, Warehouse}
+import it.unibo.sentinel.core.collisions.Intent
 
 private[core] type Phase = Environment => Seq[Event]
 
@@ -40,11 +41,23 @@ private[core] object Phase:
       handler: CollisionHandler,
       selector: SelectionPolicy
   ): Phase = world =>
+    val intents = calculateIntents(world)
     val events = for
-      (robotId, action) <- handler.resolveCollisions(world.placements)
+      (robotId, action) <- handler.resolveCollisions(intents)
       event <- world.execute(robotId, action)
     yield event
     events.toSeq
+
+  private def calculateIntents(world: Environment): Seq[Intent] =
+    world.placements.map: placement =>
+      val mission = placement.robot.mission.flatMap(world.mission)
+      Intent(
+        placement.robot.id,
+        placement.at,
+        placement.next,
+        mission,
+        placement.robot.status
+      )
 
   def moving: Phase = world =>
     for

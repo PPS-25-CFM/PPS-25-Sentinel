@@ -6,21 +6,24 @@ import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.Observable
 import scala.concurrent.duration.FiniteDuration
+import cats.implicits.*
+
+/** A function that observes the result of a simulation [[StepObserver]].
+  */
+type StepObserver = StepResult => Task[Unit]
 
 /** Advances a simulation periodically and hands each result to an observer.
   */
 trait Engine:
-
   /** Describes a complete run of the [[Simulation]].
     * @param onStep
-    *   The observer evaluated after every simulation [[StepResult]].
+    *   The [[StepObserver]] evaluated after every simulation [[StepResult]].
     * @return
     *   A [[Task]] producing the [[Report]] of the completed [[Simulation]].
     */
-  def run(onStep: StepResult => Task[Unit]): Task[Report]
+  def run(onStep: StepObserver): Task[Report]
 
 object Engine:
-
   /** The commands that can be used to control the [[Simulation]].
     */
   enum Command:
@@ -59,34 +62,36 @@ object Engine:
   )(using Scheduler): Engine =
     new ReactiveEngine(simulation) with ControllableClock(commands, period)
 
-  private abstract class ReactiveEngine(simulation: Simulation)(using
+  private[control] abstract class ReactiveEngine(simulation: Simulation)(using
       scheduler: Scheduler
   ) extends Engine:
-    def clock: Observable[Tick]
+    self: Timer =>
 
     private val history: LazyList[StepResult] =
-      val initial = StepResult(simulation.snapshot, Seq.empty)
+      val initial =
+        StepResult(simulation.time, simulation.snapshot, Seq.empty)
       LazyList
         .iterate(initial)(_ => simulation.step())
         .takeWhile(_ => !simulation.isOver)
 
-    override def run(onStep: StepResult => Task[Unit]): Task[Report] =
+    override def run(onStep: StepObserver): Task[Report] =
       clock
+        .observeOn(scheduler)
         .map { case Tick(time) => history.lift(time) }
         .takeWhileInclusive(_ => !simulation.isOver)
         .collect { case Some(step) => step }
         .mapEval(onStep)
         .completedL
         .map(_ => simulation.statistics)
-        .executeOn(scheduler)
 
-  private trait ControllableClock(
+  private[control] trait Timer:
+    def clock: Observable[Tick]
+
+  private[control] trait ControllableClock(
       commands: Observable[Command],
       period: FiniteDuration
-  ):
-    self: ReactiveEngine =>
+  ) extends Timer:
     import Command.*, Movement.*
-
     override def clock: Observable[Tick] =
       (Observable.now(Resume) ++ commands)
         .switchMap:
@@ -101,6 +106,7 @@ object Engine:
           case (time, Keep)     => time
           case (time, Backward) => time.previous
           case (time, Forward)  => time.next
+        .distinctUntilChangedByKey(_.value)
 
   private enum Movement:
     case Keep, Backward, Forward

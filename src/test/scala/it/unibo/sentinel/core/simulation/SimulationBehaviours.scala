@@ -20,8 +20,18 @@ trait SimulationBehaviours extends TestData with EnvironmentFixture:
 
       "increment the time by one tick" in:
         val sim = build(scenario)
+        val t1 = Tick(1)
         sim.step()
-        sim.time shouldBe Tick(1)
+        sim.time shouldBe t1
+
+      "return a step result at the time reached after the step" in:
+        val sim = build(scenario)
+        val t1 = Tick(1)
+        val t2 = Tick(2)
+        val step1 = sim.step()
+        step1.at shouldBe t1
+        val step2 = sim.step()
+        step2.at shouldBe t2
 
       "return a step result with no events if nothing happens" in:
         val sim = build(emptyScenario)

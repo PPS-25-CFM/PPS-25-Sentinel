@@ -15,6 +15,15 @@ object Tile:
       */
     case NegativeCost(cost: Int)
 
+  /** @param cost
+    *   the raw traversal cost to validate.
+    * @return
+    *   a [[Tick]] built from `cost`, or [[Validation.NegativeCost]] if it is
+    *   negative.
+    */
+  def validateCost(cost: Int): Either[Validation, Tick] =
+    Either.cond(cost >= 0, Tick(cost), Validation.NegativeCost(cost))
+
   /** A tile that can be traversed by a robot.
     */
   sealed trait Walkable extends Tile:

@@ -5,12 +5,10 @@ import it.unibo.sentinel.UnitTest
 class BasicSimulationSpec extends UnitTest with SimulationBehaviours:
   "A BasicSimulation" when:
 
-    val id = SimulationId("sim-test")
-
-    behave like commonSimulation(Simulation.of(id, _))
+    behave like commonSimulation(Simulation.of)
 
     "when there are still missions" should:
-      val id = SimulationId("sim-test")
-      val sim = Simulation.of(id, scenario)
+      val sim = Simulation.of(scenario)
+
       "not be over" in:
         sim.isOver shouldBe false

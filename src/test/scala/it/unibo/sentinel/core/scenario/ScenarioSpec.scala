@@ -142,6 +142,76 @@ class ScenarioSpec extends UnitTest:
           yield s2
         result.left.value shouldBe MissionAlreadyExists(mission.id)
 
+    "remove a robot" should:
+
+      "return a new scenario without the removed robot" in:
+        val spawn =
+          Spawn(
+            id = RobotId("R1"),
+            at = Position(1, 1),
+            ofClass = RobotClass.Drone
+          )
+        val result = s0.place(spawn).value.remove(RobotId("R1"))
+        result.spawns shouldBe empty
+
+      "leave the scenario unchanged when the robot does not exist" in:
+        val result = s0.remove(RobotId("R1"))
+        result shouldBe s0
+
+    "unload a mission" should:
+
+      "return a new scenario without the unloaded mission" in:
+        val mission = Mission.relocate(
+          id = MissionId("M1"),
+          destination = Position(1, 1),
+          duration = Tick(10)
+        )
+        val result = s0.load(mission).value.unload(MissionId("M1"))
+        result.missions shouldBe empty
+
+      "leave the scenario unchanged when the mission does not exist" in:
+        val result = s0.unload(MissionId("M1"))
+        result shouldBe s0
+
+    "load a relocate mission" should:
+
+      "reject movement to a non-traversable tile" in:
+        val shelf = Position(0, 0)
+        val wall = Position(0, 1)
+        val out = Position(-1, 0)
+
+        val scenarioWithShelf = Scenario.in(
+          warehouse.withTile(shelf)(Tile.Shelf(Item.Computer))
+        )
+
+        scenarioWithShelf.load(
+          Mission.relocate(MissionId("M-shelf"), shelf, Tick(10))
+        ) shouldBe Left(NotFloorTile(shelf))
+        s0.load(
+          Mission.relocate(MissionId("M-wall"), wall, Tick(10))
+        ) shouldBe Left(NotFloorTile(wall))
+        s0.load(
+          Mission.relocate(MissionId("M-oob"), out, Tick(10))
+        ) shouldBe Left(NotFloorTile(out))
+
+      "allow movement to a traversable tile" in:
+        val bay = Position(0, 0)
+        val scenarioWithBay =
+          Scenario.in(warehouse.withTile(bay)(Tile.LoadingBay()))
+
+        val floorMission =
+          Mission.relocate(MissionId("M-floor"), topCorner, Tick(10))
+        scenarioWithBay
+          .load(floorMission)
+          .value
+          .missions should contain only floorMission
+
+        val bayMission = Mission.relocate(MissionId("M-bay"), bay, Tick(10))
+        scenarioWithBay
+          .load(bayMission)
+          .value
+          .missions should contain only bayMission
+
     "load a deliver mission" should:
       val shelfPos = Position(2, 2)
       val bayPos = Position(3, 3)

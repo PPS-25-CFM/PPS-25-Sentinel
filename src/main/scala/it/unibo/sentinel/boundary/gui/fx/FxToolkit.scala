@@ -7,6 +7,8 @@ import it.unibo.sentinel.boundary.gui.toolkit.{
   SimulationView,
   StatisticsView,
   Toolkit,
+  WarehouseEditorView,
+  ScenarioEditorView,
   Window
 }
 import monix.eval.Task
@@ -28,5 +30,9 @@ object FxToolkit extends Toolkit:
   override def statistics: V & StatisticsView = new FxStatisticsView
 
   override def simulation: V & SimulationView = new FxSimulationView
+
+  override def editor: V & WarehouseEditorView = new FxWarehouseEditorView
+
+  override def scenarioEditor: V & ScenarioEditorView = new FxScenarioEditorView
 
   override def shutdown(): Task[Unit] = onFx(Platform.exit())

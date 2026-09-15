@@ -30,10 +30,10 @@ java -jar Sentinel-<version>.jar
 ## Usage
 
 The typical workflow is:
-- 1. **Create a Warehouse**
-- 2. **Generate a Scenario**
-- 3. **Run the Simulation**
-- 4. **Read the Statistics.**
+1. **Create a Warehouse**
+2. **Generate a Scenario**
+3. **Run the Simulation**
+4. **Read the Statistics.**
 
 ### 1. Create a warehouse
 
