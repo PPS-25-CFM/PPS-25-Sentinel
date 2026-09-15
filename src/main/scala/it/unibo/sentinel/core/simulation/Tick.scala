@@ -61,4 +61,4 @@ object Tick:
     def +(other: Tick): Tick = tick + other
 
   given Ordering[Tick] = Ordering.Int
-  export scala.math.Ordering.Implicits.given
+  export scala.math.Ordering.Implicits.infixOrderingOps
