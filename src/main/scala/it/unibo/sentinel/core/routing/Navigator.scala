@@ -12,7 +12,7 @@ trait Navigator:
   /** @return
     *   The [[Warehouse]] to navigate.
     */
-  given warehouse: Warehouse
+  given warehouse: Warehouse = scala.compiletime.deferred
 
   /** @param from
     *   the starting [[Position]].
@@ -98,7 +98,6 @@ object Navigator:
     */
   def apply(metric: Metric)(using w: Warehouse): Navigator =
     new Navigator:
-      given warehouse: Warehouse = w
       override def path(
           from: Position,
           destinations: Set[Position],
