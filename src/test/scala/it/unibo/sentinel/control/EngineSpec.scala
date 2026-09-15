@@ -29,6 +29,8 @@ trait EngineFixture:
   when(simulation.statistics).thenReturn(expectedReport)
   var notified = Seq.empty[StepResult]
   val record: StepObserver = step => Task { notified = notified :+ step }
+  val t0 = Tick.zero
+  val t1 = Tick(1)
   def engineOn(ticks: Observable[Tick]): Engine =
     new Engine.ReactiveEngine(simulation) with Engine.Timer:
       override def clock: Observable[Tick] = ticks
@@ -39,7 +41,7 @@ class EngineSpec extends UnitTest:
     "not run" should:
 
       "leave the simulation idle" in new EngineFixture:
-        val clock = Observable(Tick.zero, Tick(1))
+        val clock = Observable(t0, t1)
         val _ = engineOn(clock).run(record)
         scheduler.tick()
         notified shouldBe empty
@@ -48,14 +50,14 @@ class EngineSpec extends UnitTest:
     "run" should:
 
       "notify the initial state at the zero tick" in new EngineFixture:
-        val clock = Observable(Tick.zero)
+        val clock = Observable(t0)
         val _ = engineOn(clock).run(record).runToFuture
         scheduler.tick()
         notified shouldBe Seq(initial)
         verify(simulation, never()).step()
 
       "advance the simulation at the next tick" in new EngineFixture:
-        val clock = Observable(Tick.zero, Tick(1))
+        val clock = Observable(t0, t1)
         val _ =
           engineOn(clock).run(record).runToFuture
         scheduler.tick()
@@ -63,14 +65,14 @@ class EngineSpec extends UnitTest:
         verify(simulation, times(1)).step()
 
       "replay the steps already computed" in new EngineFixture:
-        val clock = Observable(Tick.zero, Tick(1), Tick.zero)
+        val clock = Observable(t0, t1, t0)
         val _ = engineOn(clock).run(record).runToFuture
         scheduler.tick()
         notified shouldBe Seq(initial, second, initial)
         verify(simulation, times(1)).step()
 
       "notify the same step again when the tick repeats" in new EngineFixture:
-        val clock = Observable(Tick.zero, Tick.zero)
+        val clock = Observable(t0, t0)
         val _ = engineOn(clock).run(record).runToFuture
         scheduler.tick()
         notified shouldBe Seq(initial, initial)
@@ -78,7 +80,7 @@ class EngineSpec extends UnitTest:
 
       "not consume further ticks while the observer task is pending" in new EngineFixture:
         val gate = Promise[Unit]()
-        val clock = Observable(Tick.zero, Tick(1))
+        val clock = Observable(t0, t1)
         val _ =
           engineOn(clock).run(_ => Task.fromFuture(gate.future)).runToFuture
         scheduler.tick()
@@ -86,7 +88,7 @@ class EngineSpec extends UnitTest:
 
       "consume the next tick once the observer task completes" in new EngineFixture:
         val gate = Promise[Unit]()
-        val clock = Observable(Tick.zero, Tick(1))
+        val clock = Observable(t0, t1)
         val _ =
           engineOn(clock).run(_ => Task.fromFuture(gate.future)).runToFuture
         scheduler.tick()
@@ -98,10 +100,10 @@ class EngineSpec extends UnitTest:
         val clock = ConcurrentSubject.publish[Tick]
         val running = engineOn(clock).run(record).runToFuture
         scheduler.tick()
-        val _ = clock.onNext(Tick.zero)
+        val _ = clock.onNext(t0)
         scheduler.tick()
         running.cancel()
-        val _ = clock.onNext(Tick(1))
+        val _ = clock.onNext(t1)
         scheduler.tick()
         notified shouldBe Seq(initial)
         verify(simulation, never()).step()
@@ -110,7 +112,7 @@ class EngineSpec extends UnitTest:
 
       "produce the report of the completed simulation" in new EngineFixture:
         when(simulation.isOver).thenReturn(false, true)
-        val clock = Observable.now(Tick.zero) ++ Observable.never
+        val clock = Observable.now(t0) ++ Observable.never
         val running = engineOn(clock).run(record).runToFuture
         scheduler.tick()
         running.value shouldBe Some(Success(expectedReport))
