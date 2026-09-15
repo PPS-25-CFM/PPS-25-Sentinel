@@ -131,8 +131,13 @@ trait Pace(speed: Tick) extends Robot:
 /** Defines the quantity of [[Missions]] a [[Robot]] can handle.
   */
 object Capacity:
+  /** The capacity for a robot that can accept only a single mission. */
   val single = 1
+
+  /** The capacity for a robot that can accept a small number of missions. */
   val small = 3
+
+  /** The capacity for a robot that can accept a large number of missions. */
   val large = 5
 
 /** [[Robot]] capable of accepting multiple [[Mission]]s using a queue.

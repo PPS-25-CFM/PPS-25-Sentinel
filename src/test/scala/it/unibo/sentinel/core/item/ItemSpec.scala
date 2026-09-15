@@ -12,7 +12,7 @@ class ItemSpec extends UnitTest:
         Item.Computer.weight shouldBe Weight(1.0)
         Item.Table.weight shouldBe Weight(10.0)
         Item.Fridge.weight shouldBe Weight(50.0)
-        Item.Dishwasher.weight shouldBe Weight(50.0)
+        Item.Dishwasher.weight shouldBe Weight(100.0)
 
   "An ItemWeight" when:
 

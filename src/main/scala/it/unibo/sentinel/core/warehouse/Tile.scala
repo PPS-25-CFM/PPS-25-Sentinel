@@ -29,23 +29,23 @@ object Tile:
       * @return
       *   relative [[Position]]s from which this tile can be interacted with.
       */
-    def interactiveOffset(using Adjacency): Seq[Position]
+    def interactiveOffset(using strategy: Adjacency): Seq[Position]
 
   /** Represents a floor tile.
     */
-  case class Floor(cost: Tick = Tick.unit) extends Tile with Walkable
+  final case class Floor(cost: Tick = Tick.unit) extends Tile with Walkable
 
   /** A non-traversable tile that can store one object and can be interacted
     * with from an adjacent traversable tile.
     */
-  case class Shelf(item: Item) extends Tile with Interactable:
+  final case class Shelf(item: Item) extends Tile with Interactable:
     override def interactiveOffset(using strategy: Adjacency): Seq[Position] =
       strategy.around(Position(0, 0))
 
   /** A traversable tile that can store one object and can be interacted with
     * while standing on it.
     */
-  case class LoadingBay(cost: Tick = Tick.unit)
+  final case class LoadingBay(cost: Tick = Tick.unit)
       extends Tile
       with Walkable
       with Interactable:

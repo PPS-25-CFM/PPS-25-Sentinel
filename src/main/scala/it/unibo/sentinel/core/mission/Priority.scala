@@ -3,9 +3,13 @@ package it.unibo.sentinel.core.mission
 opaque type Priority = Int
 
 object Priority:
-  /** Priority Constants */
+  /** Priority Low Constant */
   val lowest: Priority = 1
+
+  /** Priority Normal Constant */
   val normal: Priority = 5
+
+  /** Priority High Constant */
   val highest: Priority = 10
 
   /** Creates a new Priority instance if the value is valid */

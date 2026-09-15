@@ -6,11 +6,21 @@ package it.unibo.sentinel.core.item
   *   the transport weight of the item.
   */
 enum Item(val weight: Weight):
-
+  /** Represents a computer, a lightweight electronic device.
+    */
   case Computer extends Item(Weight(1.0))
+
+  /** Represents a table, a piece of furniture with a average weight.
+    */
   case Table extends Item(Weight(10.0))
+
+  /** Represents a fridge, a heavy appliance.
+    */
   case Fridge extends Item(Weight(50.0))
-  case Dishwasher extends Item(Weight(50.0))
+
+  /** Represents a dishwasher, a heavy appliance.
+    */
+  case Dishwasher extends Item(Weight(100.0))
 
 object Item:
 
