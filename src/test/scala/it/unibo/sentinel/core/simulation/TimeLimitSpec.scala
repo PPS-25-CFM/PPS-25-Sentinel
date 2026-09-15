@@ -8,9 +8,8 @@ import it.unibo.sentinel.core.robot.RobotStatus
 class TimeLimitSpec extends UnitTest with SimulationBehaviours:
   "A TimeLimit simulation" when:
 
-    behave like commonSimulation { scenario =>
+    behave like commonSimulation: scenario =>
       Simulation.of(scenario, limit = Tick(Int.MaxValue))
-    }
 
     "when the limit is reached" should:
       val limit = Tick(1)
