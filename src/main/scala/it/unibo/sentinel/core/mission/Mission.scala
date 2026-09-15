@@ -122,7 +122,7 @@ final case class Mission private (
     */
   def tick: Mission =
     unlessOver:
-      if deadline.value <= 1 then copy(deadline = deadline.previous).fail
+      if deadline <= Tick.unit then copy(deadline = deadline.previous).fail
       else copy(deadline = deadline.previous)
 
 object Mission:

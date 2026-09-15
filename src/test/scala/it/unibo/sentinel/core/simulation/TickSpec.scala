@@ -29,3 +29,11 @@ class TickSpec extends UnitTest:
       "return the next tick" in:
         val tick = Tick(5)
         tick.next shouldBe Tick(6)
+
+    "compared with ordering operators" should:
+
+      "order collections through the given Ordering" in:
+        Seq(Tick.unit, Tick.zero).sorted shouldBe Seq(
+          Tick.zero,
+          Tick.unit
+        )

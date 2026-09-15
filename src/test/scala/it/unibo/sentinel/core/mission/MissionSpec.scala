@@ -149,7 +149,7 @@ class MissionSpec extends UnitTest:
 
       "expire and fail, clearing carrier if Assigned" in:
         val lastTickPending =
-          Mission.relocate(MissionId("M_EXP"), target, Tick(1))
+          Mission.relocate(MissionId("M_EXP"), target, Tick.unit)
         val expiredPending = lastTickPending.tick
         expiredPending.deadline shouldBe Tick(0)
         expiredPending.status shouldBe MissionStatus.Failed
@@ -157,7 +157,7 @@ class MissionSpec extends UnitTest:
         expiredPending.currentTarget shouldBe None
 
         val lastTickAssigned = Mission
-          .relocate(MissionId("M_EXP2"), target, Tick(1))
+          .relocate(MissionId("M_EXP2"), target, Tick.unit)
           .assignTo(robotID)
         val expiredAssigned = lastTickAssigned.tick
         expiredAssigned.deadline shouldBe Tick(0)
