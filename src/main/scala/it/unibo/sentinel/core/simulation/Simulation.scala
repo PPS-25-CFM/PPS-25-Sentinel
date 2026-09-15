@@ -148,8 +148,7 @@ object Simulation:
     def isOver: Boolean = world.missions.forall(_.isOver)
 
   private trait TimeLimit(max: Tick) extends AbstractSimulation:
-    private def limitReached: Boolean =
-      summon[Ordering[Tick]].gteq(time, max)
+    private def limitReached: Boolean = time >= max
 
     abstract override def step(): StepResult =
       val now = time
