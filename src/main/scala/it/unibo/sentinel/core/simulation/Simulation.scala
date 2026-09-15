@@ -123,7 +123,7 @@ object Simulation:
 
     def history: History = recorded
 
-    def world: Environment
+    protected def world: Environment
 
   private class BasicSimulation(
       scenario: Scenario,
